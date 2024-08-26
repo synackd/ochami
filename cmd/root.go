@@ -43,35 +43,6 @@ var rootCmd = &cobra.Command{
 			}
 			os.Exit(0)
 		}
-
-		// Set log level verbosity based on how many -l flags were passed.
-		var loggerLevel log.LogLevel
-		if logLevel == 0 {
-			loggerLevel = log.LogLevelWarning
-		} else if logLevel == 1 {
-			loggerLevel = log.LogLevelInfo
-		} else if logLevel > 1 {
-			loggerLevel = log.LogLevelDebug
-		}
-
-		// Set logging format based on --log-level.
-		var loggerFormat log.LogFormat
-		switch logFormat {
-		case "rfc3339":
-			loggerFormat = log.LogFormatRFC3339
-		case "json":
-			loggerFormat = log.LogFormatJSON
-		case "basic":
-			loggerFormat = log.LogFormatBasic
-		default:
-			fmt.Fprintf(os.Stderr, "%s: unknown log format %q", progName, logFormat)
-			os.Exit(1)
-		}
-
-		if err := log.Init(loggerLevel, loggerFormat); err != nil {
-			fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
-			os.Exit(1)
-		}
 	},
 }
 
@@ -86,8 +57,40 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to configuration file to use")
+	cobra.OnInitialize(InitLogging)
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "json", "Log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "Set verbosity of logs; each additional -l increases the logging verbosity")
+}
+
+func InitLogging() {
+	// Set log level verbosity based on how many -l flags were passed.
+	var loggerLevel log.LogLevel
+	if logLevel == 0 {
+		loggerLevel = log.LogLevelWarning
+	} else if logLevel == 1 {
+		loggerLevel = log.LogLevelInfo
+	} else if logLevel > 1 {
+		loggerLevel = log.LogLevelDebug
+	}
+
+	// Set logging format based on --log-level.
+	var loggerFormat log.LogFormat
+	switch logFormat {
+	case "rfc3339":
+		loggerFormat = log.LogFormatRFC3339
+	case "json":
+		loggerFormat = log.LogFormatJSON
+	case "basic":
+		loggerFormat = log.LogFormatBasic
+	default:
+		fmt.Fprintf(os.Stderr, "%s: unknown log format %q", progName, logFormat)
+		os.Exit(1)
+	}
+
+	if err := log.Init(loggerLevel, loggerFormat); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
+		os.Exit(1)
+	}
 }
 
 func InitConfig() {
