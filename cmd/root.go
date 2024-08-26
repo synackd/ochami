@@ -25,9 +25,9 @@ const (
 )
 
 var (
-	logLevel   int
 	configFile string
 	logFormat  string
+	logLevel   int
 )
 
 // rootCmd represents the base command when called without any subcommands
