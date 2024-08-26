@@ -16,8 +16,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/synackd/ochami/internal/log"
 	"github.com/spf13/cobra"
+	"github.com/synackd/ochami/internal/log"
 )
 
 const (
@@ -27,6 +27,7 @@ const (
 var (
 	verbosity  int
 	configFile string
+	logFormat  string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -51,8 +52,22 @@ var rootCmd = &cobra.Command{
 			logLevel = log.LogLevelInfo
 		} else if verbosity > 1 {
 			logLevel = log.LogLevelDebug
+
+		// Set logging format based on --log-level.
+		var loggerFormat log.LogFormat
+		switch logFormat {
+		case "rfc3339":
+			loggerFormat = log.LogFormatRFC3339
+		case "json":
+			loggerFormat = log.LogFormatJSON
+		case "basic":
+			loggerFormat = log.LogFormatBasic
+		default:
+			fmt.Fprintf(os.Stderr, "%s: unknown log format %q", progName, logFormat)
+			os.Exit(1)
 		}
-		if err := log.Init(logLevel); err != nil {
+
+		if err := log.Init(loggerLevel, loggerFormat); err != nil {
 			fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
 			os.Exit(1)
 		}
@@ -74,6 +89,7 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to configuration file to use")
 	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "Set verbosity of logs; each additional -v increases the verbosity")
+	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "json", "Log format (json,rfc3339,basic)")
 }
 
 func InitConfig() {
