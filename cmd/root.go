@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	verbosity  int
+	logLevel   int
 	configFile string
 	logFormat  string
 )
@@ -44,14 +44,15 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		// Set log level verbosity based on how many -v flags were passed.
-		var logLevel log.LogLevel
-		if verbosity == 0 {
-			logLevel = log.LogLevelWarning
-		} else if verbosity == 1 {
-			logLevel = log.LogLevelInfo
-		} else if verbosity > 1 {
-			logLevel = log.LogLevelDebug
+		// Set log level verbosity based on how many -l flags were passed.
+		var loggerLevel log.LogLevel
+		if logLevel == 0 {
+			loggerLevel = log.LogLevelWarning
+		} else if logLevel == 1 {
+			loggerLevel = log.LogLevelInfo
+		} else if logLevel > 1 {
+			loggerLevel = log.LogLevelDebug
+		}
 
 		// Set logging format based on --log-level.
 		var loggerFormat log.LogFormat
@@ -88,8 +89,8 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to configuration file to use")
-	rootCmd.PersistentFlags().CountVarP(&verbosity, "verbose", "v", "Set verbosity of logs; each additional -v increases the verbosity")
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "json", "Log format (json,rfc3339,basic)")
+	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "Set verbosity of logs; each additional -l increases the logging verbosity")
 }
 
 func InitConfig() {
