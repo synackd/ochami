@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/synackd/ochami/internal/config"
 	"github.com/synackd/ochami/internal/log"
 )
 
@@ -25,9 +26,10 @@ const (
 )
 
 var (
-	configFile string
-	logFormat  string
-	logLevel   int
+	configFile   string
+	configFormat string
+	logFormat    string
+	logLevel     int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -56,8 +58,12 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to configuration file to use")
-	cobra.OnInitialize(InitLogging)
+	cobra.OnInitialize(
+		InitLogging,
+		InitConfig,
+	)
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "Path to configuration file to use")
+	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "Format of configuration file; if none passed, tries to infer from file extension")
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "json", "Log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "Set verbosity of logs; each additional -l increases the logging verbosity")
 }
@@ -95,6 +101,11 @@ func InitLogging() {
 
 func InitConfig() {
 	if configFile != "" {
+		log.Logger.Debug().Msgf("Specified config file on command line: %q", configFile)
+		err := config.LoadConfig(configFile, configFormat)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to load configuration file")
+		}
 	} else {
 		log.Logger.Debug().Msg("No configuration file passed on command line")
 	}
