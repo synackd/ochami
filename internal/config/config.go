@@ -21,7 +21,7 @@ func LoadConfig(path, format string) error {
 	}
 	base := filepath.Dir(path)
 	name := filepath.Base(path)
-	ext := filepath.Ext(path)
+	ext := strings.Trim(filepath.Ext(path), ".")
 	fullPath := filepath.Join(base, name)
 	log.Logger.Debug().Msgf("Configuration file is: %s", fullPath)
 
