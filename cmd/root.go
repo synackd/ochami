@@ -39,11 +39,13 @@ var rootCmd = &cobra.Command{
 	Use:   progName,
 	Short: "Command line interface for interacting with OpenCHAMI services",
 	Long:  "",
+	Version: version,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := cmd.Help()
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to print help")
+				os.Exit(1)
 			}
 			os.Exit(0)
 		}
@@ -56,8 +58,8 @@ func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("failed to execute root command")
+		os.Exit(1)
 	}
-	log.Logger.Debug().Msg("DEBUG")
 }
 
 func init() {
