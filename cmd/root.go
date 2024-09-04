@@ -26,13 +26,12 @@ import (
 const (
 	progName         = "ochami"
 	defaultLogFormat = "json"
+	defaultLogLevel  = "warning"
 )
 
 var (
 	configFile   string
 	configFormat string
-	logFormat    string
-	logLevel     int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -70,8 +69,8 @@ func init() {
 	)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "path to configuration file to use")
 	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
-	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "", fmt.Sprintf("log format (json,rfc3339,basic) (default: %s)", defaultLogFormat))
-	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "set verbosity of logs; each additional -l increases the logging verbosity")
+	rootCmd.PersistentFlags().String("log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
+	rootCmd.PersistentFlags().StringP("log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
 
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
@@ -84,55 +83,15 @@ func checkBindError(e error) {
 }
 
 func InitLogging() {
-	// Set log level verbosity based on config file (log.level) or how many -l flags were passed.
+	// Set log level verbosity based on config file (log.level) or how many --log-level.
 	// The command line option overrides the config file option.
-	var loggerLevel log.LogLevel
-	if logLevel == 0 {
-		if viper.IsSet("log.level") {
-			ll := viper.GetString("log.level")
-			switch ll {
-			case "warning":
-				loggerLevel = log.LogLevelWarning
-			case "info":
-				loggerLevel = log.LogLevelInfo
-			case "debug":
-				loggerLevel = log.LogLevelDebug
-			default:
-				fmt.Fprintf(os.Stderr, "%s: unknown log level %q\n", progName, ll)
-				os.Exit(1)
-			}
-		} else {
-			loggerLevel = log.LogLevelWarning
-		}
-	} else if logLevel == 1 {
-		loggerLevel = log.LogLevelInfo
-	} else if logLevel > 1 {
-		loggerLevel = log.LogLevelDebug
-	}
-
-	// Set logging format based on config file (log.format) or --log-format.
-	// The command line option overrides the config file option.
-	var loggerFormat log.LogFormat
-	if logFormat == "" {
-		if viper.IsSet("log.format") {
-			logFormat = viper.GetString("log.format")
-		} else {
-			logFormat = defaultLogFormat
-		}
-	}
-	switch logFormat {
-	case "rfc3339":
-		loggerFormat = log.LogFormatRFC3339
-	case "json":
-		loggerFormat = log.LogFormatJSON
-	case "basic":
-		loggerFormat = log.LogFormatBasic
-	default:
-		fmt.Fprintf(os.Stderr, "%s: unknown log format %q\n", progName, logFormat)
+	logCfg := viper.Sub("log")
+	if logCfg == nil {
+		fmt.Fprintf(os.Stderr, "%s: failed to read logging config", progName)
 		os.Exit(1)
 	}
-
-	if err := log.Init(loggerLevel, loggerFormat); err != nil {
+	
+	if err := log.Init(logCfg.GetString("level"), logCfg.GetString("format")); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
 		os.Exit(1)
 	}
