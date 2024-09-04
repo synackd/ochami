@@ -67,10 +67,10 @@ func init() {
 		InitConfig,
 		InitLogging,
 	)
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "Path to configuration file to use")
-	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "Format of configuration file; if none passed, tries to infer from file extension")
-	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "", fmt.Sprintf("Log format (json,rfc3339,basic) (default: %s)", defaultLogFormat))
-	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "Set verbosity of logs; each additional -l increases the logging verbosity")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "path to configuration file to use")
+	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
+	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "", fmt.Sprintf("log format (json,rfc3339,basic) (default: %s)", defaultLogFormat))
+	rootCmd.PersistentFlags().CountVarP(&logLevel, "log-level", "l", "set verbosity of logs; each additional -l increases the logging verbosity")
 
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
