@@ -27,7 +27,7 @@ binaries: $(NAME)
 
 .PHONY: clean
 clean:
-	$(GO) clean
+	$(GO) clean -i -x
 
 $(NAME): *.go cmd/*.go $(foreach file,$(INTERNAL),$(wildcard $(file)/*.go))
 	$(GO) build -v -ldflags="$(LDFLAGS)"
