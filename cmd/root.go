@@ -15,6 +15,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,7 +24,7 @@ import (
 )
 
 const (
-	progName = "ochami"
+	progName         = "ochami"
 	defaultLogFormat = "json"
 )
 
@@ -36,9 +37,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   progName,
-	Short: "Command line interface for interacting with OpenCHAMI services",
-	Long:  "",
+	Use:     progName,
+	Short:   "Command line interface for interacting with OpenCHAMI services",
+	Long:    "",
 	Version: version,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
@@ -78,7 +79,6 @@ func init() {
 
 func checkBindError(e error) {
 	if e != nil {
-		//log.Logger.Error().Err(e).Msg("failed to bind key to flag")
 		fmt.Fprintf(os.Stderr, "%s: failed to bind key to flag: %v\n", progName, e)
 	}
 }
@@ -139,6 +139,15 @@ func InitLogging() {
 }
 
 func InitConfig() {
+	// Set defaults for any keys not set by env var, config file, or flag
+	config.SetDefaults()
+
+	// Read any environment variables
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("ochami")
+
+	// Read configuration file if passed
 	if configFile != "" {
 		err := config.LoadConfig(configFile, configFormat)
 		if err != nil {

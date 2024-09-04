@@ -54,3 +54,8 @@ func LoadConfig(path, format string) error {
 
 	return err
 }
+
+func SetDefaults() {
+	viper.SetDefault("log.format", "json")
+	viper.SetDefault("log.level", "warning")
+}
