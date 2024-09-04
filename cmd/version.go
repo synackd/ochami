@@ -43,7 +43,7 @@ var versionCmd = &cobra.Command{
 
 func init() {
 	versionCmd.Flags().Bool("commit", false, "print just git commit and build date")
-	versionCmd.Flags().Bool("all", false, "print version, git commit, and build date")
+	versionCmd.Flags().BoolP("all", "a", false, "print version, git commit, and build date")
 	versionCmd.MarkFlagsMutuallyExclusive("all", "commit")
 	rootCmd.AddCommand(versionCmd)
 }
