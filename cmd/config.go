@@ -27,9 +27,9 @@ var configCmd = &cobra.Command{
 	Example: `ochami config show`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			err := cmd.Help()
+			err := cmd.Usage()
 			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print help")
+				log.Logger.Error().Err(err).Msg("failed to print usage")
 				os.Exit(1)
 			}
 			os.Exit(0)
