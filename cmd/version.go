@@ -29,6 +29,9 @@ var (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version to stdout and exit",
+	Example: `  ochami version
+  ochami version --all
+  ochami version -c`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flag("all").Value.String() == "true" {
 			output = fmt.Sprintf("%s %s @ %s", version, commit, date)
