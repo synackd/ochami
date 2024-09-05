@@ -9,6 +9,13 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
+// RemoveFromSlice removes an element from a slice and returns the resulting
+// slice. The element to be removed is identified by its index in the slice.
+func RemoveFromSlice[T any](slice []T, index int) []T {
+	slice[len(slice)-1], slice[index] = slice[index], slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}
+
 // LoadConfig() takes a path and log format and reads in the file pointed to by
 // path, loading it as a configuration file using viper. If path is empty, an
 // error is returned. LoadConfig() accepts any config file types that viper
