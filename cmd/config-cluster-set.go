@@ -84,16 +84,20 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			newClusterData := make(map[string]any)
 			if clusterUrl != "" {
 				newClusterData["base-url"] = clusterUrl
+				log.Logger.Debug().Msgf("using base-url %s", clusterUrl)
 			}
 			newCluster["cluster"] = newClusterData
 			clusterList = append(clusterList, newCluster)
+			log.Logger.Info().Msgf("added new cluster: %s", clusterName)
 		} else {
 			// Cluster exists, modify it
 			if clusterUrl != "" {
 				modClusterData := (*modCluster)["cluster"].(map[string]any)
 				modClusterData["base-url"] = clusterUrl
 				(*modCluster)["cluster"] = modClusterData
+				log.Logger.Debug().Msgf("updating base-url for cluster %s: %s", clusterName, clusterUrl)
 			}
+			log.Logger.Info().Msgf("modified config for existing cluster: %s", clusterName)
 		}
 
 		// Apply config to Viper and write out the config file
@@ -104,6 +108,7 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			log.Logger.Error().Err(err).Msgf("failed to write to config file: %s", configFile)
 			os.Exit(1)
 		}
+		log.Logger.Info().Msgf("wrote config to %s", configFile)
 	},
 }
 
