@@ -21,8 +21,8 @@ import (
 )
 
 // setClusterCmd represents the setCluster command
-var configSetClusterCmd = &cobra.Command{
-	Use:   "set-cluster",
+var configClusterSetCmd = &cobra.Command{
+	Use:   "set CLUSTER_NAME",
 	Short: "Add or set parameters for a cluster",
 	Long: `Use set-cluster to add cluster with its configuration or set the configuration
 for an existing cluster. For example:
@@ -108,6 +108,6 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 }
 
 func init() {
-	configSetClusterCmd.Flags().StringP("base-url", "u", "", "base URL of cluster")
-	configCmd.AddCommand(configSetClusterCmd)
+	configClusterSetCmd.Flags().StringP("base-url", "u", "", "base URL of cluster")
+	configClusterCmd.AddCommand(configClusterSetCmd)
 }
