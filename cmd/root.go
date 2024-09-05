@@ -90,7 +90,7 @@ func InitLogging() {
 		fmt.Fprintf(os.Stderr, "%s: failed to read logging config", progName)
 		os.Exit(1)
 	}
-	
+
 	if err := log.Init(logCfg.GetString("level"), logCfg.GetString("format")); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
 		os.Exit(1)
