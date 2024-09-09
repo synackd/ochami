@@ -1,6 +1,6 @@
 module github.com/synackd/ochami
 
-go 1.22.2
+go 1.21
 
 require (
 	github.com/rs/zerolog v1.33.0
