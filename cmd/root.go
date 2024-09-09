@@ -32,6 +32,8 @@ const (
 var (
 	configFile   string
 	configFormat string
+	logLevel     string
+	logFormat    string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -69,8 +71,8 @@ func init() {
 	)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "path to configuration file to use")
 	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
-	rootCmd.PersistentFlags().String("log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
-	rootCmd.PersistentFlags().StringP("log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
+	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
+	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
 
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
@@ -91,7 +93,24 @@ func InitLogging() {
 		os.Exit(1)
 	}
 
-	if err := log.Init(logCfg.GetString("level"), logCfg.GetString("format")); err != nil {
+	// Viper's BindPFlag does not currently work with binding to subkeys.
+	// (See: https://github.com/spf13/viper/issues/368)
+	// Therefore, we must manually check if the flag was set. If not, check if
+	// config file option was set. If not, use default value.
+	//
+	// These if statements should be removed when the referenced issue is resolved.
+	if !rootCmd.PersistentFlags().Lookup("log-format").Changed {
+		if lf := logCfg.GetString("format"); lf != "" {
+			logFormat = lf
+		}
+	}
+	if !rootCmd.PersistentFlags().Lookup("log-level").Changed {
+		if ll := logCfg.GetString("level"); ll != "" {
+			logLevel = ll
+		}
+	}
+
+	if err := log.Init(logLevel, logFormat); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: failed to initialize logger: %v\n", progName, err)
 		os.Exit(1)
 	}
