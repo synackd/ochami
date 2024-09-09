@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/synackd/ochami/internal/config"
 	"github.com/synackd/ochami/internal/log"
+	"github.com/synackd/ochami/internal/version"
 )
 
 const (
@@ -41,7 +42,7 @@ var rootCmd = &cobra.Command{
 	Use:     progName,
 	Short:   "Command line interface for interacting with OpenCHAMI services",
 	Long:    "",
-	Version: version,
+	Version: version.Version,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := cmd.Usage()

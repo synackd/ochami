@@ -15,7 +15,7 @@ endif
 NAME    ?= ochami
 VERSION ?= $(shell git describe --tags --always --abbrev=0)
 BUILD   ?= $(shell git rev-parse --short HEAD)
-LDFLAGS := -s -X=$(IMPORT)cmd.version=$(VERSION) -X=$(IMPORT)cmd.commit=$(BUILD) -X=$(IMPORT)cmd.date=$(shell date --iso-8601=seconds)
+LDFLAGS := -s -X=$(IMPORT)internal/version.Version=$(VERSION) -X=$(IMPORT)internal/version.Commit=$(BUILD) -X=$(IMPORT)internal/version.Date=$(shell date --iso-8601=seconds)
 
 INTERNAL := $(wildcard internal/*)
 

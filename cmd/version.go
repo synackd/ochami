@@ -16,14 +16,10 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/synackd/ochami/internal/version"
 )
 
-var (
-	version = "v0.0.0"
-	commit  = "000000"
-	date    = "0000-00-00:00:00:00"
-	output  string
-)
+var output string
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -34,11 +30,11 @@ var versionCmd = &cobra.Command{
   ochami version -c`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flag("all").Value.String() == "true" {
-			output = fmt.Sprintf("%s %s @ %s", version, commit, date)
+			output = fmt.Sprintf("%s %s @ %s", version.Version, version.Commit, version.Date)
 		} else if cmd.Flag("commit").Value.String() == "true" {
-			output = fmt.Sprintf("%s @ %s", commit, date)
+			output = fmt.Sprintf("%s @ %s", version.Commit, version.Date)
 		} else {
-			output = version
+			output = version.Version
 		}
 		fmt.Println(output)
 	},
