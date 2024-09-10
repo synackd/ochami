@@ -97,7 +97,7 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			// If this is the first cluster to be added, set it as the default
 			if len(clusterList) == 0 {
 				viper.Set("default-cluster", clusterName)
-				log.Logger.Info().Msgf("cluster %s set as default-cluster", clusterName)
+				log.Logger.Info().Msgf("first and new cluster %s set as default-cluster", clusterName)
 			}
 
 			// Add new cluster to list
@@ -115,6 +115,12 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			log.Logger.Info().Msgf("modified config for existing cluster: %s", clusterName)
 		}
 
+		// If --default was passed, make this cluster the default one
+		if cmd.Flag("default").Changed {
+			viper.Set("default-cluster", clusterName)
+			log.Logger.Info().Msgf("cluster %s set as default-cluster due to --default being passed", clusterName)
+		}
+
 		// Apply config to Viper and write out the config file
 		// WARNING: This will rewrite the whole config file so modifications like
 		// comments will get erased.
@@ -129,5 +135,6 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 
 func init() {
 	configClusterSetCmd.Flags().StringP("base-uri", "u", "", "base URL of cluster")
+	configClusterSetCmd.Flags().BoolP("default", "d", false, "set cluster as the default")
 	configClusterCmd.AddCommand(configClusterSetCmd)
 }
