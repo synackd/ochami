@@ -27,17 +27,23 @@ var configClusterSetCmd = &cobra.Command{
 	Long: `Use set-cluster to add cluster with its configuration or set the configuration
 for an existing cluster. For example:
 
-	ochami config set-cluster foobar.openchami.cluster --base-url https://foobar.openchami.cluster
+	ochami config set-cluster foobar.openchami.cluster --base-uri https://foobar.openchami.cluster
 
 Creates the following entry in the 'clusters' list:
 
 	- name: foobar
 	  cluster:
-	    base-url: https://foobar.openchami.cluster
+	    base-uri: https://foobar.openchami.cluster
+
+If this is the first cluster created, the following is also set:
+
+	default-cluster: foobar
+
+default-cluster is used to determine which cluster in the list should be used for subcommands.
 
 This same command can be use to modify existing cluster information. Running the same command above
 with a different base URL will change the base URL for the 'foobar' cluster.`,
-	Example: `  ochami config set-cluster foobar.openchami.cluster --base-url https://foobar.openchami.cluster`,
+	Example: `  ochami config set-cluster foobar.openchami.cluster --base-uri https://foobar.openchami.cluster`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that cluster name is only arg
 		if len(args) == 0 {
@@ -65,7 +71,7 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 
 		// Fetch existing cluster list config
 		clusterName := args[0]
-		clusterUrl := cmd.Flag("base-url").Value.String()
+		clusterUrl := cmd.Flag("base-uri").Value.String()
 		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to unmarshal cluster list")
 		}
@@ -83,21 +89,36 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			newCluster["name"] = clusterName
 			newClusterData := make(map[string]any)
 			if clusterUrl != "" {
-				newClusterData["base-url"] = clusterUrl
-				log.Logger.Debug().Msgf("using base-url %s", clusterUrl)
+				newClusterData["base-uri"] = clusterUrl
+				log.Logger.Debug().Msgf("using base-uri %s", clusterUrl)
 			}
 			newCluster["cluster"] = newClusterData
+
+			// If this is the first cluster to be added, set it as the default
+			if len(clusterList) == 0 {
+				viper.Set("default-cluster", clusterName)
+				log.Logger.Info().Msgf("first and new cluster %s set as default-cluster", clusterName)
+			}
+
+			// Add new cluster to list
 			clusterList = append(clusterList, newCluster)
 			log.Logger.Info().Msgf("added new cluster: %s", clusterName)
+			
 		} else {
 			// Cluster exists, modify it
 			if clusterUrl != "" {
 				modClusterData := (*modCluster)["cluster"].(map[string]any)
-				modClusterData["base-url"] = clusterUrl
+				modClusterData["base-uri"] = clusterUrl
 				(*modCluster)["cluster"] = modClusterData
-				log.Logger.Debug().Msgf("updating base-url for cluster %s: %s", clusterName, clusterUrl)
+				log.Logger.Debug().Msgf("updating base-uri for cluster %s: %s", clusterName, clusterUrl)
 			}
 			log.Logger.Info().Msgf("modified config for existing cluster: %s", clusterName)
+		}
+
+		// If --default was passed, make this cluster the default one
+		if cmd.Flag("default").Changed {
+			viper.Set("default-cluster", clusterName)
+			log.Logger.Info().Msgf("cluster %s set as default-cluster due to --default being passed", clusterName)
 		}
 
 		// Apply config to Viper and write out the config file
@@ -113,6 +134,7 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 }
 
 func init() {
-	configClusterSetCmd.Flags().StringP("base-url", "u", "", "base URL of cluster")
+	configClusterSetCmd.Flags().StringP("base-uri", "u", "", "base URL of cluster")
+	configClusterSetCmd.Flags().BoolP("default", "d", false, "set cluster as the default")
 	configClusterCmd.AddCommand(configClusterSetCmd)
 }
