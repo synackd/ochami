@@ -47,7 +47,7 @@ var bssGetBootparamsCmd = &cobra.Command{
 		}
 
 		// Create client to make request to BSS
-		bssClient, err := client.NewBSSClient(baseURI)
+		bssClient, err := client.NewBSSClient(baseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new BSS client")
 			os.Exit(1)

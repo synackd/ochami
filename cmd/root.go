@@ -40,6 +40,7 @@ var (
 	baseURI      string
 	cacertPath   string
 	token        string
+	insecure     bool
 )
 
 // rootCmd represents the base command when called without any subcommands

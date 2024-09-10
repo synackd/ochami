@@ -19,9 +19,9 @@ const basePathBSS = "/boot/v1"
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
 // BSSClient. If an error occurred creating the embedded OchamiClient, it is
-// returned.
-func NewBSSClient(baseURI string) (*BSSClient, error) {
-	oc, err := NewOchamiClient(baseURI, basePathBSS)
+// returned. If insecure is true, TLS certificates will not be verified.
+func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
+	oc, err := NewOchamiClient(baseURI, basePathBSS, insecure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OchamiClient: %v", err)
 	}

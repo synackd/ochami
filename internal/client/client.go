@@ -30,13 +30,18 @@ var (
 	responseHeaderTimeout = 120 * time.Second
 )
 
-// defaultClient creates an http.DefaultClient for its OchamiClient and
-// configures it to not try to verify TLS certificates.
+// defaultClient creates an http.DefaultClient for its OchamiClient.
 func (oc *OchamiClient) defaultClient() {
+	oc.Client = http.DefaultClient
+}
+
+// defaultClientInsecure creates an http.DefaultClient for its OchamiClient and
+// configures it to not try to verify TLS certificates.
+func (oc *OchamiClient) defaultClientInsecure() {
 	oc.Client = http.DefaultClient
 	oc.Client.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// Default client does not verify server certificate
+			// This default client does not verify server certificate
 			InsecureSkipVerify: true,
 		},
 	}
@@ -46,8 +51,9 @@ func (oc *OchamiClient) defaultClient() {
 // OchamiClient. If an error occurs parsing baseURI, it is returned. baseURI is
 // the base URI of the OpenCHAMI services (e.g.
 // https://foobar.openchami.cluster) and basePath is the endpoint prefix that is
-// service-dependent (e.g. for BSS it could be "/boot/v1").
-func NewOchamiClient(baseURI, basePath string) (*OchamiClient, error) {
+// service-dependent (e.g. for BSS it could be "/boot/v1"). If insecure is true,
+// the client will not verify TLS certificates.
+func NewOchamiClient(baseURI, basePath string, insecure bool) (*OchamiClient, error) {
 	u, err := url.Parse(baseURI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse URI: %v", err)
@@ -56,7 +62,11 @@ func NewOchamiClient(baseURI, basePath string) (*OchamiClient, error) {
 		BaseURI: u,
 		BasePath: basePath,
 	}
-	oc.defaultClient()
+	if insecure {
+		oc.defaultClientInsecure()
+	} else {
+		oc.defaultClient()
+	}
 	return oc, err
 }
 
