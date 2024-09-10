@@ -55,15 +55,27 @@ var configClusterDelCmd = &cobra.Command{
 			if cluster["name"] == clusterName {
 				newClusterList := config.RemoveFromSlice(clusterList, idx)
 
-				// Apply config to Viper and write out the config file
+				// Apply config to Viper
+				viper.Set("clusters", newClusterList)
+
+				// If cluster was default, remove default-cluster
+				if viper.IsSet("default-cluster") {
+					cn := viper.GetString("default-cluster")
+					if cn == clusterName {
+						viper.Set("default-cluster", "")
+						log.Logger.Info().Msgf("cluster %s removed as default-cluster from config file %s", clusterName, configFile)
+					}
+				}
+
+				// Write out config file
 				// WARNING: This will rewrite the whole config file so modifications like
 				// comments will get erased.
-				viper.Set("clusters", newClusterList)
 				if err := viper.WriteConfig(); err != nil {
 					log.Logger.Error().Err(err).Msgf("failed to write to config file: %s", configFile)
 					os.Exit(1)
 				}
 				log.Logger.Info().Msgf("cluster %s removed from config file %s", clusterName, configFile)
+
 				os.Exit(0)
 			}
 		}
