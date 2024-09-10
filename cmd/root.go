@@ -35,6 +35,11 @@ var (
 	configFormat string
 	logLevel     string
 	logFormat    string
+
+	// These are only used by 'bss' and 'smd' subcommands.
+	baseURI      string
+	cacertPath   string
+	token        string
 )
 
 // rootCmd represents the base command when called without any subcommands
