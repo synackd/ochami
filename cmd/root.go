@@ -145,3 +145,66 @@ func InitConfig() {
 		}
 	}
 }
+
+func getBaseURI(cmd *cobra.Command) (string, error) {
+	// Precedence of getting base URI for requests:
+	//
+	// 1. If --cluster is set, search config file for matching name and read
+	//    details from there.
+	// 2. If flags corresponding to cluster info (e.g. --base-uri) are set,
+	//    read details from them.
+	// 3. If "default-cluster" is set in config file (config file must be
+	//    specified), use cluster identified by that name as source of info.
+	// 4. Data sources exhausted, err.
+	var (
+		clusterList  []map[string]any
+		clusterToUse *map[string]any
+		clusterName  string
+	)
+	if cmd.Flag("cluster").Changed {
+		if configFile == "" {
+			return "", fmt.Errorf("--cluster specified without --config")
+		}
+		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
+			return "", fmt.Errorf("failed to unmarshal cluster list: %v", err)
+		}
+		clusterName = cmd.Flag("cluster").Value.String()
+		for _, c := range clusterList {
+			if c["name"] == clusterName {
+				clusterToUse = &c
+				break;
+			}
+		}
+		if clusterToUse == nil {
+			return "", fmt.Errorf("cluster %q not found in %s", clusterName, configFile)
+		}
+		clusterToUseData := (*clusterToUse)["cluster"].(map[string]any)
+		if clusterToUseData["base-uri"] == nil {
+			return "", fmt.Errorf("base-uri not set for cluster %q specified with --cluster", clusterName)
+		}
+		return clusterToUseData["base-uri"].(string), nil
+	} else if cmd.Flag("base-uri").Changed {
+		return baseURI, nil
+	} else if configFile != "" && viper.IsSet("default-cluster") {
+		clusterName = viper.GetString("default-cluster")
+		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
+			return "", fmt.Errorf("failed to unmarshal cluster list: %v", err)
+		}
+		for _, c := range clusterList {
+			if c["name"] == clusterName {
+				clusterToUse = &c
+				break;
+			}
+		}
+		if clusterToUse == nil {
+			return "", fmt.Errorf("default cluster %q not found in %s", clusterName, configFile)
+		}
+		clusterToUseData := (*clusterToUse)["cluster"].(map[string]any)
+		if clusterToUseData["base-uri"] == nil {
+			return "", fmt.Errorf("base-uri not set for default cluster %q", clusterName)
+		}
+		return clusterToUseData["base-uri"].(string), nil
+	}
+
+	return "", fmt.Errorf("no base-uri set bia --base-uri, --cluster, or config file")
+}
