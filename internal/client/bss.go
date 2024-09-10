@@ -34,23 +34,32 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 
 // MakeBSSRequest is a wrapper around MakeRequest that calls GetURI to form the
 // final URI to make the request with and pass to MakeRequest.
-func (bc *BSSClient) MakeBSSRequest(method, endpoint string, headers *HTTPHeaders, body HTTPBody) (*http.Response, HTTPBody, error) {
-	uri, err := bc.GetURI(endpoint)
+func (bc *BSSClient) MakeBSSRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, HTTPBody, error) {
+	uri, err := bc.GetURI(endpoint, query)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
+		if query == "" {
+			return nil, nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
+		} else {
+			return nil, nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
+		}
 	}
 
 	return bc.MakeRequest(method, uri, headers, body)
 }
 
 // GetURI takes an endpoint and joins it with the BSSClient's BaseURI and
-// BasePath to form the final URI to be used for a request.
-func (bc *BSSClient) GetURI(endpoint string) (string, error) {
+// BasePath to form the final URI to be used for a request. If query is
+// specified, it is used as a raw query string and appended onto the URL
+// without URL encoding. query should not contain the initial '?'.
+func (bc *BSSClient) GetURI(endpoint, query string) (string, error) {
 	uri, err := url.Parse(bc.BaseURI.String())
 	if err != nil {
 		return "", fmt.Errorf("failed to parse base URI %s: %v", bc.BaseURI, err)
 	}
 	uri.Path = path.Join(uri.Path, bc.BasePath, endpoint)
+	if query != "" {
+		uri.RawQuery = query
+	}
 	return uri.String(), err
 }
 
@@ -59,7 +68,10 @@ func (bc *BSSClient) GetURI(endpoint string) (string, error) {
 // received in the response along with a nil error. If the HTTP response code is
 // unsuccessful (i.e. not 2XX), then the returned error will contain an
 // UnsuccessfulHTTPError. Otherwise, the error that occurred is returned.
-func (bc *BSSClient) GetData(endpoint, token string, headers *HTTPHeaders) (string, error) {
+// query is the raw query string (without the '?') to be added to the URI. It
+// should already be URL-encoded, e.g. generated using url.Values' Encode()
+// function.
+func (bc *BSSClient) GetData(endpoint, query, token string, headers *HTTPHeaders) (string, error) {
 	if token != "" {
 		if headers == nil {
 			headers = NewHTTPHeaders()
@@ -69,7 +81,7 @@ func (bc *BSSClient) GetData(endpoint, token string, headers *HTTPHeaders) (stri
 		}
 	}
 
-	res, resBody, err := bc.MakeBSSRequest(http.MethodGet, endpoint, headers, nil)
+	res, resBody, err := bc.MakeBSSRequest(http.MethodGet, endpoint, query, headers, nil)
 	if err != nil {
 		return "", fmt.Errorf("error making request to BSS: %v", err)
 	}

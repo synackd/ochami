@@ -15,6 +15,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -61,23 +62,60 @@ var bssGetBootparamsCmd = &cobra.Command{
 			}
 		}
 
-		// If no args specified, get all boot parameters
-		if len(args) == 0 {
-			data, err := bssClient.GetData("/bootparameters", token, nil)
-			if err != nil {
-				if errors.Is(err, client.UnsuccessfulHTTPError) {
-					log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
-				} else {
-					log.Logger.Error().Err(err).Msg("failed to request boot parameters from BSS")
+		// If no ID flags are specified, get all boot parameters
+		qstr := ""
+		if cmd.Flag("xname").Changed ||
+		   cmd.Flag("mac").Changed ||
+		   cmd.Flag("nid").Changed {
+			values := url.Values{}
+			if cmd.Flag("xname").Changed {
+				s, err := cmd.Flags().GetStringSlice("xname")
+				if err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch xname list")
+					os.Exit(1)
 				}
-				os.Exit(1)
+				for _, x := range s {
+					values.Add("name", x)
+				}
 			}
-
-			fmt.Println(data)
+			if cmd.Flag("mac").Changed {
+				s, err := cmd.Flags().GetStringSlice("mac")
+				if err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch mac list")
+					os.Exit(1)
+				}
+				for _, m := range s {
+					values.Add("mac", m)
+				}
+			}
+			if cmd.Flag("nid").Changed {
+				s, err := cmd.Flags().GetIntSlice("nid")
+				if err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch nid list")
+					os.Exit(1)
+				}
+				for _, n := range s {
+					values.Add("nid", fmt.Sprintf("%d", n))
+				}
+			}
+			qstr = values.Encode()
 		}
+		data, err := bssClient.GetData("/bootparameters", qstr, token, nil)
+		if err != nil {
+			if errors.Is(err, client.UnsuccessfulHTTPError) {
+				log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
+			} else {
+				log.Logger.Error().Err(err).Msg("failed to request boot parameters from BSS")
+			}
+			os.Exit(1)
+		}
+		fmt.Println(data)
 	},
 }
 
 func init() {
+	bssGetBootparamsCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
+	bssGetBootparamsCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
+	bssGetBootparamsCmd.Flags().IntSliceP("nid", "n", []int{}, "one or more node IDs whose boot parameters to get")
 	bssGetCmd.AddCommand(bssGetBootparamsCmd)
 }
