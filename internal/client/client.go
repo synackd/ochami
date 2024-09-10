@@ -3,10 +3,13 @@ package client
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"time"
 
 	"github.com/synackd/ochami/internal/version"
 )
@@ -19,7 +22,13 @@ type OchamiClient struct {
 	BasePath string   // Base path for the service (e.g. /boot/v1 for BSS)
 }
 
-var userAgent = "ochami/" + version.Version
+var (
+	userAgent = "ochami/" + version.Version
+
+	// TLS timeout configuration
+	tlsHandshakeTimeout   = 120 * time.Second
+	responseHeaderTimeout = 120 * time.Second
+)
 
 // defaultClient creates an http.DefaultClient for its OchamiClient and
 // configures it to not try to verify TLS certificates.
@@ -86,4 +95,32 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 	}
 
 	return res, resBody, err
+}
+
+// UseCACert takes a path to a CA certificate bundle in PEM format and sets it
+// as the OchamiClient's certificate authority certificate to verify the
+// certificates of connections to TLS-enabled HTTP URIs (HTTPS).
+func (oc *OchamiClient) UseCACert(caCertPath string) error {
+	cacert, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %v", caCertPath, err)
+	}
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM(cacert)
+
+	if oc == nil {
+		return fmt.Errorf("client is nil")
+	}
+
+	(*oc).Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs:            certPool,
+			InsecureSkipVerify: false,
+		},
+		DisableKeepAlives: true,
+		TLSHandshakeTimeout: tlsHandshakeTimeout,
+		ResponseHeaderTimeout: responseHeaderTimeout,
+	}
+
+	return nil
 }

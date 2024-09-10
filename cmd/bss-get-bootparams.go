@@ -46,14 +46,25 @@ var bssGetBootparamsCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// If no args specified, get all boot parameters
-		if len(args) == 0 {
-			bssClient, err := client.NewBSSClient(baseURI)
+		// Create client to make request to BSS
+		bssClient, err := client.NewBSSClient(baseURI)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("error creating new BSS client")
+			os.Exit(1)
+		}
+
+		// Check if a CA certificate was passed and load it into client if valid
+		if cacertPath != "" {
+			log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
+			err = bssClient.UseCACert(cacertPath)
 			if err != nil {
-				log.Logger.Error().Err(err).Msg("error creating new BSS client")
+				log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
 				os.Exit(1)
 			}
+		}
 
+		// If no args specified, get all boot parameters
+		if len(args) == 0 {
 			data, err := bssClient.GetData("/bootparameters", token, nil)
 			if err != nil {
 				if errors.Is(err, client.UnsuccessfulHTTPError) {
