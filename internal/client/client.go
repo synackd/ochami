@@ -88,21 +88,6 @@ func (oc *OchamiClient) GetURI(endpoint, query string) (string, error) {
 	return uri.String(), err
 }
 
-// MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form
-// the final URI to make the request with and pass to MakeRequest.
-func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {
-	uri, err := oc.GetURI(endpoint, query)
-	if err != nil {
-		if query == "" {
-			return nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
-		} else {
-			return nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
-		}
-	}
-
-	return oc.MakeRequest(method, uri, headers, body)
-}
-
 // GetData is a wrapper around MakeOchamiRequest that sends a GET request to
 // endpoint, using an optional token and optional headers, and returns an
 // HTTPEnvelope containg the response metadata and the data received in the
@@ -134,6 +119,21 @@ func (oc *OchamiClient) GetData(endpoint, query, token string, headers *HTTPHead
 		return he, he.CheckResponse()
 	}
 	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
+}
+
+// MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form
+// the final URI to make the request with and pass to MakeRequest.
+func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {
+	uri, err := oc.GetURI(endpoint, query)
+	if err != nil {
+		if query == "" {
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
+		} else {
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
+		}
+	}
+
+	return oc.MakeRequest(method, uri, headers, body)
 }
 
 // MakeRequest is a convenience function that, using an OchamiClient as the HTTP
