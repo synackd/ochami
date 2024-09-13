@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/synackd/ochami/internal/log"
 )
 
 type HTTPHeaders map[string][]string
@@ -99,5 +101,19 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 		return henv, nil
 	} else {
 		return henv, fmt.Errorf("HTTP response was nil")
+	}
+}
+
+func (he HTTPEnvelope) CheckResponse() error {
+	statusOK := he.StatusCode >= 200 && he.StatusCode < 300
+	if statusOK {
+		log.Logger.Info().Msgf("Response status: %s %s", he.Proto, he.Status)
+		return nil
+	} else {
+		if len(he.Body) > 0 {
+			return fmt.Errorf("%w: %s %s: %s", UnsuccessfulHTTPError, he.Proto, he.Status, string(he.Body))
+		} else {
+			return fmt.Errorf("%w: %s %s", UnsuccessfulHTTPError, he.Proto, he.Status)
+		}
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/synackd/ochami/internal/log"
 	"github.com/synackd/ochami/internal/version"
 )
 
@@ -132,17 +131,7 @@ func (oc *OchamiClient) GetData(endpoint, query, token string, headers *HTTPHead
 		if err != nil {
 			return he, fmt.Errorf("could not create HTTP envelope from response: %v", err)
 		}
-		statusOK := he.StatusCode >= 200 && he.StatusCode < 300
-		if statusOK {
-			log.Logger.Info().Msgf("Response status: %s %s", he.Proto, he.Status)
-			return he, nil
-		} else {
-			if len(he.Body) > 0 {
-				return he, fmt.Errorf("%w: %s %s: %s", UnsuccessfulHTTPError, he.Proto, he.Status, string(he.Body))
-			} else {
-				return he, fmt.Errorf("%w: %s %s", UnsuccessfulHTTPError, he.Proto, he.Status)
-			}
-		}
+		return he, he.CheckResponse()
 	}
 	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
 }
