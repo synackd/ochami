@@ -80,6 +80,20 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
+	rootCmd.PersistentFlags().String("cluster", "", "name of cluster whose config to use for this command")
+	rootCmd.PersistentFlags().StringVarP(&baseURI, "base-uri", "u", "", "base URI for OpenCHAMI services")
+	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
+	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
+	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
+
+	// Either use cluster from config file or specify details on CLI
+	bssCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
+
+	if t, set := os.LookupEnv("OCHAMI_ACCESS_TOKEN"); set {
+		if !rootCmd.PersistentFlags().Lookup("token").Changed {
+			token = t
+		}
+	}
 
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
