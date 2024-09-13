@@ -27,6 +27,10 @@ import (
 var bssBootparamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get boot parameters for one or all nodes",
+	Example: `  ochami bss bootparams get
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
