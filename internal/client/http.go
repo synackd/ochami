@@ -2,10 +2,24 @@ package client
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 )
 
-type HTTPHeaders map[string]string
+type HTTPHeaders map[string][]string
 type HTTPBody []byte
+
+// HTTPEnvelope represents a subset of the http.Response struct that only
+// contains relevant members. It is used as the return values of client
+// functions that make requests so that the caller need not import the http
+// module.
+type HTTPEnvelope struct {
+	Status     string // e.g. "200 OK"
+	StatusCode int    // e.g. 200
+	Proto      string // e.g. "HTTP/1.0"
+	Headers    *HTTPHeaders
+	Body       HTTPBody
+}
 
 var (
 	UnsuccessfulHTTPError = fmt.Errorf("unsuccessful HTTP status")
@@ -17,13 +31,27 @@ func NewHTTPHeaders() *HTTPHeaders {
 	return &HTTPHeaders{}
 }
 
+// Add adds the key, value pair to the header, appending to any existing values
+// associated with the key. The value is not processed in any way before being
+// added. If the recipient HTTPHeaders pointer is nil, an error is returned.
+func (h *HTTPHeaders) Add(key, value string) error {
+	if h != nil {
+		(*h)[key] = append((*h)[key], value)
+		return nil
+	} else {
+		return fmt.Errorf("HTTPHeaders is nil")
+	}
+}
+
 // SetAuthorization takes a token and adds it as an authentication header to the
 // HTTPHeaders map. If the HTTPHeaders map is nil, an error is returned.
 func (h *HTTPHeaders) SetAuthorization(token string) error {
 	if h == nil {
 		return NilMapPointerError
 	}
-	(*h)["Authorization"] = fmt.Sprintf("Bearer %s", token)
+	if err := h.Add("Authorization", fmt.Sprintf("Bearer %s", token)); err != nil {
+		return fmt.Errorf("could not set authorization token in HTTPHeaders: %v", err)
+	}
 	return nil
 }
 
@@ -33,6 +61,43 @@ func (h *HTTPHeaders) SetContentType(ct string) error {
 	if h == nil {
 		return NilMapPointerError
 	}
-	(*h)["Content-Type"] = ct
+	if err := h.Add("Content-Type", ct); err != nil {
+		return fmt.Errorf("could not set Content-Type in HTTPHeaders: %v", err)
+	}
 	return nil
+}
+
+// NewHTTPEnvelopeFromResponse takes a pointer to an http.Response and returns a
+// populated HTTPEnvelope. If res is nil or there is an error reading the
+// response body, an error is returned. Importantly, this function closes the
+// response body after reading it so it should not already have been closed
+// before calling this function.
+func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
+	var henv HTTPEnvelope
+	if res != nil {
+		henv = HTTPEnvelope{
+			Status:     res.Status,
+			StatusCode: res.StatusCode,
+			Proto:      res.Proto,
+		}
+		headers := &HTTPHeaders{}
+		for key, vals := range res.Header {
+			(*headers)[http.CanonicalHeaderKey(key)] = vals
+		}
+		henv.Headers = headers
+
+		var body HTTPBody
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return henv, fmt.Errorf("could not read HTTP body: %v", err)
+		}
+		if err := res.Body.Close(); err != nil {
+			return henv, fmt.Errorf("error closing response body: %v", err)
+		}
+		henv.Body = body
+
+		return henv, nil
+	} else {
+		return henv, fmt.Errorf("HTTP response was nil")
+	}
 }

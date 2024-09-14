@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -92,13 +91,13 @@ func (oc *OchamiClient) GetURI(endpoint, query string) (string, error) {
 
 // MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form
 // the final URI to make the request with and pass to MakeRequest.
-func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, HTTPBody, error) {
+func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {
 	uri, err := oc.GetURI(endpoint, query)
 	if err != nil {
 		if query == "" {
-			return nil, nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
 		} else {
-			return nil, nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
 		}
 	}
 
@@ -106,51 +105,56 @@ func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, header
 }
 
 // GetData is a wrapper around MakeOchamiRequest that sends a GET request to
-// endpoint, using an optional token and optional headers, and returns the data
-// received in the response along with a nil error. If the HTTP response code is
-// unsuccessful (i.e. not 2XX), then the returned error will contain an
-// UnsuccessfulHTTPError. Otherwise, the error that occurred is returned.
-// query is the raw query string (without the '?') to be added to the URI. It
-// should already be URL-encoded, e.g. generated using url.Values' Encode()
-// function.
-func (oc *OchamiClient) GetData(endpoint, query, token string, headers *HTTPHeaders) (string, error) {
+// endpoint, using an optional token and optional headers, and returns an
+// HTTPEnvelope containg the response metadata and the data received in the
+// response along with a nil error. If the HTTP response code is unsuccessful
+// (i.e. not 2XX), then the returned error will contain an
+// UnsuccessfulHTTPError. Otherwise, the error that occurred is returned.  query
+// is the raw query string (without the '?') to be added to the URI. It should
+// already be URL-encoded, e.g. generated using url.Values' Encode() function.
+func (oc *OchamiClient) GetData(endpoint, query, token string, headers *HTTPHeaders) (HTTPEnvelope, error) {
+	var he HTTPEnvelope
 	if token != "" {
 		if headers == nil {
 			headers = NewHTTPHeaders()
 		}
 		if err := headers.SetAuthorization(token); err != nil {
-			return "", fmt.Errorf("error setting token in HTTP headers: %v", err)
+			return he, fmt.Errorf("error setting token in HTTP headers: %v", err)
 		}
 	}
 
-	res, resBody, err := oc.MakeOchamiRequest(http.MethodGet, endpoint, query, headers, nil)
+	res, err := oc.MakeOchamiRequest(http.MethodGet, endpoint, query, headers, nil)
 	if err != nil {
-		return "", fmt.Errorf("error making request to %s: %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making request to %s: %v", oc.ServiceName, err)
 	}
 	if res != nil {
-		statusOK := res.StatusCode >= 200 && res.StatusCode < 300
+		he, err := NewHTTPEnvelopeFromResponse(res)
+		if err != nil {
+			return he, fmt.Errorf("could not create HTTP envelope from response: %v", err)
+		}
+		statusOK := he.StatusCode >= 200 && he.StatusCode < 300
 		if statusOK {
-			log.Logger.Info().Msgf("Response status: %s %s", res.Proto, res.Status)
-			return string(resBody), nil
+			log.Logger.Info().Msgf("Response status: %s %s", he.Proto, he.Status)
+			return he, nil
 		} else {
-			if len(resBody) > 0 {
-				return "", fmt.Errorf("%w: %s %s: %s", UnsuccessfulHTTPError, res.Proto, res.Status, string(resBody))
+			if len(he.Body) > 0 {
+				return he, fmt.Errorf("%w: %s %s: %s", UnsuccessfulHTTPError, he.Proto, he.Status, string(he.Body))
 			} else {
-				return "", fmt.Errorf("%w: %s %s", UnsuccessfulHTTPError, res.Proto, res.Status)
+				return he, fmt.Errorf("%w: %s %s", UnsuccessfulHTTPError, he.Proto, he.Status)
 			}
 		}
 	}
-	return "", fmt.Errorf("%s response was empty", oc.ServiceName)
+	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
 }
 
 // MakeRequest is a convenience function that, using an OchamiClient as the HTTP
 // client, sends an HTTP request to the passed uri including optional headers
 // and body, and uses the passed HTTP method.
-func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, body HTTPBody) (*http.Response, HTTPBody, error) {
+func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {
 	// Create request using function args
 	req, err := http.NewRequest(method, uri, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create new HTTP request: %v", err)
+		return nil, fmt.Errorf("failed to create new HTTP request: %v", err)
 	}
 
 	// Create empty headers if headers pointer is nil so range works
@@ -160,24 +164,19 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 
 	// Add headers, including user agent
 	req.Header.Add("User-Agent", userAgent)
-	for k, v := range *headers {
-		req.Header.Add(k, v)
+	for key, vals := range *headers {
+		for _, val := range vals {
+			req.Header.Add(key, val)
+		}
 	}
 
 	// Execute HTTP request
 	res, err := oc.Client.Do(req)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to execute HTTP request: %v", err)
+		return nil, fmt.Errorf("failed to execute HTTP request: %v", err)
 	}
 
-	// Read response
-	resBody, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read HTTP response body: %v", err)
-	}
-
-	return res, resBody, err
+	return res, err
 }
 
 // UseCACert takes a path to a CA certificate bundle in PEM format and sets it
