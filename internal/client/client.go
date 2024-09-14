@@ -113,6 +113,31 @@ func (oc *OchamiClient) GetData(endpoint, query string, headers *HTTPHeaders) (H
 	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
 }
 
+// PostData is a wrapper around MakeOchamiRequest that sends a POST request to
+// endpoint, using an optional token, optional headers, a body, and returns an
+// HTTPEnvelope containg the response metadata and the data received in the
+// response along with a nil error. If the HTTP response code is unsuccessful
+// (i.e. not 2XX), then the returned error will contain an
+// UnsuccessfulHTTPError. Otherwise, the error that occurred is returned. query
+// is the raw query string (without the '?') to be added to the URI. It should
+// already be URL-encoded, e.g. generated using url.Values' Encode() function.
+func (oc *OchamiClient) PostData(endpoint, query string, headers *HTTPHeaders, body HTTPBody) (HTTPEnvelope, error) {
+	var he HTTPEnvelope
+
+	res, err := oc.MakeOchamiRequest(http.MethodPost, endpoint, query, headers, body)
+	if err != nil {
+		return he, fmt.Errorf("error making request to %s, %v", oc.ServiceName, err)
+	}
+	if res != nil {
+		he, err := NewHTTPEnvelopeFromResponse(res)
+		if err != nil {
+			return he, fmt.Errorf("could not create HTTP envelope from response: %v", err)
+		}
+		return he, he.CheckResponse()
+	}
+	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
+}
+
 // MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form
 // the final URI to make the request with and pass to MakeRequest.
 func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {

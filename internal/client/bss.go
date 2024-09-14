@@ -1,7 +1,10 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+
+	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 )
 
 // BSSClient is an OchamiClient that has its BasePath set configured to the one
@@ -30,6 +33,30 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 	}
 
 	return bc, err
+}
+
+func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		err     error
+	)
+	if body, err = json.Marshal(bp); err != nil {
+		return henv, fmt.Errorf("PostBootParams(): failed to marshal BootParams: %v", err)
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("PostBootParams(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = bc.PostData(BSSRelpathBootParams, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("PostBootParams(): failed to POST boot parameters to BSS: %v", err)
+	}
+
+	return henv, err
 }
 
 func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
