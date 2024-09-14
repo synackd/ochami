@@ -40,14 +40,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		// TODO: Check token validity/expiration
-		if token == "" {
-			log.Logger.Error().Msg("no token set")
-			if err := cmd.Usage(); err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-			}
-			os.Exit(1)
-		}
+		checkToken(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
@@ -57,14 +50,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 		}
 
 		// Check if a CA certificate was passed and load it into client if valid
-		if cacertPath != "" {
-			log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
-			err = bssClient.UseCACert(cacertPath)
-			if err != nil {
-				log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
-				os.Exit(1)
-			}
-		}
+		useCACert(bssClient.OchamiClient)
 
 		// If no ID flags are specified, get all boot parameters
 		qstr := ""

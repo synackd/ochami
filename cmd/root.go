@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/synackd/ochami/internal/client"
 	"github.com/synackd/ochami/internal/config"
 	"github.com/synackd/ochami/internal/log"
 	"github.com/synackd/ochami/internal/version"
@@ -155,6 +156,32 @@ func InitConfig() {
 			} else {
 				fmt.Fprintf(os.Stderr, "%s: failed to load configuration file %s: %v\n", progName, configFile, err)
 			}
+			os.Exit(1)
+		}
+	}
+}
+
+// checkToken takes a pointer to a Cobra command and checks to see if --token
+// was set. If not, an error is printed and the program exits.
+func checkToken(cmd *cobra.Command) {
+	// TODO: Check token validity/expiration
+	if token == "" {
+		log.Logger.Error().Msg("no token set")
+		if err := cmd.Usage(); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to print usage")
+		}
+		os.Exit(1)
+	}
+}
+
+// useCACert takes a pointer to a client.OchamiClient and, if a path to a CA
+// certificate has been set via --cacert, it configures it to use it. If an
+// error occurs, a log is printed and the program exits.
+func useCACert(client *client.OchamiClient) {
+	if cacertPath != "" {
+		log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
+		if err := client.UseCACert(cacertPath); err != nil {
+			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
 			os.Exit(1)
 		}
 	}
