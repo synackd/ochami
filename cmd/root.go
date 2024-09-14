@@ -37,10 +37,10 @@ var (
 	logFormat    string
 
 	// These are only used by 'bss' and 'smd' subcommands.
-	baseURI      string
-	cacertPath   string
-	token        string
-	insecure     bool
+	baseURI    string
+	cacertPath string
+	token      string
+	insecure   bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -172,7 +172,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 		for _, c := range clusterList {
 			if c["name"] == clusterName {
 				clusterToUse = &c
-				break;
+				break
 			}
 		}
 		if clusterToUse == nil {
@@ -193,7 +193,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 		for _, c := range clusterList {
 			if c["name"] == clusterName {
 				clusterToUse = &c
-				break;
+				break
 			}
 		}
 		if clusterToUse == nil {

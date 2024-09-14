@@ -5,7 +5,7 @@ import (
 )
 
 type HTTPHeaders map[string]string
-type HTTPBody    []byte
+type HTTPBody []byte
 
 var (
 	UnsuccessfulHTTPError = fmt.Errorf("unsuccessful HTTP status")

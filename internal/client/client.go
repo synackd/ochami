@@ -59,7 +59,7 @@ func NewOchamiClient(baseURI, basePath string, insecure bool) (*OchamiClient, er
 		return nil, fmt.Errorf("failed to parse URI: %v", err)
 	}
 	oc := &OchamiClient{
-		BaseURI: u,
+		BaseURI:  u,
 		BasePath: basePath,
 	}
 	if insecure {
@@ -127,8 +127,8 @@ func (oc *OchamiClient) UseCACert(caCertPath string) error {
 			RootCAs:            certPool,
 			InsecureSkipVerify: false,
 		},
-		DisableKeepAlives: true,
-		TLSHandshakeTimeout: tlsHandshakeTimeout,
+		DisableKeepAlives:     true,
+		TLSHandshakeTimeout:   tlsHandshakeTimeout,
 		ResponseHeaderTimeout: responseHeaderTimeout,
 	}
 

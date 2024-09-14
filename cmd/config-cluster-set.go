@@ -103,7 +103,7 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			// Add new cluster to list
 			clusterList = append(clusterList, newCluster)
 			log.Logger.Info().Msgf("added new cluster: %s", clusterName)
-			
+
 		} else {
 			// Cluster exists, modify it
 			if clusterUrl != "" {
