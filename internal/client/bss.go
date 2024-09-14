@@ -11,8 +11,10 @@ type BSSClient struct {
 }
 
 const (
-	basePathBSS    = "/boot/v1"
 	serviceNameBSS = "BSS"
+	basePathBSS    = "/boot/v1"
+
+	BSSRelpathBootParams = "/bootparameters"
 )
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
@@ -28,4 +30,24 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 	}
 
 	return bc, err
+}
+
+func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("GetBootParams(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = bc.GetData(BSSRelpathBootParams, query, headers)
+	if err != nil {
+		err = fmt.Errorf("GetBootParams(): error getting boot parameters: %v", err)
+	}
+
+	return henv, err
 }

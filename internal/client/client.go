@@ -93,19 +93,11 @@ func (oc *OchamiClient) GetURI(endpoint, query string) (string, error) {
 // HTTPEnvelope containg the response metadata and the data received in the
 // response along with a nil error. If the HTTP response code is unsuccessful
 // (i.e. not 2XX), then the returned error will contain an
-// UnsuccessfulHTTPError. Otherwise, the error that occurred is returned.  query
+// UnsuccessfulHTTPError. Otherwise, the error that occurred is returned. query
 // is the raw query string (without the '?') to be added to the URI. It should
 // already be URL-encoded, e.g. generated using url.Values' Encode() function.
-func (oc *OchamiClient) GetData(endpoint, query, token string, headers *HTTPHeaders) (HTTPEnvelope, error) {
+func (oc *OchamiClient) GetData(endpoint, query string, headers *HTTPHeaders) (HTTPEnvelope, error) {
 	var he HTTPEnvelope
-	if token != "" {
-		if headers == nil {
-			headers = NewHTTPHeaders()
-		}
-		if err := headers.SetAuthorization(token); err != nil {
-			return he, fmt.Errorf("error setting token in HTTP headers: %v", err)
-		}
-	}
 
 	res, err := oc.MakeOchamiRequest(http.MethodGet, endpoint, query, headers, nil)
 	if err != nil {

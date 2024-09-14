@@ -104,7 +104,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 			}
 			qstr = values.Encode()
 		}
-		httpEnv, err := bssClient.GetData("/bootparameters", qstr, token, nil)
+		httpEnv, err := bssClient.GetBootParams(qstr, token)
 		if err != nil {
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
 				log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
