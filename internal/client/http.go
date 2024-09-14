@@ -37,12 +37,12 @@ func NewHTTPHeaders() *HTTPHeaders {
 // associated with the key. The value is not processed in any way before being
 // added. If the recipient HTTPHeaders pointer is nil, an error is returned.
 func (h *HTTPHeaders) Add(key, value string) error {
-	if h != nil {
-		(*h)[key] = append((*h)[key], value)
-		return nil
+	if h == nil {
+		return NilMapPointerError
 	} else {
-		return fmt.Errorf("HTTPHeaders is nil")
+		(*h)[key] = append((*h)[key], value)
 	}
+	return nil
 }
 
 // SetAuthorization takes a token and adds it as an authentication header to the
