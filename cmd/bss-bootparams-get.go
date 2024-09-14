@@ -23,8 +23,8 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootparamsGetCmd represents the bootparams command
-var bssBootparamsGetCmd = &cobra.Command{
+// bssBootParamsGetCmd represents the bootparams command
+var bssBootParamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get boot parameters for one or all nodes",
 	Example: `  ochami bss bootparams get
@@ -79,7 +79,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 				}
 			}
 			if cmd.Flag("nid").Changed {
-				s, err := cmd.Flags().GetIntSlice("nid")
+				s, err := cmd.Flags().GetInt32Slice("nid")
 				if err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch nid list")
 					os.Exit(1)
@@ -104,8 +104,8 @@ var bssBootparamsGetCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootparamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
-	bssBootparamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
-	bssBootparamsGetCmd.Flags().IntSliceP("nid", "n", []int{}, "one or more node IDs whose boot parameters to get")
-	bssBootparamsCmd.AddCommand(bssBootparamsGetCmd)
+	bssBootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
+	bssBootparamsCmd.AddCommand(bssBootParamsGetCmd)
 }
