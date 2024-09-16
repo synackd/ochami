@@ -119,6 +119,34 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 	return henv, err
 }
 
+// DeleteBootParams is a wrapper function around BSSClient.DeleteData that takes
+// a bssTypes.BootParams struct (bp) and a token, puts token in the request
+// headers as an authorization bearer, marshals bp as JSON and sets it as the
+// request body, then passes it to BSSClient.DeleteData.
+func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		err     error
+	)
+	if body, err = json.Marshal(bp); err != nil {
+		return henv, fmt.Errorf("DeleteBootParams(): failed to marshal BootParams: %v", err)
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("DeleteBootParams(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = bc.DeleteData(BSSRelpathBootParams, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("DeleteBootParams(): failed to DELETE boot parameters to BSS: %v", err)
+	}
+
+	return henv, err
+}
+
 // GetBootParams is a wrapper function around BSSClient.GetData that takes an
 // optional query string (without the "?") and a token. It sets token as the
 // authorization bearer in the headers and passes the query string and headers
