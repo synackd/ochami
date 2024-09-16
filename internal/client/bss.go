@@ -59,6 +59,34 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 	return henv, err
 }
 
+// PutBootParams is a wrapper function around PutData that takes a
+// bssTypes.BootParams struct (bp) and a token, puts token in the request
+// headers as an authorization bearer, marshals bp as JSON and sets it as the
+// request body, then gives it to PutData.
+func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		err     error
+	)
+	if body, err = json.Marshal(bp); err != nil {
+		return henv, fmt.Errorf("PutBootParams(): failed to marshal BootParams: %v", err)
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("PutBootParams(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = bc.PutData(BSSRelpathBootParams, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("PutBootParams(): failed to PUT boot parameters to BSS: %v", err)
+	}
+
+	return henv, err
+}
+
 func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
