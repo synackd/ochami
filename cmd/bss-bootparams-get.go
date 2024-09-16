@@ -107,5 +107,5 @@ func init() {
 	bssBootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
 	bssBootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
 	bssBootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
-	bssBootparamsCmd.AddCommand(bssBootParamsGetCmd)
+	bssBootParamsCmd.AddCommand(bssBootParamsGetCmd)
 }

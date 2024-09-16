@@ -19,8 +19,8 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootparamsCmd represents the get command
-var bssBootparamsCmd = &cobra.Command{
+// bssBootParamsCmd represents the get command
+var bssBootParamsCmd = &cobra.Command{
 	Use:   "bootparams",
 	Short: "Work with BSS boot parameters",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -36,5 +36,5 @@ var bssBootparamsCmd = &cobra.Command{
 }
 
 func init() {
-	bssCmd.AddCommand(bssBootparamsCmd)
+	bssCmd.AddCommand(bssBootParamsCmd)
 }

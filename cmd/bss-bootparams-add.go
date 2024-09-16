@@ -119,7 +119,7 @@ var bssBootParamsAddCmd = &cobra.Command{
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
 				log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
 			} else {
-				log.Logger.Error().Err(err).Msg("failed to add boot parameters from BSS")
+				log.Logger.Error().Err(err).Msg("failed to add boot parameters to BSS")
 			}
 			os.Exit(1)
 		}
@@ -137,5 +137,5 @@ func init() {
 	bssBootParamsAddCmd.MarkFlagsOneRequired("xname", "mac", "nid")
 	bssBootParamsAddCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
 
-	bssBootparamsCmd.AddCommand(bssBootParamsAddCmd)
+	bssBootParamsCmd.AddCommand(bssBootParamsAddCmd)
 }
