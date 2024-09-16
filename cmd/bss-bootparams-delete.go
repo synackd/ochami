@@ -15,6 +15,7 @@ package cmd
 import (
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 	"github.com/spf13/cobra"
@@ -113,6 +114,23 @@ var bssBootParamsDeleteCmd = &cobra.Command{
 			}
 		}
 
+		// Ask before attempting deletion unless --force was passed
+		if !cmd.Flag("force").Changed {
+			out:
+			for {
+				resp := prompt("Really delete? [yN]:")
+				switch strings.ToLower(resp) {
+				case "y":
+					break out
+				case "n":
+					log.Logger.Info().Msg("User aborted boot parameter deletion")
+					os.Exit(0)
+				default:
+					continue
+				}
+			}
+		}
+
 		// Send 'em off
 		_, err = bssClient.DeleteBootParams(bp, token)
 		if err != nil {
@@ -133,6 +151,7 @@ func init() {
 	bssBootParamsDeleteCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
 	bssBootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
 	bssBootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
+	bssBootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters
 	bssBootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params")

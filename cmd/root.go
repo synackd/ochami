@@ -13,6 +13,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -159,6 +160,21 @@ func InitConfig() {
 			os.Exit(1)
 		}
 	}
+}
+
+// prompt displays a text prompt and returns what the user entered. It continues
+// to repeat the prompt as long as the user input is empty.
+func prompt(prompt string) string {
+	var s string
+	resp := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Fprint(os.Stderr, prompt+" ")
+		s, _ = resp.ReadString('\n')
+		if s != "" {
+			break
+		}
+	}
+	return strings.TrimSpace(s)
 }
 
 // checkToken takes a pointer to a Cobra command and checks to see if --token
