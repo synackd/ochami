@@ -35,6 +35,10 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 	return bc, err
 }
 
+// PostBootParams is a wrapper function around BSSClient.PostData that takes a
+// bssTypes.BootParams struct (bp) and a token, puts the token in the request
+// headers as an authorization bearer, marshals bp as JSON and sets it as the
+// request body, then passes it to BSSClient.PostData.
 func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -59,10 +63,10 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 	return henv, err
 }
 
-// PutBootParams is a wrapper function around PutData that takes a
+// PutBootParams is a wrapper function around BSSClient.PutData that takes a
 // bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
-// request body, then gives it to PutData.
+// request body, then passes it to BSSClient.PutData.
 func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -87,6 +91,10 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 	return henv, err
 }
 
+// GetBootParams is a wrapper function around BSSClient.GetData that takes an
+// optional query string (without the "?") and a token. It sets token as the
+// authorization bearer in the headers and passes the query string and headers
+// to BSSClient.GetData.
 func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
