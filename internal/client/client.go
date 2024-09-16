@@ -246,6 +246,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 			}
 			log.Logger.Debug().Msg("Response body:")
 			log.Logger.Debug().Msgf("%s", string(resBodyBytes))
+			res.Body = io.NopCloser(bytes.NewReader(resBodyBytes))
 		} else {
 			log.Logger.Debug().Msg("No body in response")
 		}
