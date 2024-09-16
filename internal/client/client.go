@@ -101,16 +101,16 @@ func (oc *OchamiClient) GetData(endpoint, query string, headers *HTTPHeaders) (H
 
 	res, err := oc.MakeOchamiRequest(http.MethodGet, endpoint, query, headers, nil)
 	if err != nil {
-		return he, fmt.Errorf("error making request to %s: %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making GET request to %s: %v", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from GET response: %v", err)
 		}
 		return he, he.CheckResponse()
 	}
-	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
+	return he, fmt.Errorf("%s GET response was empty", oc.ServiceName)
 }
 
 // PostData is a wrapper around MakeOchamiRequest that sends a POST request to
@@ -126,16 +126,16 @@ func (oc *OchamiClient) PostData(endpoint, query string, headers *HTTPHeaders, b
 
 	res, err := oc.MakeOchamiRequest(http.MethodPost, endpoint, query, headers, body)
 	if err != nil {
-		return he, fmt.Errorf("error making request to %s, %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making POST request to %s, %v", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from POST response: %v", err)
 		}
 		return he, he.CheckResponse()
 	}
-	return he, fmt.Errorf("%s response was empty", oc.ServiceName)
+	return he, fmt.Errorf("%s POST response was empty", oc.ServiceName)
 }
 
 // MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form
