@@ -5,12 +5,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"time"
 
+	"github.com/synackd/ochami/internal/log"
 	"github.com/synackd/ochami/internal/version"
 )
 
@@ -176,10 +179,53 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 		}
 	}
 
+	// Debug info for request
+	if len(req.Header) > 0 {
+		log.Logger.Debug().Msg("Request headers:")
+		for k, v := range req.Header {
+			log.Logger.Debug().Msgf("  %s: %s", k, v)
+		}
+	} else {
+		log.Logger.Debug().Msg("No headers in request")
+	}
+	if len(body) > 0 {
+		log.Logger.Debug().Msg("Request body:")
+		log.Logger.Debug().Msgf("%s", string(body))
+	} else {
+		log.Logger.Debug().Msg("No body in request")
+	}
+
 	// Execute HTTP request
 	res, err := oc.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute HTTP request: %v", err)
+	}
+
+	// Debug info for response
+	if res != nil {
+		if len(res.Header) > 0 {
+			log.Logger.Debug().Msg("Response headers:")
+			for k, v := range res.Header {
+				log.Logger.Debug().Msgf("  %s: %s", k, v)
+			}
+		} else {
+			log.Logger.Debug().Msg("No headers in response")
+		}
+		resBodyLen := res.ContentLength
+		if resBodyLen > 0 {
+			var resBodyCopy bytes.Buffer
+			resBodyReader := io.TeeReader(res.Body, &resBodyCopy)
+			resBodyBytes, err := ioutil.ReadAll(resBodyReader)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("failed to read body for debug message")
+			}
+			log.Logger.Debug().Msg("Response body:")
+			log.Logger.Debug().Msgf("%s", string(resBodyBytes))
+		} else {
+			log.Logger.Debug().Msg("No body in response")
+		}
+	} else {
+		log.Logger.Debug().Msg("Response was nil")
 	}
 
 	return res, err
