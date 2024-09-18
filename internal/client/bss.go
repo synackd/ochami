@@ -21,6 +21,7 @@ const (
 	BSSRelpathBootParams = "/bootparameters"
 	BSSRelpathBootScript = "/bootscript"
 	BSSRelpathService    = "/service"
+	BSSRelpathDumpState  = "/dumpstate"
 )
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
@@ -219,6 +220,17 @@ func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 	henv, err = bc.GetData(bssStatusEndpoint, "", nil)
 	if err != nil {
 		err = fmt.Errorf("GetStatus(): error getting BSS all status: %v", err)
+	}
+
+	return henv, err
+}
+
+// GetDumpState is a wrapper function around BSSClient.GetData that queries the
+// /dumpstate endpoint and returns its response and an error, if one occurred.
+func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
+	henv, err := bc.GetData(BSSRelpathDumpState, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetDumpState(): error getting dump state: %v", err)
 	}
 
 	return henv, err
