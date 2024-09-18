@@ -19,7 +19,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// clusterCmd represents the cluster command
+// configClusterCmd represents the config-cluster command
 var configClusterCmd = &cobra.Command{
 	Use:   "cluster",
 	Short: "Manage cluster configuration",

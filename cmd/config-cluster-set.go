@@ -20,7 +20,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// setClusterCmd represents the setCluster command
+// configClusterSetCmd represents the config-cluster-set command
 var configClusterSetCmd = &cobra.Command{
 	Use:   "set CLUSTER_NAME",
 	Short: "Add or set parameters for a cluster",
