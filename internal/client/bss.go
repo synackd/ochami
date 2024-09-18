@@ -151,7 +151,7 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 // GetBootParams is a wrapper function around BSSClient.GetData that takes an
 // optional query string (without the "?") and a token. It sets token as the
 // authorization bearer in the headers and passes the query string and headers
-// to BSSClient.GetData.
+// to BSSClient.GetData, using /bootparameters as the API endpoint.
 func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
