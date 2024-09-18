@@ -23,10 +23,14 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootparamsGetCmd represents the bootparams command
-var bssBootparamsGetCmd = &cobra.Command{
+// bssBootParamsGetCmd represents the bootparams command
+var bssBootParamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get boot parameters for one or all nodes",
+	Example: `  ochami bss bootparams get
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
@@ -36,14 +40,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		// TODO: Check token validity/expiration
-		if token == "" {
-			log.Logger.Error().Msg("no token set")
-			if err := cmd.Usage(); err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-			}
-			os.Exit(1)
-		}
+		checkToken(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
@@ -53,14 +50,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 		}
 
 		// Check if a CA certificate was passed and load it into client if valid
-		if cacertPath != "" {
-			log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
-			err = bssClient.UseCACert(cacertPath)
-			if err != nil {
-				log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
-				os.Exit(1)
-			}
-		}
+		useCACert(bssClient.OchamiClient)
 
 		// If no ID flags are specified, get all boot parameters
 		qstr := ""
@@ -89,7 +79,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 				}
 			}
 			if cmd.Flag("nid").Changed {
-				s, err := cmd.Flags().GetIntSlice("nid")
+				s, err := cmd.Flags().GetInt32Slice("nid")
 				if err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch nid list")
 					os.Exit(1)
@@ -100,7 +90,7 @@ var bssBootparamsGetCmd = &cobra.Command{
 			}
 			qstr = values.Encode()
 		}
-		data, err := bssClient.GetData("/bootparameters", qstr, token, nil)
+		httpEnv, err := bssClient.GetBootParams(qstr, token)
 		if err != nil {
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
 				log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
@@ -109,13 +99,13 @@ var bssBootparamsGetCmd = &cobra.Command{
 			}
 			os.Exit(1)
 		}
-		fmt.Println(data)
+		fmt.Println(string(httpEnv.Body))
 	},
 }
 
 func init() {
-	bssBootparamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
-	bssBootparamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
-	bssBootparamsGetCmd.Flags().IntSliceP("nid", "n", []int{}, "one or more node IDs whose boot parameters to get")
-	bssBootparamsCmd.AddCommand(bssBootparamsGetCmd)
+	bssBootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
+	bssBootParamsCmd.AddCommand(bssBootParamsGetCmd)
 }

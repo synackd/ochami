@@ -36,19 +36,5 @@ var bssCmd = &cobra.Command{
 }
 
 func init() {
-	bssCmd.PersistentFlags().String("cluster", "", "name of cluster whose config to use for this command")
-	bssCmd.PersistentFlags().StringVarP(&baseURI, "base-uri", "u", "", "base URI for OpenCHAMI services")
-	bssCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
-	bssCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
-	bssCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
-
-	// Either use cluster from config file or specify details on CLI
-	bssCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
-
-	if t, set := os.LookupEnv("OCHAMI_ACCESS_TOKEN"); set {
-		if !bssCmd.PersistentFlags().Lookup("token").Changed {
-			token = t
-		}
-	}
 	rootCmd.AddCommand(bssCmd)
 }
