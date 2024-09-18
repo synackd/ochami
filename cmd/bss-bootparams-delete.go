@@ -116,7 +116,7 @@ var bssBootParamsDeleteCmd = &cobra.Command{
 
 		// Ask before attempting deletion unless --force was passed
 		if !cmd.Flag("force").Changed {
-			out:
+		out:
 			for {
 				resp := prompt("Really delete? [yN]:")
 				switch strings.ToLower(resp) {

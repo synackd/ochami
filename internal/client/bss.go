@@ -198,9 +198,9 @@ func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 // "version" -> "/service/version"
 func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 	var (
-		henv                 HTTPEnvelope
-		err                  error
-		bssStatusEndpoint    string
+		henv              HTTPEnvelope
+		err               error
+		bssStatusEndpoint string
 	)
 	switch component {
 	case "":
