@@ -236,6 +236,7 @@ func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, header
 // and body, and uses the passed HTTP method.
 func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, body HTTPBody) (*http.Response, error) {
 	// Create request using function args
+	log.Logger.Debug().Msgf("%s: %s", method, uri)
 	req, err := http.NewRequest(method, uri, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new HTTP request: %v", err)
