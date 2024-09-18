@@ -21,8 +21,8 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// delCmd represents the del command
-var configClusterDelCmd = &cobra.Command{
+// configClusterDeleteCmd represents the config-cluster-delete command
+var configClusterDeleteCmd = &cobra.Command{
 	Use:   "del CLUSTER_NAME",
 	Short: "Delete a cluster from the configuration file",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -87,5 +87,5 @@ var configClusterDelCmd = &cobra.Command{
 }
 
 func init() {
-	configClusterCmd.AddCommand(configClusterDelCmd)
+	configClusterCmd.AddCommand(configClusterDeleteCmd)
 }
