@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 )
@@ -19,6 +20,7 @@ const (
 
 	BSSRelpathBootParams = "/bootparameters"
 	BSSRelpathBootScript = "/bootscript"
+	BSSRelpathService    = "/service"
 )
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
@@ -179,6 +181,44 @@ func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathBootScript, query, nil)
 	if err != nil {
 		err = fmt.Errorf("GetBootScript(): error getting boot script: %v", err)
+	}
+
+	return henv, err
+}
+
+// GetStatus is a wrapper function around BSSClient.GetData that takes an
+// optional component and uses it to determine which subpath of the BSS /service
+// endpoint to query. If empty, the /service/status endpoint is queried.
+// Otherwise:
+//
+// "all"     -> "/service/status/all"
+// "storage" -> "/service/storage/status"
+// "smd"     -> "/service/hsm"
+// "version" -> "/service/version"
+func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
+	var (
+		henv                 HTTPEnvelope
+		err                  error
+		bssStatusEndpoint    string
+	)
+	switch component {
+	case "":
+		bssStatusEndpoint = path.Join(BSSRelpathService, "status")
+	case "all":
+		bssStatusEndpoint = path.Join(BSSRelpathService, "status/all")
+	case "storage":
+		bssStatusEndpoint = path.Join(BSSRelpathService, "storage/status")
+	case "smd":
+		bssStatusEndpoint = path.Join(BSSRelpathService, "hsm")
+	case "version":
+		bssStatusEndpoint = path.Join(BSSRelpathService, "version")
+	default:
+		return henv, fmt.Errorf("GetStatus(): unknown status component: %s", component)
+	}
+
+	henv, err = bc.GetData(bssStatusEndpoint, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetStatus(): error getting BSS all status: %v", err)
 	}
 
 	return henv, err
