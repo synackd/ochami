@@ -19,7 +19,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsCmd represents the get command
+// bssBootParamsCmd represents the bss-bootparams command
 var bssBootParamsCmd = &cobra.Command{
 	Use:   "bootparams",
 	Short: "Work with BSS boot parameters",

@@ -22,7 +22,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsUpdateCmd represents the update command
+// bssBootParamsUpdateCmd represents the bss-bootparams-update command
 var bssBootParamsUpdateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update some or all boot parameters for one or more components",

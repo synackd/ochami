@@ -23,7 +23,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootScriptGetCmd represents the get command
+// bssBootScriptGetCmd represents the bss-bootscript-get command
 var bssBootScriptGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get iPXE boot script for a node",

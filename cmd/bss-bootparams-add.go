@@ -22,7 +22,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsAddCmd represents the add command
+// bssBootParamsAddCmd represents the bss-bootparams-add command
 var bssBootParamsAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add new boot parameters for one or more components",

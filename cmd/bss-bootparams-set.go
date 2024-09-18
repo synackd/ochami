@@ -22,7 +22,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsSetCmd represents the set command
+// bssBootParamsSetCmd represents the bss-bootparams-set command
 var bssBootParamsSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set boot parameters for one or more components, overwriting any previous",

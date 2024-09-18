@@ -19,7 +19,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootScriptCmd represents the bootscript command
+// bssBootScriptCmd represents the bss-bootscript command
 var bssBootScriptCmd = &cobra.Command{
 	Use:   "bootscript",
 	Short: "Work with BSS boot scripts",

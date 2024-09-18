@@ -23,7 +23,7 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsDeleteCmd represents the delete command
+// bssBootParamsDeleteCmd represents the bss-bootparams-delete command
 var bssBootParamsDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete boot parameters for one or more components",
