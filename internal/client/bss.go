@@ -18,6 +18,7 @@ const (
 	basePathBSS    = "/boot/v1"
 
 	BSSRelpathBootParams = "/bootparameters"
+	BSSRelpathBootScript = "/bootscript"
 )
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
@@ -166,6 +167,18 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	henv, err = bc.GetData(BSSRelpathBootParams, query, headers)
 	if err != nil {
 		err = fmt.Errorf("GetBootParams(): error getting boot parameters: %v", err)
+	}
+
+	return henv, err
+}
+
+// GetBootScript is a wrapper function around BSSClient.GetData that takes a
+// query string (without the "?") and passes it to BSSClient.GetData, using
+// /bootscript as the API endpoint.
+func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
+	henv, err := bc.GetData(BSSRelpathBootScript, query, nil)
+	if err != nil {
+		err = fmt.Errorf("GetBootScript(): error getting boot script: %v", err)
 	}
 
 	return henv, err
