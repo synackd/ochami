@@ -13,12 +13,14 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/synackd/ochami/internal/client"
 	"github.com/synackd/ochami/internal/config"
 	"github.com/synackd/ochami/internal/log"
 	"github.com/synackd/ochami/internal/version"
@@ -37,10 +39,10 @@ var (
 	logFormat    string
 
 	// These are only used by 'bss' and 'smd' subcommands.
-	baseURI      string
-	cacertPath   string
-	token        string
-	insecure     bool
+	baseURI    string
+	cacertPath string
+	token      string
+	insecure   bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -80,6 +82,20 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
+	rootCmd.PersistentFlags().String("cluster", "", "name of cluster whose config to use for this command")
+	rootCmd.PersistentFlags().StringVarP(&baseURI, "base-uri", "u", "", "base URI for OpenCHAMI services")
+	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
+	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
+	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
+
+	// Either use cluster from config file or specify details on CLI
+	bssCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
+
+	if t, set := os.LookupEnv("OCHAMI_ACCESS_TOKEN"); set {
+		if !rootCmd.PersistentFlags().Lookup("token").Changed {
+			token = t
+		}
+	}
 
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
@@ -146,6 +162,47 @@ func InitConfig() {
 	}
 }
 
+// prompt displays a text prompt and returns what the user entered. It continues
+// to repeat the prompt as long as the user input is empty.
+func prompt(prompt string) string {
+	var s string
+	resp := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Fprint(os.Stderr, prompt+" ")
+		s, _ = resp.ReadString('\n')
+		if s != "" {
+			break
+		}
+	}
+	return strings.TrimSpace(s)
+}
+
+// checkToken takes a pointer to a Cobra command and checks to see if --token
+// was set. If not, an error is printed and the program exits.
+func checkToken(cmd *cobra.Command) {
+	// TODO: Check token validity/expiration
+	if token == "" {
+		log.Logger.Error().Msg("no token set")
+		if err := cmd.Usage(); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to print usage")
+		}
+		os.Exit(1)
+	}
+}
+
+// useCACert takes a pointer to a client.OchamiClient and, if a path to a CA
+// certificate has been set via --cacert, it configures it to use it. If an
+// error occurs, a log is printed and the program exits.
+func useCACert(client *client.OchamiClient) {
+	if cacertPath != "" {
+		log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
+		if err := client.UseCACert(cacertPath); err != nil {
+			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
+			os.Exit(1)
+		}
+	}
+}
+
 func getBaseURI(cmd *cobra.Command) (string, error) {
 	// Precedence of getting base URI for requests:
 	//
@@ -172,7 +229,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 		for _, c := range clusterList {
 			if c["name"] == clusterName {
 				clusterToUse = &c
-				break;
+				break
 			}
 		}
 		if clusterToUse == nil {
@@ -193,7 +250,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 		for _, c := range clusterList {
 			if c["name"] == clusterName {
 				clusterToUse = &c
-				break;
+				break
 			}
 		}
 		if clusterToUse == nil {

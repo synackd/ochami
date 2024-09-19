@@ -19,10 +19,10 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssCmd represents the bss command
-var bssCmd = &cobra.Command{
-	Use:   "bss",
-	Short: "Communicate with the Boot Script Service (BSS)",
+// bssHostsCmd represents the hosts command
+var bssHostsCmd = &cobra.Command{
+	Use:   "hosts",
+	Short: "Work with hosts in BSS",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := cmd.Usage()
@@ -36,5 +36,5 @@ var bssCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(bssCmd)
+	bssCmd.AddCommand(bssHostsCmd)
 }
