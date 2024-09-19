@@ -23,6 +23,7 @@ const (
 	BSSRelpathService         = "/service"
 	BSSRelpathDumpState       = "/dumpstate"
 	BSSRelpathEndpointHistory = "/endpoint-history"
+	BSSRelpathHosts           = "/hosts"
 )
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
@@ -244,6 +245,17 @@ func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathEndpointHistory, query, nil)
 	if err != nil {
 		err = fmt.Errorf("GetEndpointHistory(): error getting endpoint history: %v", err)
+	}
+
+	return henv, err
+}
+
+// GetHosts is a wrapper function around BSSClient.GetData that queries /hosts
+// and appends an optional query string (without the "?").
+func (bc *BSSClient) GetHosts(query string) (HTTPEnvelope, error) {
+	henv, err := bc.GetData(BSSRelpathHosts, query, nil)
+	if err != nil {
+		err = fmt.Errorf("GetHosts(): error getting hosts: %v", err)
 	}
 
 	return henv, err
