@@ -1,0 +1,62 @@
+version: 2
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - ldflags:
+      - "-s -X=github.com/synackd/ochami/internal/version.Version={{ .Version }} -X=github.com/synackd/ochami/internal/version.Commit={{ .Commit }} -X=github.com/synackd/ochami/internal/version.Date={{ .Date }}"
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - LICENSE
+
+dockers:
+  - image_templates:
+      - ghcr.io/synackd/{{ .ProjectName }}:latest
+      - ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+    extra_files:
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+snapshot:
+  version_template: "{{ incpath .Version }}-next"
+
+release:
+  github:
+  name_template: "v{{ .Version }}"
+  prerelease: auto
+  mode: append
