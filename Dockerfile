@@ -1,0 +1,30 @@
+#
+# STAGE 1: Build
+#
+
+FROM golang:1.21 as builder
+ARG CGO_ENABLED=0
+WORKDIR /ochami
+
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+
+RUN make clean
+RUN make
+
+#
+# STAGE 2: Application
+#
+
+FROM cgr.dev/chainguard/wolfi-base
+
+RUN apk add --no-cache tini
+
+COPY --from=builder /ochami/ochami /bin/ochami
+
+# nobody 65534:65534
+USER 65534:65534
+
+CMD [ "/bin/ochami" ]
+ENTRYPOINT [ "/sbin/tini", "--" ]
