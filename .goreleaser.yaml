@@ -56,7 +56,7 @@ changelog:
       - "^test:"
 
 snapshot:
-  version_template: "{{ incpath .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 release:
   github:
