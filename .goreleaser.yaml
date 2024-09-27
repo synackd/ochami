@@ -41,6 +41,8 @@ dockers:
       - "--label=org.opencontainers.image.version={{ .Version }}"
     extra_files:
       - LICENSE
+      - go.mod
+      - go.sum
 
 checksum:
   name_template: checksums.txt
