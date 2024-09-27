@@ -177,6 +177,24 @@ func prompt(prompt string) string {
 	return strings.TrimSpace(s)
 }
 
+// loopYesNo takes prompt p and appends " [yN]: " to it and prompts the user for
+// input. As long as the user's input is not "y" or "n" (case insensitive), the
+// function redisplays the prompt. If the user's response is "y", true is
+// returned. If the user's response is "n", false is returned.
+func loopYesNo(p string) bool {
+	for {
+		resp := prompt(fmt.Sprintf("%s [yN]:", p))
+		switch strings.ToLower(resp) {
+		case "y":
+			return true
+		case "n":
+			return false
+		default:
+			continue
+		}
+	}
+}
+
 // checkToken takes a pointer to a Cobra command and checks to see if --token
 // was set. If not, an error is printed and the program exits.
 func checkToken(cmd *cobra.Command) {

@@ -15,7 +15,6 @@ package cmd
 import (
 	"errors"
 	"os"
-	"strings"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 	"github.com/spf13/cobra"
@@ -116,18 +115,13 @@ var bssBootParamsDeleteCmd = &cobra.Command{
 
 		// Ask before attempting deletion unless --force was passed
 		if !cmd.Flag("force").Changed {
-		out:
-			for {
-				resp := prompt("Really delete? [yN]:")
-				switch strings.ToLower(resp) {
-				case "y":
-					break out
-				case "n":
-					log.Logger.Info().Msg("User aborted boot parameter deletion")
-					os.Exit(0)
-				default:
-					continue
-				}
+			log.Logger.Debug().Msg("--force not passed, prompting user to confirm deletion")
+			respDelete := loopYesNo("Really delete?")
+			if !respDelete {
+				log.Logger.Info().Msg("User aborted boot parameter deletion")
+				os.Exit(0)
+			} else {
+				log.Logger.Debug().Msg("User answered affirmatively to delete boot parameters")
 			}
 		}
 
