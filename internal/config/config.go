@@ -16,12 +16,13 @@ func RemoveFromSlice[T any](slice []T, index int) []T {
 	return slice[:len(slice)-1]
 }
 
-// LoadConfig() takes a path and log format and reads in the file pointed to by
-// path, loading it as a configuration file using viper. If path is empty, an
-// error is returned. LoadConfig() accepts any config file types that viper
+// LoadConfig takes a path and config file format and reads in the file pointed
+// to by path, loading it as a configuration file using viper. If path is empty,
+// an error is returned. LoadConfig accepts any config file types that viper
 // accepts. If format is specified (not empty), its value is used as the
 // configuration format. If format is empty, the format is guessed by the config
-// file's file extension. If both of these are empty, YAML format is used.
+// file's file extension. If there is no file extension or format is empty, YAML
+// format is used.
 func LoadConfig(path, format string) error {
 	if path == "" {
 		return fmt.Errorf("no configuration file path passed")
