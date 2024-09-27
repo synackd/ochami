@@ -28,7 +28,8 @@ archives:
       - LICENSE
 
 dockers:
-  - image_templates:
+  - dockerfile: goreleaser.dockerfile
+    image_templates:
       - ghcr.io/synackd/{{ .ProjectName }}:latest
       - ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}
       - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}
@@ -41,9 +42,6 @@ dockers:
       - "--label=org.opencontainers.image.version={{ .Version }}"
     extra_files:
       - LICENSE
-      - Makefile
-      - go.mod
-      - go.sum
 
 checksum:
   name_template: checksums.txt
