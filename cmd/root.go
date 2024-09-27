@@ -90,6 +90,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
 	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
+	rootCmd.PersistentFlags().Bool("ignore-config", false, "do not use any config file")
 
 	// Either use cluster from config file or specify details on CLI
 	bssCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
@@ -150,6 +151,11 @@ func InitConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ochami")
+
+	// Do not read or write config file if --ignore-config passed
+	if rootCmd.Flag("ignore-config").Changed {
+		return
+	}
 
 	// Set config file to ~/.config/ochami/config.<configFormat> if not set
 	// via flag
