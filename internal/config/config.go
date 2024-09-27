@@ -62,6 +62,53 @@ func LoadConfig(path, format string) error {
 
 	return err
 }
+// WriteConfig takes a path and config file format and writes the current viper
+// configuration to the file pointed to by path in the format specified. If path
+// is empty, an error is returned. WriteConfig accepts any config file types
+// that viper accepts. If format is empty, the format is guessed by the config
+// file's file extension. If there is no file extension and format is empty,
+// YAML is used.
+func WriteConfig(path, format string) error {
+	if path == "" {
+		return fmt.Errorf("no configuration file path passed")
+	}
+	base := filepath.Dir(path)
+	name := filepath.Base(path)
+	ext := strings.Trim(filepath.Ext(path), ".")
+	fullPath := filepath.Join(base, name)
+	log.Logger.Debug().Msgf("Configuration file is: %s", fullPath)
+
+	// Determine format of config file to tell viper to use.
+	var viperFormat string
+	if format != "" {
+		if ext != "" {
+			log.Logger.Debug().Msgf("Using passed value of %q as config file format even though file extension is %q", format, ext)
+		} else {
+			log.Logger.Debug().Msgf("Using passed value of %q as config file format", format)
+		}
+		viperFormat = strings.ToLower(format)
+	} else {
+		if ext != "" {
+			log.Logger.Debug().Msgf("No config file format passed, inferring from file extension: %s", ext)
+			viperFormat = strings.ToLower(ext)
+		} else {
+			log.Logger.Debug().Msg("No config file format passed and file has no extension, defaulting to YAML")
+			viperFormat = "yaml"
+		}
+	}
+
+	// Tell viper about config file
+	viper.SetConfigName(name)
+	viper.SetConfigType(viperFormat)
+	viper.AddConfigPath(base)
+
+	if err := viper.WriteConfig(); err != nil {
+		return fmt.Errorf("failed to write config file %s: %v", path, err)
+	}
+	log.Logger.Info().Msgf("wrote config to %s", path)
+
+	return nil
+}
 
 func SetDefaults() {
 	viper.SetDefault("log.format", "json")

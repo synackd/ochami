@@ -16,6 +16,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -149,17 +151,54 @@ func InitConfig() {
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("ochami")
 
-	// Read configuration file if passed
-	if configFile != "" {
-		err := config.LoadConfig(configFile, configFormat)
+	// Set config file to ~/.config/ochami/config.<configFormat> if not set
+	// via flag
+	if configFile == "" {
+		user, err := user.Current()
 		if err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				fmt.Fprintf(os.Stderr, "%s: configuration file %s not found: %v\n", progName, configFile, err)
-			} else {
-				fmt.Fprintf(os.Stderr, "%s: failed to load configuration file %s: %v\n", progName, configFile, err)
-			}
+			fmt.Fprintf(os.Stderr, "%s: unable to fetch current user: %v\n", progName, err)
 			os.Exit(1)
 		}
+		configDir := filepath.Join(user.HomeDir, ".config", "ochami")
+		configFile = filepath.Join(configDir, "config."+configFormat)
+	}
+
+	// Try to reate config file with default values if it doesn't exist
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		respConfigCreate := loopYesNo(fmt.Sprintf("Config file %s does not exist. Create it?", configFile))
+		if respConfigCreate {
+			configDir := filepath.Dir(configFile)
+			err := os.MkdirAll(configDir, 0755)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s: could not create config dir %s: %v\n", progName, configDir, err)
+				os.Exit(1)
+			}
+			f, err := os.OpenFile(configFile, os.O_RDONLY|os.O_CREATE, 0644)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s: creating %s failed: %v\n", progName, configFile, err)
+				os.Exit(1)
+			}
+			f.Close()
+			err = config.WriteConfig(configFile, configFormat)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s: writing %s failed: %v\n", progName, configFile, err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "%s: not creating config file. Exiting...\n", progName)
+			os.Exit(0)
+		}
+	}
+
+	// Read configuration file if passed
+	err := config.LoadConfig(configFile, configFormat)
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Fprintf(os.Stderr, "%s: configuration file %s not found: %v\n", progName, configFile, err)
+		} else {
+			fmt.Fprintf(os.Stderr, "%s: failed to load configuration file %s: %v\n", progName, configFile, err)
+		}
+		os.Exit(1)
 	}
 }
 
