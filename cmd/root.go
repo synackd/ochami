@@ -27,9 +27,10 @@ import (
 )
 
 const (
-	progName         = "ochami"
-	defaultLogFormat = "json"
-	defaultLogLevel  = "warning"
+	progName            = "ochami"
+	defaultLogFormat    = "json"
+	defaultLogLevel     = "warning"
+	defaultConfigFormat = "yaml"
 )
 
 var (
@@ -79,7 +80,7 @@ func init() {
 		InitLogging,
 	)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "path to configuration file to use")
-	rootCmd.PersistentFlags().StringVarP(&configFormat, "config-format", "", "", "format of configuration file; if none passed, tries to infer from file extension")
+	rootCmd.PersistentFlags().StringVar(&configFormat, "config-format", defaultConfigFormat, "format of configuration file; if none passed, tries to infer from file extension")
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", defaultLogFormat, "log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", defaultLogLevel, "set verbosity of logs (info,warning,debug)")
 	rootCmd.PersistentFlags().String("cluster", "", "name of cluster whose config to use for this command")
