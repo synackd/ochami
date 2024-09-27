@@ -41,6 +41,7 @@ dockers:
       - "--label=org.opencontainers.image.version={{ .Version }}"
     extra_files:
       - LICENSE
+      - Makefile
       - go.mod
       - go.sum
 
