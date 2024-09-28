@@ -59,7 +59,7 @@ var bssStatusCmd = &cobra.Command{
 		}
 		if err != nil {
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
-				log.Logger.Error().Err(err).Msg("BSS boot parameter request yielded unsuccessful HTTP response")
+				log.Logger.Error().Err(err).Msg("BSS status request yielded unsuccessful HTTP response")
 			} else {
 				log.Logger.Error().Err(err).Msg("failed to get BSS status")
 			}
