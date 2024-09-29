@@ -27,7 +27,7 @@ var configClusterSetCmd = &cobra.Command{
 	Long: `Use set-cluster to add cluster with its configuration or set the configuration
 for an existing cluster. For example:
 
-	ochami config set-cluster foobar.openchami.cluster --base-uri https://foobar.openchami.cluster
+	ochami config cluster set foobar --base-uri https://foobar.openchami.cluster
 
 Creates the following entry in the 'clusters' list:
 
