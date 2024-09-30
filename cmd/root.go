@@ -95,12 +95,6 @@ func init() {
 	// Either use cluster from config file or specify details on CLI
 	bssCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
 
-	if t, set := os.LookupEnv("OCHAMI_ACCESS_TOKEN"); set {
-		if !rootCmd.PersistentFlags().Lookup("token").Changed {
-			token = t
-		}
-	}
-
 	checkBindError(viper.BindPFlag("log.format", rootCmd.PersistentFlags().Lookup("log-format")))
 	checkBindError(viper.BindPFlag("log.level", rootCmd.PersistentFlags().Lookup("log-level")))
 }
@@ -150,7 +144,6 @@ func InitConfig() {
 	// Read any environment variables
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix("ochami")
 
 	// Do not read or write config file if --ignore-config passed
 	if rootCmd.Flag("ignore-config").Changed {
@@ -328,4 +321,51 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 	}
 
 	return "", fmt.Errorf("no base-uri set bia --base-uri, --cluster, or config file")
+}
+
+// setTokenFromEnvVar sets the access token for a cobra command cmd. If --token
+// was passed, that value is set as the access token. Otherwise, the token is
+// read from an environment variable whose format is <CLUSTER>_ACCESS_TOKEN
+// where <CLUSTER> is the name of the cluster, in upper case, being contacted.
+// The value of <CLUSTER> is determined by taking the cluster name, passed
+// either by --cluster or reading default-cluster from the config file (the
+// former preceding the latter), replacing spaces and dashes (-) with
+// underscores, and making the letters uppercase. If no config file is set or
+// the environment variable is not set, an error is logged and the program
+// exits.
+func setTokenFromEnvVar(cmd *cobra.Command) {
+	var (
+		clusterName string
+		varPrefix   string
+	)
+	if cmd.Flag("token").Changed {
+		token = cmd.Flag("token").Value.String()
+		log.Logger.Debug().Msg("--token passed, setting token to its value: "+token)
+		return
+	} else if configFile != "" {
+		log.Logger.Debug().Msg("Determining token from environment variable based on cluster in config file")
+		if cmd.Flag("cluster").Changed {
+			clusterName = cmd.Flag("cluster").Value.String()
+			log.Logger.Debug().Msg("--cluster specified: " + clusterName)
+		} else if viper.IsSet("default-cluster") {
+			clusterName = viper.GetString("default-cluster")
+			log.Logger.Debug().Msg("--cluster not specified, using default-cluster: " + clusterName)
+		}
+	} else {
+		log.Logger.Error().Msg("no config file specified to determine which cluster token to use and --token not specified")
+		os.Exit(1)
+	}
+	varPrefix = strings.ReplaceAll(clusterName, "-", "_")
+	varPrefix = strings.ReplaceAll(clusterName, " ", "_")
+
+	envVarToRead := strings.ToUpper(varPrefix) + "_ACCESS_TOKEN"
+	log.Logger.Debug().Msg("Reading token from environment variable: " + envVarToRead)
+	if t, tokenSet := os.LookupEnv(envVarToRead); tokenSet {
+		log.Logger.Debug().Msgf("Token found from environment variable: %s=%s", envVarToRead, t)
+		token = t
+		return
+	}
+
+	log.Logger.Error().Msgf("Environment variable %s unset for reading token for cluster %q", envVarToRead, clusterName)
+	os.Exit(1)
 }

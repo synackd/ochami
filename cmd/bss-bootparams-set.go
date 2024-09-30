@@ -47,8 +47,8 @@ var bssBootParamsSetCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		// TODO: Check token validity/expiration
 		checkToken(cmd)
+		setTokenFromEnvVar(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
