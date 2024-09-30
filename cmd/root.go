@@ -274,7 +274,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 	)
 	if cmd.Flag("cluster").Changed {
 		if configFile == "" {
-			return "", fmt.Errorf("--cluster specified without --config")
+			return "", fmt.Errorf("--cluster specified but no config file specified")
 		}
 		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
 			return "", fmt.Errorf("failed to unmarshal cluster list: %v", err)
