@@ -240,9 +240,6 @@ func checkToken(cmd *cobra.Command) {
 	// TODO: Check token validity/expiration
 	if token == "" {
 		log.Logger.Error().Msg("no token set")
-		if err := cmd.Usage(); err != nil {
-			log.Logger.Error().Err(err).Msg("failed to print usage")
-		}
 		os.Exit(1)
 	}
 }
