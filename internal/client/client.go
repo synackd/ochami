@@ -282,6 +282,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 
 	// Debug info for response
 	if res != nil {
+		log.Logger.Debug().Msg("Response status: " + res.Status)
 		if len(res.Header) > 0 {
 			log.Logger.Debug().Msg("Response headers:")
 			for k, v := range res.Header {
