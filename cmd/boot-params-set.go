@@ -1,15 +1,5 @@
-// Copyright © 2024 Triad National Security, LLC. All rights reserved.
-//
-// This program was produced under U.S. Government contract 89233218CNA000001
-// for Los Alamos National Laboratory (LANL), which is operated by Triad
-// National Security, LLC for the U.S. Department of Energy/National Nuclear
-// Security Administration. All rights in the program are reserved by Triad
-// National Security, LLC, and the U.S. Department of Energy/National Nuclear
-// Security Administration. The Government is granted for itself and others
-// acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license
-// in this material to reproduce, prepare derivative works, distribute copies to
-// the public, perform publicly and display publicly, and to permit others to do
-// so.
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
 package cmd
 
 import (
@@ -22,10 +12,24 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsSetCmd represents the bss-bootparams-set command
-var bssBootParamsSetCmd = &cobra.Command{
+// bootParamsSetCmd represents the boot-params-set command
+var bootParamsSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set boot parameters for one or more components, overwriting any previous",
+	Long: `Set boot parameters for one or mote components, overwriting any previously-set
+parameters. At least one of --kernel, --initrd, or --params is required to
+tell ochami which boot data to set. Also, at least one of --xname, --mac,
+or --nid is required to tell ochami which components need modification. Alternatively, pass -f
+to pass a file (optionally specifying --format-input, JSON by default), but the rules above
+still apply for the payload.
+
+This command sends a PUT to BSS. An access token is required.`,
+	Example: `  ochami boot params set --xname x1000c1s7b0 --kernel https://example.com/kernel
+  ochami boot params set --xname x1000c1s7b0,x1000c1s7b1 --kernel https://example.com/kernel
+  ochami boot params set --xname x1000c1s7b0 --xname x1000c1s7b1 --kernel https://example.com/kernel
+  ochami boot params set --xname x1000c1s7b0 --nid 1 --mac 00:c0:ff:ee:00:00 --params 'quiet nosplash'
+  ochami boot params set -f payload.json
+  ochami boot params set -f payload.yaml --format-input yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -47,8 +51,8 @@ var bssBootParamsSetCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		checkToken(cmd)
 		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
@@ -127,15 +131,15 @@ var bssBootParamsSetCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootParamsSetCmd.Flags().String("kernel", "", "URI of kernel")
-	bssBootParamsSetCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
-	bssBootParamsSetCmd.Flags().String("params", "", "kernel parameters")
-	bssBootParamsSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
-	bssBootParamsSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
-	bssBootParamsSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
+	bootParamsSetCmd.Flags().String("kernel", "", "URI of kernel")
+	bootParamsSetCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
+	bootParamsSetCmd.Flags().String("params", "", "kernel parameters")
+	bootParamsSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
+	bootParamsSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
+	bootParamsSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
 
-	bssBootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
-	bssBootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
+	bootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
+	bootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
 
-	bssBootParamsCmd.AddCommand(bssBootParamsSetCmd)
+	bootParamsCmd.AddCommand(bootParamsSetCmd)
 }

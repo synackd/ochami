@@ -1,15 +1,5 @@
-// Copyright © 2024 Triad National Security, LLC. All rights reserved.
-//
-// This program was produced under U.S. Government contract 89233218CNA000001
-// for Los Alamos National Laboratory (LANL), which is operated by Triad
-// National Security, LLC for the U.S. Department of Energy/National Nuclear
-// Security Administration. All rights in the program are reserved by Triad
-// National Security, LLC, and the U.S. Department of Energy/National Nuclear
-// Security Administration. The Government is granted for itself and others
-// acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license
-// in this material to reproduce, prepare derivative works, distribute copies to
-// the public, perform publicly and display publicly, and to permit others to do
-// so.
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
 package cmd
 
 import (
@@ -22,10 +12,22 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsDeleteCmd represents the bss-bootparams-delete command
-var bssBootParamsDeleteCmd = &cobra.Command{
+// bootParamsDeleteCmd represents the bss-bootparams-delete command
+var bootParamsDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete boot parameters for one or more components",
+	Long: `Delete boot parameters for one or more components. At least one of --kernel,
+--initrd, --params, --xname, --mac, or --nid must be specified. This command can delete
+boot parameters by config (kernel URI, initrd URI, or kernel command line) or by component
+(--xname, --mac, or --nid). The user will be asked for confirmation before deletion unless
+--force is passed. Alternatively, pass -f to pass a file (optionally specifying --format-input,
+JSON by default), but the rules above still apply for the payload.
+
+This command sends a DELETE to BSS. An access token is required.`,
+	Example: `  ochami boot params delete --kernel https://example.com/kernel
+  ochami boot params delete --kernel https://example.com/kernel --initrd https://example.com/initrd
+  ochami boot params delete -f payload.json
+  ochami boot params delete -f payload.yaml --format-input yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -47,8 +49,8 @@ var bssBootParamsDeleteCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		checkToken(cmd)
 		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
@@ -139,16 +141,16 @@ var bssBootParamsDeleteCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootParamsDeleteCmd.Flags().String("kernel", "", "URI of kernel")
-	bssBootParamsDeleteCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
-	bssBootParamsDeleteCmd.Flags().String("params", "", "kernel parameters")
-	bssBootParamsDeleteCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
-	bssBootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
-	bssBootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
-	bssBootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
+	bootParamsDeleteCmd.Flags().String("kernel", "", "URI of kernel")
+	bootParamsDeleteCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
+	bootParamsDeleteCmd.Flags().String("params", "", "kernel parameters")
+	bootParamsDeleteCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
+	bootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
+	bootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
+	bootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters
-	bssBootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params")
+	bootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params")
 
-	bssBootParamsCmd.AddCommand(bssBootParamsDeleteCmd)
+	bootParamsCmd.AddCommand(bootParamsDeleteCmd)
 }

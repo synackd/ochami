@@ -1,15 +1,5 @@
-// Copyright © 2024 Triad National Security, LLC. All rights reserved.
-//
-// This program was produced under U.S. Government contract 89233218CNA000001
-// for Los Alamos National Laboratory (LANL), which is operated by Triad
-// National Security, LLC for the U.S. Department of Energy/National Nuclear
-// Security Administration. All rights in the program are reserved by Triad
-// National Security, LLC, and the U.S. Department of Energy/National Nuclear
-// Security Administration. The Government is granted for itself and others
-// acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license
-// in this material to reproduce, prepare derivative works, distribute copies to
-// the public, perform publicly and display publicly, and to permit others to do
-// so.
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
 package cmd
 
 import (
@@ -22,10 +12,25 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsAddCmd represents the bss-bootparams-add command
-var bssBootParamsAddCmd = &cobra.Command{
+// bootParamsAddCmd represents the add command
+var bootParamsAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add new boot parameters for one or more components",
+	Long: `Add new boot parameters for one or more components. At least one of --kernel,
+--initrd, or --params must be specified as well as at least one of --xname, --mac, or --nid.
+Alternatively, pass -f to pass a file (optionally specifying --format-input, JSON by default),
+but the rules above still apply for the payload.
+
+This command sends a POST to BSS. An access token is required.`,
+	Example: `  ochami boot params add \
+    --mac 00:de:ad:be:ef:00 \
+    --kernel https://example.com/kernel \
+    --initrd https://example.com/initrd \
+    --params 'quiet nosplash'
+  ochami boot params add --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00 --params 'quiet nosplash'
+  ochami boot params add --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00 --kernel https://example.com/kernel
+  ochami boot params add -f payload.json
+  ochami boot params add -f payload.yaml --format-input yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -47,8 +52,8 @@ var bssBootParamsAddCmd = &cobra.Command{
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		checkToken(cmd)
 		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
 
 		// Create client to make request to BSS
 		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
@@ -127,15 +132,15 @@ var bssBootParamsAddCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootParamsAddCmd.Flags().String("kernel", "", "URI of kernel")
-	bssBootParamsAddCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
-	bssBootParamsAddCmd.Flags().String("params", "", "kernel parameters")
-	bssBootParamsAddCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to add")
-	bssBootParamsAddCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to add")
-	bssBootParamsAddCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to add")
+	bootParamsAddCmd.Flags().String("kernel", "", "URI of kernel")
+	bootParamsAddCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
+	bootParamsAddCmd.Flags().String("params", "", "kernel parameters")
+	bootParamsAddCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to add")
+	bootParamsAddCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to add")
+	bootParamsAddCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to add")
 
-	bssBootParamsAddCmd.MarkFlagsOneRequired("xname", "mac", "nid")
-	bssBootParamsAddCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
+	bootParamsAddCmd.MarkFlagsOneRequired("xname", "mac", "nid")
+	bootParamsAddCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
 
-	bssBootParamsCmd.AddCommand(bssBootParamsAddCmd)
+	bootParamsCmd.AddCommand(bootParamsAddCmd)
 }

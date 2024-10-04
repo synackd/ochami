@@ -1,15 +1,5 @@
-// Copyright © 2024 Triad National Security, LLC. All rights reserved.
-//
-// This program was produced under U.S. Government contract 89233218CNA000001
-// for Los Alamos National Laboratory (LANL), which is operated by Triad
-// National Security, LLC for the U.S. Department of Energy/National Nuclear
-// Security Administration. All rights in the program are reserved by Triad
-// National Security, LLC, and the U.S. Department of Energy/National Nuclear
-// Security Administration. The Government is granted for itself and others
-// acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license
-// in this material to reproduce, prepare derivative works, distribute copies to
-// the public, perform publicly and display publicly, and to permit others to do
-// so.
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
 package cmd
 
 import (
@@ -23,14 +13,21 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootParamsGetCmd represents the bss-bootparams command
-var bssBootParamsGetCmd = &cobra.Command{
+// bootParamsGetCmd represents the boot-params-get command
+var bootParamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get boot parameters for one or all nodes",
+	Long: `Get boot parameters for one or all nodes. If no options are passed, all boot
+parameters are returned. Optionally, --mac, --xname, and/or --nid can be passed at least once
+to get boot parameters for specific components.
+
+This command sends a GET to BSS. An access token is required.`,
 	Example: `  ochami bss bootparams get
   ochami bss bootparams get --mac 00:de:ad:be:ef:00
   ochami bss bootparams get --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00
-  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00`,
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00
+  ochami bss bootparams get -f payload.json
+  ochami bss bootparams get -f payload.yaml --format-input yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
@@ -105,8 +102,8 @@ var bssBootParamsGetCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
-	bssBootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
-	bssBootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
-	bssBootParamsCmd.AddCommand(bssBootParamsGetCmd)
+	bootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
+	bootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
+	bootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
+	bootParamsCmd.AddCommand(bootParamsGetCmd)
 }
