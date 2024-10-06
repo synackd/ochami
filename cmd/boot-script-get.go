@@ -1,15 +1,5 @@
-// Copyright © 2024 Triad National Security, LLC. All rights reserved.
-//
-// This program was produced under U.S. Government contract 89233218CNA000001
-// for Los Alamos National Laboratory (LANL), which is operated by Triad
-// National Security, LLC for the U.S. Department of Energy/National Nuclear
-// Security Administration. All rights in the program are reserved by Triad
-// National Security, LLC, and the U.S. Department of Energy/National Nuclear
-// Security Administration. The Government is granted for itself and others
-// acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license
-// in this material to reproduce, prepare derivative works, distribute copies to
-// the public, perform publicly and display publicly, and to permit others to do
-// so.
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
 package cmd
 
 import (
@@ -23,10 +13,15 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
-// bssBootScriptGetCmd represents the bss-bootscript-get command
-var bssBootScriptGetCmd = &cobra.Command{
+// bootScriptGetCmd represents the bss-bootscript-get command
+var bootScriptGetCmd = &cobra.Command{
 	Use:   "get",
-	Short: "Get iPXE boot script for a node",
+	Short: "Get iPXE boot script for a component",
+	Long: `Get iPXE boot script for a component. Specifying one of --mac, --xname,
+or --nid is required to specify which component to fetch the boot script for.
+
+This command sends a GET to BSS. An access token is not required.`,
+	Example: `  ochami boot script get --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
@@ -121,14 +116,14 @@ var bssBootScriptGetCmd = &cobra.Command{
 }
 
 func init() {
-	bssBootScriptGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot script to get")
-	bssBootScriptGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot script to get")
-	bssBootScriptGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot script to get")
-	bssBootScriptGetCmd.Flags().Int("retry", 0, "number of times to retry fetching boot script on failed boot")
-	bssBootScriptGetCmd.Flags().String("arch", "", "architecture value from iPXE variable ${buildarch}")
-	bssBootScriptGetCmd.Flags().Int("timestamp", 0, "timestamp in seconds since Unix epoch for when SMD state needs to be updated by")
+	bootScriptGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot script to get")
+	bootScriptGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot script to get")
+	bootScriptGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot script to get")
+	bootScriptGetCmd.Flags().Int("retry", 0, "number of times to retry fetching boot script on failed boot")
+	bootScriptGetCmd.Flags().String("arch", "", "architecture value from iPXE variable ${buildarch}")
+	bootScriptGetCmd.Flags().Int("timestamp", 0, "timestamp in seconds since Unix epoch for when SMD state needs to be updated by")
 
-	bssBootScriptGetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
+	bootScriptGetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
 
-	bssBootScriptCmd.AddCommand(bssBootScriptGetCmd)
+	bootScriptCmd.AddCommand(bootScriptGetCmd)
 }
