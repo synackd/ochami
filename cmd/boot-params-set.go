@@ -20,7 +20,7 @@ var bootParamsSetCmd = &cobra.Command{
 parameters. At least one of --kernel, --initrd, or --params is required to
 tell ochami which boot data to set. Also, at least one of --xname, --mac,
 or --nid is required to tell ochami which components need modification. Alternatively, pass -f
-to pass a file (optionally specifying --format-input, JSON by default), but the rules above
+to pass a file (optionally specifying --payload-format, JSON by default), but the rules above
 still apply for the payload.
 
 This command sends a PUT to BSS. An access token is required.`,
@@ -34,7 +34,7 @@ This command sends a PUT to BSS. An access token is required.`,
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
 			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
-			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed {
+			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("payload").Changed {
 			err := cmd.Usage()
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to print usage")
@@ -66,6 +66,17 @@ This command sends a PUT to BSS. An access token is required.`,
 
 		// The BSS BootParams struct we will send
 		bp := bssTypes.BootParams{}
+
+		// Read payload from file first, allowing overwrites from flags
+		if cmd.Flag("payload").Changed {
+			dFile := cmd.Flag("payload").Value.String()
+			dFormat := cmd.Flag("payload-format").Value.String()
+			err := client.ReadPayload(dFile, dFormat, &bp)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("unable to read payload for request")
+				os.Exit(1)
+			}
+		}
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {
@@ -137,9 +148,11 @@ func init() {
 	bootParamsSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
 	bootParamsSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
 	bootParamsSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
+	bootParamsSetCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	bootParamsSetCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
-	bootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
-	bootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
+	bootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid", "payload")
+	bootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "payload")
 
 	bootParamsCmd.AddCommand(bootParamsSetCmd)
 }

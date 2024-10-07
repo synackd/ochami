@@ -20,7 +20,7 @@ var bootParamsDeleteCmd = &cobra.Command{
 --initrd, --params, --xname, --mac, or --nid must be specified. This command can delete
 boot parameters by config (kernel URI, initrd URI, or kernel command line) or by component
 (--xname, --mac, or --nid). The user will be asked for confirmation before deletion unless
---force is passed. Alternatively, pass -f to pass a file (optionally specifying --format-input,
+--force is passed. Alternatively, pass -f to pass a file (optionally specifying --payload-format,
 JSON by default), but the rules above still apply for the payload.
 
 This command sends a DELETE to BSS. An access token is required.`,
@@ -32,7 +32,7 @@ This command sends a DELETE to BSS. An access token is required.`,
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
 			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
-			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed {
+			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("payload").Changed {
 			err := cmd.Usage()
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to print usage")
@@ -64,6 +64,17 @@ This command sends a DELETE to BSS. An access token is required.`,
 
 		// The BSS BootParams struct we will send
 		bp := bssTypes.BootParams{}
+
+		// Read payload from file first, allowing overwrites from flags
+		if cmd.Flag("payload").Changed {
+			dFile := cmd.Flag("payload").Value.String()
+			dFormat := cmd.Flag("payload-format").Value.String()
+			err := client.ReadPayload(dFile, dFormat, &bp)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("unable to read payload for request")
+				os.Exit(1)
+			}
+		}
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {
@@ -147,10 +158,12 @@ func init() {
 	bootParamsDeleteCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
 	bootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
 	bootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
+	bootParamsDeleteCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	bootParamsDeleteCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 	bootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters
-	bootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params")
+	bootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params", "payload")
 
 	bootParamsCmd.AddCommand(bootParamsDeleteCmd)
 }

@@ -29,10 +29,11 @@ import (
 )
 
 const (
-	progName            = "ochami"
-	defaultLogFormat    = "json"
-	defaultLogLevel     = "warning"
-	defaultConfigFormat = "yaml"
+	progName             = "ochami"
+	defaultLogFormat     = "json"
+	defaultLogLevel      = "warning"
+	defaultConfigFormat  = "yaml"
+	defaultPayloadFormat = "json"
 )
 
 var (

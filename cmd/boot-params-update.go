@@ -18,7 +18,7 @@ var bootParamsUpdateCmd = &cobra.Command{
 	Short: "Update some or all boot parameters for one or more components",
 	Long: `Update some or all boot parameters for one or more components. At least one of
 --kernel, initrd, or --params must be specified as well as at least one of --xname, --mac, or
---nid. Alternatively, pass -f to pass a file (optionally specifying --format-input, JSON by
+--nid. Alternatively, pass -f to pass a file (optionally specifying --payload-format, JSON by
 default), but the rules abo e still apply for the payload.
 
 This command sends a PATCH to BSS. An access token is required.`,
@@ -32,7 +32,7 @@ This command sends a PATCH to BSS. An access token is required.`,
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
 			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
-			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed {
+			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("payload").Changed {
 			err := cmd.Usage()
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to print usage")
@@ -64,6 +64,17 @@ This command sends a PATCH to BSS. An access token is required.`,
 
 		// The BSS BootParams struct we will send
 		bp := bssTypes.BootParams{}
+
+		// Read payload from file first, allowing overwrites from flags
+		if cmd.Flag("payload").Changed {
+			dFile := cmd.Flag("payload").Value.String()
+			dFormat := cmd.Flag("payload-format").Value.String()
+			err := client.ReadPayload(dFile, dFormat, &bp)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("unable to read payload for request")
+				os.Exit(1)
+			}
+		}
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {
@@ -135,9 +146,11 @@ func init() {
 	bootParamsUpdateCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to update")
 	bootParamsUpdateCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to update")
 	bootParamsUpdateCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to update")
+	bootParamsUpdateCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	bootParamsUpdateCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
-	bootParamsUpdateCmd.MarkFlagsOneRequired("xname", "mac", "nid")
-	bootParamsUpdateCmd.MarkFlagsOneRequired("kernel", "initrd", "params")
+	bootParamsUpdateCmd.MarkFlagsOneRequired("xname", "mac", "nid", "payload")
+	bootParamsUpdateCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "payload")
 
 	bootParamsCmd.AddCommand(bootParamsUpdateCmd)
 }

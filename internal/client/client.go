@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/synackd/ochami/internal/log"
@@ -334,4 +337,105 @@ func (oc *OchamiClient) UseCACert(caCertPath string) error {
 	}
 
 	return nil
+}
+
+// FileToHTTPBody takes a file path and string representing the format of the
+// file, reads the file, and tries to marshal it into an HTTPBody (byte array)
+// in JSON form, returning it. If an unmarshalling error occurs or either of the
+// arguments are empty, nil and an error are returned. Current file formats
+// supported are JSON and YAML.
+func FileToHTTPBody(path, format string) (HTTPBody, error) {
+	if path == "" {
+		return nil, fmt.Errorf("file path is empty")
+	}
+	if format == "" {
+		return nil, fmt.Errorf("format is empty")
+	}
+
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %q: %v", path, err)
+	}
+
+	var b HTTPBody
+	switch strings.ToLower(format) {
+	case "json":
+		var j interface{}
+		err = json.Unmarshal(contents, &j)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON contents from %q: %v", path, err)
+		}
+		b, err = json.Marshal(j)
+		if err != nil {
+			err = fmt.Errorf("failed to marshal JSON from file %q: %v", path, err)
+		}
+	case "yaml":
+		var y interface{}
+		err = yaml.Unmarshal(contents, &y)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal YAML contents from %q: %v", path, err)
+		}
+		y = CanonicalizeInterface(y)
+		b, err = json.Marshal(y)
+		if err != nil {
+			err = fmt.Errorf("failed to marshal JSON (converted from YAML) from file %q: %v", path, err)
+		}
+	}
+
+	return b, err
+}
+
+// ReadPayload reads in the file pointed to by path and unmarshals the data into
+// value v. The data can be in formats other than JSON (whichever formats
+// FileToHTTPBody supports), such as YAML. If a marshalling/unmarshalling error
+// occurs or either path or format are empty, an error is returned.
+func ReadPayload(path, format string, v any) error {
+	log.Logger.Debug().Msgf("Payload file: %s", path)
+	log.Logger.Debug().Msgf("Payload file format: %s", format)
+
+	body, err := FileToHTTPBody(path, format)
+	if err != nil {
+		return fmt.Errorf("unable to create HTTP body from file: %v", err)
+	}
+	log.Logger.Debug().Msgf("Body bytes: %s", string(body))
+
+	err = json.Unmarshal(body, v)
+	if err != nil {
+		err = fmt.Errorf("unable to unmarshal bytes into value: %v", err)
+	}
+
+	return err
+}
+
+// CanonicalizeInterface takes an arbitrary map of data (e.g. returned from
+// unmarshalling) and ensures that the keys of the nested map structures are
+// comparable (e.g. preparing it for a future marshaling), doing this
+// recursively. This can be necessary as the yaml package's unmarshalling
+// function unmarshals key-value pairs into map[interface{}]interface{} if
+// unmarshalling into an interface{}.
+//
+// Adapted from: https://stackoverflow.com/a/75503306
+func CanonicalizeInterface(i interface{}) interface{} {
+	switch iType := i.(type) {
+	case map[interface{}]interface{}:
+		cmap := map[string]interface{}{}
+		for k, v := range iType {
+			cmap[k.(string)] = CanonicalizeInterface(v)
+		}
+		return cmap
+	// We also need to recursively visit string-mapped values in case there
+	// are any nested interfaces with non-comparable keys there.
+	case map[string]interface{}:
+		cmap := map[string]interface{}{}
+		for k, v := range iType {
+			cmap[k] = CanonicalizeInterface(v)
+		}
+		return cmap
+	case []interface{}:
+		for k, v := range iType {
+			iType[k] = CanonicalizeInterface(v)
+		}
+	}
+
+	return i
 }
