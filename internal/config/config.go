@@ -62,6 +62,7 @@ func LoadConfig(path, format string) error {
 
 	return err
 }
+
 // WriteConfig takes a path and config file format and writes the current viper
 // configuration to the file pointed to by path in the format specified. If path
 // is empty, an error is returned. WriteConfig accepts any config file types

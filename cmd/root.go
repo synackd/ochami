@@ -337,7 +337,7 @@ func setTokenFromEnvVar(cmd *cobra.Command) {
 	)
 	if cmd.Flag("token").Changed {
 		token = cmd.Flag("token").Value.String()
-		log.Logger.Debug().Msg("--token passed, setting token to its value: "+token)
+		log.Logger.Debug().Msg("--token passed, setting token to its value: " + token)
 		return
 	} else if configFile != "" {
 		log.Logger.Debug().Msg("Determining token from environment variable based on cluster in config file")
