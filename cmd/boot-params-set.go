@@ -15,6 +15,7 @@ import (
 // bootParamsSetCmd represents the boot-params-set command
 var bootParamsSetCmd = &cobra.Command{
 	Use:   "set",
+	Args:  cobra.NoArgs,
 	Short: "Set boot parameters for one or more components, overwriting any previous",
 	Long: `Set boot parameters for one or mote components, overwriting any previously-set
 parameters. At least one of --kernel, --initrd, or --params is required to

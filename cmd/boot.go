@@ -12,6 +12,7 @@ import (
 // bootCmd represents the boot command
 var bootCmd = &cobra.Command{
 	Use:   "boot",
+	Args:  cobra.NoArgs,
 	Short: "Manage boot configuration for components",
 	Long: `Manage boot configuration for components. This is a metacommand. Commands
 under this one interact with the Boot Script Service (BSS).`,

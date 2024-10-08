@@ -17,6 +17,7 @@ import (
 // values that the CLI sees, whether that be from a flag
 var configShowCmd = &cobra.Command{
 	Use:   "show",
+	Args:  cobra.NoArgs,
 	Short: "View configuration options the CLI sees from a config file",
 	Run: func(cmd *cobra.Command, args []string) {
 		var (

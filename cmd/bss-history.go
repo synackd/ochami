@@ -16,6 +16,7 @@ import (
 // bssHistoryCmd represents the bss-history command
 var bssHistoryCmd = &cobra.Command{
 	Use:   "history",
+	Args:  cobra.NoArgs,
 	Short: "Fetch the endpoint history of BSS",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything

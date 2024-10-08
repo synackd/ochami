@@ -15,6 +15,7 @@ import (
 // bootParamsAddCmd represents the add command
 var bootParamsAddCmd = &cobra.Command{
 	Use:   "add",
+	Args:  cobra.NoArgs,
 	Short: "Add new boot parameters for one or more components",
 	Long: `Add new boot parameters for one or more components. At least one of --kernel,
 --initrd, or --params must be specified as well as at least one of --xname, --mac, or --nid.

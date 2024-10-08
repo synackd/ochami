@@ -16,6 +16,7 @@ import (
 // bootParamsGetCmd represents the boot-params-get command
 var bootParamsGetCmd = &cobra.Command{
 	Use:   "get",
+	Args:  cobra.NoArgs,
 	Short: "Get boot parameters for one or all nodes",
 	Long: `Get boot parameters for one or all nodes. If no options are passed, all boot
 parameters are returned. Optionally, --mac, --xname, and/or --nid can be passed at least once

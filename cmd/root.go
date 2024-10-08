@@ -42,6 +42,7 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     progName,
+	Args:    cobra.NoArgs,
 	Short:   "Command line interface for interacting with OpenCHAMI services",
 	Long:    "",
 	Version: version.Version,

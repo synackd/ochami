@@ -14,6 +14,7 @@ var output string
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
+	Args:  cobra.NoArgs,
 	Short: "Print version to stdout and exit",
 	Example: `  ochami version
   ochami version --all

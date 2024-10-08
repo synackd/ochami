@@ -12,6 +12,7 @@ import (
 // bssHostsCmd represents the hosts command
 var bssHostsCmd = &cobra.Command{
 	Use:   "hosts",
+	Args:  cobra.NoArgs,
 	Short: "Work with hosts in BSS",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {

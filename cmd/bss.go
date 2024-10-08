@@ -12,6 +12,7 @@ import (
 // bssCmd represents the bss command
 var bssCmd = &cobra.Command{
 	Use:   "bss",
+	Args:  cobra.NoArgs,
 	Short: "Communicate with the Boot Script Service (BSS)",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {

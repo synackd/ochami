@@ -15,6 +15,7 @@ import (
 // bootParamsDeleteCmd represents the bss-bootparams-delete command
 var bootParamsDeleteCmd = &cobra.Command{
 	Use:   "delete",
+	Args:  cobra.NoArgs,
 	Short: "Delete boot parameters for one or more components",
 	Long: `Delete boot parameters for one or more components. At least one of --kernel,
 --initrd, --params, --xname, --mac, or --nid must be specified. This command can delete

@@ -16,6 +16,7 @@ import (
 // bootScriptGetCmd represents the bss-bootscript-get command
 var bootScriptGetCmd = &cobra.Command{
 	Use:   "get",
+	Args:  cobra.NoArgs,
 	Short: "Get iPXE boot script for a component",
 	Long: `Get iPXE boot script for a component. Specifying one of --mac, --xname,
 or --nid is required to specify which component to fetch the boot script for.

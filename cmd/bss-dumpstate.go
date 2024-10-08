@@ -15,6 +15,7 @@ import (
 // bssDumpStateCmd represents the bss-dumpstate command
 var bssDumpStateCmd = &cobra.Command{
 	Use:   "dumpstate",
+	Args:  cobra.NoArgs,
 	Short: "Retrieve the current state of BSS",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything

@@ -12,6 +12,7 @@ import (
 // configClusterCmd represents the config-cluster command
 var configClusterCmd = &cobra.Command{
 	Use:   "cluster",
+	Args:  cobra.NoArgs,
 	Short: "Manage cluster configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {

@@ -12,6 +12,7 @@ import (
 // bootScriptCmd represents the boot-script command
 var bootScriptCmd = &cobra.Command{
 	Use:   "script",
+	Args:  cobra.NoArgs,
 	Short: "Work with boot scripts for components",
 	Long:  `Work with boot scripts for components. This is a metacommand.`,
 	Run: func(cmd *cobra.Command, args []string) {

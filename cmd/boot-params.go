@@ -12,6 +12,7 @@ import (
 // bootParamsCmd represents the boot-params command
 var bootParamsCmd = &cobra.Command{
 	Use:   "params",
+	Args:  cobra.NoArgs,
 	Short: "Work with boot parameters for components",
 	Long: `Work with boot parameters for components, including kernel URI, initrd URI,
 and kernel command line arguments. This is a metacommand.`,

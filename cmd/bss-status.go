@@ -15,6 +15,7 @@ import (
 // bssStatusCmd represents the bss-status command
 var bssStatusCmd = &cobra.Command{
 	Use:   "status",
+	Args:  cobra.NoArgs,
 	Short: "Get status of BSS service",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything

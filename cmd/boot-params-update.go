@@ -15,6 +15,7 @@ import (
 // bootParamsUpdateCmd represents the bss-bootparams-update command
 var bootParamsUpdateCmd = &cobra.Command{
 	Use:   "update",
+	Args:  cobra.NoArgs,
 	Short: "Update some or all boot parameters for one or more components",
 	Long: `Update some or all boot parameters for one or more components. At least one of
 --kernel, initrd, or --params must be specified as well as at least one of --xname, --mac, or

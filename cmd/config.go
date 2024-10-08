@@ -13,6 +13,7 @@ import (
 // configuration options in the passed config file.
 var configCmd = &cobra.Command{
 	Use:     "config",
+	Args:    cobra.NoArgs,
 	Short:   "Set or view configuration options",
 	Example: `ochami config show`,
 	Run: func(cmd *cobra.Command, args []string) {
