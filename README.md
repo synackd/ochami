@@ -30,7 +30,7 @@ Run the following command to generate the config file and show the default
 configuration:
 
 ```bash
-$ ./ochami config show
+$ ochami config show
 Config file /home/user/.config/ochami/config.yaml does not exist. Create it? [yN]: y
 log:
     format: json
@@ -137,7 +137,7 @@ subcommand. If the output is all zeros (like in the below incantation), then the
 build info did *not* get embedded.
 
 ```bash
-$ ./ochami version --all
+$ ochami version --all
 v0.0.0 0000000 @ 0000-00-00:00:00:00
 ```
 
