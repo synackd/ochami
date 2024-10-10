@@ -8,6 +8,11 @@ import (
 	"github.com/synackd/ochami/internal/log"
 )
 
+var (
+	UnsuccessfulHTTPError = fmt.Errorf("unsuccessful HTTP status")
+	NilMapPointerError    = fmt.Errorf("nil map pointer")
+)
+
 type HTTPHeaders map[string][]string
 type HTTPBody []byte
 
@@ -22,11 +27,6 @@ type HTTPEnvelope struct {
 	Headers    *HTTPHeaders
 	Body       HTTPBody
 }
-
-var (
-	UnsuccessfulHTTPError = fmt.Errorf("unsuccessful HTTP status")
-	NilMapPointerError    = fmt.Errorf("nil map pointer")
-)
 
 // NewHTTPHeaders returns a pointer to a new HTTPHeaders.
 func NewHTTPHeaders() *HTTPHeaders {

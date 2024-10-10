@@ -8,12 +8,6 @@ import (
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 )
 
-// BSSClient is an OchamiClient that has its BasePath set configured to the one
-// that BSS uses.
-type BSSClient struct {
-	*OchamiClient
-}
-
 const (
 	serviceNameBSS = "BSS"
 	basePathBSS    = "/boot/v1"
@@ -25,6 +19,12 @@ const (
 	BSSRelpathEndpointHistory = "/endpoint-history"
 	BSSRelpathHosts           = "/hosts"
 )
+
+// BSSClient is an OchamiClient that has its BasePath set configured to the one
+// that BSS uses.
+type BSSClient struct {
+	*OchamiClient
+}
 
 // NewBSSClient takes a baseURI and basePath and returns a pointer to a new
 // BSSClient. If an error occurred creating the embedded OchamiClient, it is

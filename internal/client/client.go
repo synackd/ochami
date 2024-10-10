@@ -20,6 +20,14 @@ import (
 	"github.com/synackd/ochami/internal/version"
 )
 
+var (
+	userAgent = "ochami/" + version.Version
+
+	// TLS timeout configuration
+	tlsHandshakeTimeout   = 120 * time.Second
+	responseHeaderTimeout = 120 * time.Second
+)
+
 // OchamiClient is an *http.Client that contains metadata for OpenCHAMI services
 // being communicated with.
 type OchamiClient struct {
@@ -28,14 +36,6 @@ type OchamiClient struct {
 	BasePath    string   // Base path for the service (e.g. /boot/v1 for BSS)
 	ServiceName string   // Name of service being contacted (e.g. BSS)
 }
-
-var (
-	userAgent = "ochami/" + version.Version
-
-	// TLS timeout configuration
-	tlsHandshakeTimeout   = 120 * time.Second
-	responseHeaderTimeout = 120 * time.Second
-)
 
 // defaultClient creates an http.DefaultClient for its OchamiClient.
 func (oc *OchamiClient) defaultClient() {
