@@ -104,7 +104,7 @@ func WriteConfig(path, format string) error {
 	viper.AddConfigPath(base)
 
 	if err := viper.WriteConfig(); err != nil {
-		return fmt.Errorf("failed to write config file %s: %v", path, err)
+		return fmt.Errorf("failed to write config file %s: %w", path, err)
 	}
 	log.Logger.Info().Msgf("wrote config to %s", path)
 

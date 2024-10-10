@@ -32,7 +32,7 @@ const (
 func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 	oc, err := NewOchamiClient(serviceNameBSS, baseURI, basePathBSS, insecure)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create OchamiClient for %s: %v", serviceNameBSS, err)
+		return nil, fmt.Errorf("failed to create OchamiClient for %s: %w", serviceNameBSS, err)
 	}
 	bc := &BSSClient{
 		OchamiClient: oc,
@@ -53,7 +53,7 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
-		return henv, fmt.Errorf("PostBootParams(): failed to marshal BootParams: %v", err)
+		return henv, fmt.Errorf("PostBootParams(): failed to marshal BootParams: %w", err)
 	}
 	headers = NewHTTPHeaders()
 	if token != "" {
@@ -63,7 +63,7 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 	}
 	henv, err = bc.PostData(BSSRelpathBootParams, "", headers, body)
 	if err != nil {
-		err = fmt.Errorf("PostBootParams(): failed to POST boot parameters to BSS: %v", err)
+		err = fmt.Errorf("PostBootParams(): failed to POST boot parameters to BSS: %w", err)
 	}
 
 	return henv, err
@@ -81,7 +81,7 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
-		return henv, fmt.Errorf("PutBootParams(): failed to marshal BootParams: %v", err)
+		return henv, fmt.Errorf("PutBootParams(): failed to marshal BootParams: %w", err)
 	}
 	headers = NewHTTPHeaders()
 	if token != "" {
@@ -91,7 +91,7 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 	}
 	henv, err = bc.PutData(BSSRelpathBootParams, "", headers, body)
 	if err != nil {
-		err = fmt.Errorf("PutBootParams(): failed to PUT boot parameters to BSS: %v", err)
+		err = fmt.Errorf("PutBootParams(): failed to PUT boot parameters to BSS: %w", err)
 	}
 
 	return henv, err
@@ -109,7 +109,7 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
-		return henv, fmt.Errorf("PatchBootParams(): failed to marshal BootParams: %v", err)
+		return henv, fmt.Errorf("PatchBootParams(): failed to marshal BootParams: %w", err)
 	}
 	headers = NewHTTPHeaders()
 	if token != "" {
@@ -119,7 +119,7 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 	}
 	henv, err = bc.PatchData(BSSRelpathBootParams, "", headers, body)
 	if err != nil {
-		err = fmt.Errorf("PatchBootParams(): failed to PATCH boot parameters to BSS: %v", err)
+		err = fmt.Errorf("PatchBootParams(): failed to PATCH boot parameters to BSS: %w", err)
 	}
 
 	return henv, err
@@ -137,7 +137,7 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
-		return henv, fmt.Errorf("DeleteBootParams(): failed to marshal BootParams: %v", err)
+		return henv, fmt.Errorf("DeleteBootParams(): failed to marshal BootParams: %w", err)
 	}
 	headers = NewHTTPHeaders()
 	if token != "" {
@@ -147,7 +147,7 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 	}
 	henv, err = bc.DeleteData(BSSRelpathBootParams, "", headers, body)
 	if err != nil {
-		err = fmt.Errorf("DeleteBootParams(): failed to DELETE boot parameters to BSS: %v", err)
+		err = fmt.Errorf("DeleteBootParams(): failed to DELETE boot parameters to BSS: %w", err)
 	}
 
 	return henv, err
@@ -171,7 +171,7 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	}
 	henv, err = bc.GetData(BSSRelpathBootParams, query, headers)
 	if err != nil {
-		err = fmt.Errorf("GetBootParams(): error getting boot parameters: %v", err)
+		err = fmt.Errorf("GetBootParams(): error getting boot parameters: %w", err)
 	}
 
 	return henv, err
@@ -183,7 +183,7 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathBootScript, query, nil)
 	if err != nil {
-		err = fmt.Errorf("GetBootScript(): error getting boot script: %v", err)
+		err = fmt.Errorf("GetBootScript(): error getting boot script: %w", err)
 	}
 
 	return henv, err
@@ -221,7 +221,7 @@ func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 
 	henv, err = bc.GetData(bssStatusEndpoint, "", nil)
 	if err != nil {
-		err = fmt.Errorf("GetStatus(): error getting BSS all status: %v", err)
+		err = fmt.Errorf("GetStatus(): error getting BSS all status: %w", err)
 	}
 
 	return henv, err
@@ -232,7 +232,7 @@ func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathDumpState, "", nil)
 	if err != nil {
-		err = fmt.Errorf("GetDumpState(): error getting dump state: %v", err)
+		err = fmt.Errorf("GetDumpState(): error getting dump state: %w", err)
 	}
 
 	return henv, err
@@ -244,7 +244,7 @@ func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
 func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathEndpointHistory, query, nil)
 	if err != nil {
-		err = fmt.Errorf("GetEndpointHistory(): error getting endpoint history: %v", err)
+		err = fmt.Errorf("GetEndpointHistory(): error getting endpoint history: %w", err)
 	}
 
 	return henv, err
@@ -255,7 +255,7 @@ func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
 func (bc *BSSClient) GetHosts(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathHosts, query, nil)
 	if err != nil {
-		err = fmt.Errorf("GetHosts(): error getting hosts: %v", err)
+		err = fmt.Errorf("GetHosts(): error getting hosts: %w", err)
 	}
 
 	return henv, err

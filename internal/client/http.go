@@ -52,7 +52,7 @@ func (h *HTTPHeaders) SetAuthorization(token string) error {
 		return NilMapPointerError
 	}
 	if err := h.Add("Authorization", fmt.Sprintf("Bearer %s", token)); err != nil {
-		return fmt.Errorf("could not set authorization token in HTTPHeaders: %v", err)
+		return fmt.Errorf("could not set authorization token in HTTPHeaders: %w", err)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func (h *HTTPHeaders) SetContentType(ct string) error {
 		return NilMapPointerError
 	}
 	if err := h.Add("Content-Type", ct); err != nil {
-		return fmt.Errorf("could not set Content-Type in HTTPHeaders: %v", err)
+		return fmt.Errorf("could not set Content-Type in HTTPHeaders: %w", err)
 	}
 	return nil
 }
@@ -91,10 +91,10 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 		var body HTTPBody
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
-			return henv, fmt.Errorf("could not read HTTP body: %v", err)
+			return henv, fmt.Errorf("could not read HTTP body: %w", err)
 		}
 		if err := res.Body.Close(); err != nil {
-			return henv, fmt.Errorf("error closing response body: %v", err)
+			return henv, fmt.Errorf("error closing response body: %w", err)
 		}
 		henv.Body = body
 

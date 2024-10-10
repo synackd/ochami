@@ -63,7 +63,7 @@ func (oc *OchamiClient) defaultClientInsecure() {
 func NewOchamiClient(serviceName, baseURI, basePath string, insecure bool) (*OchamiClient, error) {
 	u, err := url.Parse(baseURI)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse URI: %v", err)
+		return nil, fmt.Errorf("failed to parse URI: %w", err)
 	}
 	oc := &OchamiClient{
 		BaseURI:     u,
@@ -85,7 +85,7 @@ func NewOchamiClient(serviceName, baseURI, basePath string, insecure bool) (*Och
 func (oc *OchamiClient) GetURI(endpoint, query string) (string, error) {
 	uri, err := url.Parse(oc.BaseURI.String())
 	if err != nil {
-		return "", fmt.Errorf("failed to parse base URI %s: %v", oc.BaseURI, err)
+		return "", fmt.Errorf("failed to parse base URI %s: %w", oc.BaseURI, err)
 	}
 	uri.Path = path.Join(uri.Path, oc.BasePath, endpoint)
 	if query != "" {
@@ -107,12 +107,12 @@ func (oc *OchamiClient) GetData(endpoint, query string, headers *HTTPHeaders) (H
 
 	res, err := oc.MakeOchamiRequest(http.MethodGet, endpoint, query, headers, nil)
 	if err != nil {
-		return he, fmt.Errorf("error making GET request to %s: %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making GET request to %s: %w", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from GET response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from GET response: %w", err)
 		}
 		return he, he.CheckResponse()
 	}
@@ -132,12 +132,12 @@ func (oc *OchamiClient) PostData(endpoint, query string, headers *HTTPHeaders, b
 
 	res, err := oc.MakeOchamiRequest(http.MethodPost, endpoint, query, headers, body)
 	if err != nil {
-		return he, fmt.Errorf("error making POST request to %s, %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making POST request to %s, %w", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from POST response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from POST response: %w", err)
 		}
 		return he, he.CheckResponse()
 	}
@@ -157,12 +157,12 @@ func (oc *OchamiClient) PutData(endpoint, query string, headers *HTTPHeaders, bo
 
 	res, err := oc.MakeOchamiRequest(http.MethodPut, endpoint, query, headers, body)
 	if err != nil {
-		return he, fmt.Errorf("error making PUT request to %s, %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making PUT request to %s, %w", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from PUT response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from PUT response: %w", err)
 		}
 		return he, he.CheckResponse()
 	}
@@ -182,12 +182,12 @@ func (oc *OchamiClient) PatchData(endpoint, query string, headers *HTTPHeaders, 
 
 	res, err := oc.MakeOchamiRequest(http.MethodPatch, endpoint, query, headers, body)
 	if err != nil {
-		return he, fmt.Errorf("error making PATCH request to %s, %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making PATCH request to %s, %w", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %w", err)
 		}
 		return he, he.CheckResponse()
 	}
@@ -207,12 +207,12 @@ func (oc *OchamiClient) DeleteData(endpoint, query string, headers *HTTPHeaders,
 
 	res, err := oc.MakeOchamiRequest(http.MethodDelete, endpoint, query, headers, body)
 	if err != nil {
-		return he, fmt.Errorf("error making PATCH request to %s, %v", oc.ServiceName, err)
+		return he, fmt.Errorf("error making PATCH request to %s, %w", oc.ServiceName, err)
 	}
 	if res != nil {
 		he, err := NewHTTPEnvelopeFromResponse(res)
 		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %v", err)
+			return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %w", err)
 		}
 		return he, he.CheckResponse()
 	}
@@ -225,9 +225,9 @@ func (oc *OchamiClient) MakeOchamiRequest(method, endpoint, query string, header
 	uri, err := oc.GetURI(endpoint, query)
 	if err != nil {
 		if query == "" {
-			return nil, fmt.Errorf("failed to generate URI for endpoint %s: %v", endpoint, err)
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s: %w", endpoint, err)
 		} else {
-			return nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %v", endpoint, query, err)
+			return nil, fmt.Errorf("failed to generate URI for endpoint %s and query %s: %w", endpoint, query, err)
 		}
 	}
 
@@ -242,7 +242,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 	log.Logger.Debug().Msgf("%s: %s", method, uri)
 	req, err := http.NewRequest(method, uri, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create new HTTP request: %v", err)
+		return nil, fmt.Errorf("failed to create new HTTP request: %w", err)
 	}
 
 	// Create empty headers if headers pointer is nil so range works
@@ -277,7 +277,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 	// Execute HTTP request
 	res, err := oc.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute HTTP request: %v", err)
+		return nil, fmt.Errorf("failed to execute HTTP request: %w", err)
 	}
 
 	// Debug info for response
@@ -318,7 +318,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 func (oc *OchamiClient) UseCACert(caCertPath string) error {
 	cacert, err := os.ReadFile(caCertPath)
 	if err != nil {
-		return fmt.Errorf("failed to read %s: %v", caCertPath, err)
+		return fmt.Errorf("failed to read %s: %w", caCertPath, err)
 	}
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM(cacert)
@@ -355,7 +355,7 @@ func FileToHTTPBody(path, format string) (HTTPBody, error) {
 
 	contents, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file %q: %v", path, err)
+		return nil, fmt.Errorf("failed to read file %q: %w", path, err)
 	}
 
 	var b HTTPBody
@@ -364,22 +364,22 @@ func FileToHTTPBody(path, format string) (HTTPBody, error) {
 		var j interface{}
 		err = json.Unmarshal(contents, &j)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON contents from %q: %v", path, err)
+			return nil, fmt.Errorf("failed to unmarshal JSON contents from %q: %w", path, err)
 		}
 		b, err = json.Marshal(j)
 		if err != nil {
-			err = fmt.Errorf("failed to marshal JSON from file %q: %v", path, err)
+			err = fmt.Errorf("failed to marshal JSON from file %q: %w", path, err)
 		}
 	case "yaml":
 		var y interface{}
 		err = yaml.Unmarshal(contents, &y)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal YAML contents from %q: %v", path, err)
+			return nil, fmt.Errorf("failed to unmarshal YAML contents from %q: %w", path, err)
 		}
 		y = CanonicalizeInterface(y)
 		b, err = json.Marshal(y)
 		if err != nil {
-			err = fmt.Errorf("failed to marshal JSON (converted from YAML) from file %q: %v", path, err)
+			err = fmt.Errorf("failed to marshal JSON (converted from YAML) from file %q: %w", path, err)
 		}
 	}
 
@@ -396,13 +396,13 @@ func ReadPayload(path, format string, v any) error {
 
 	body, err := FileToHTTPBody(path, format)
 	if err != nil {
-		return fmt.Errorf("unable to create HTTP body from file: %v", err)
+		return fmt.Errorf("unable to create HTTP body from file: %w", err)
 	}
 	log.Logger.Debug().Msgf("Body bytes: %s", string(body))
 
 	err = json.Unmarshal(body, v)
 	if err != nil {
-		err = fmt.Errorf("unable to unmarshal bytes into value: %v", err)
+		err = fmt.Errorf("unable to unmarshal bytes into value: %w", err)
 	}
 
 	return err

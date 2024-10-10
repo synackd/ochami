@@ -269,7 +269,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 			return "", fmt.Errorf("--cluster specified but no config file specified")
 		}
 		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
-			return "", fmt.Errorf("failed to unmarshal cluster list: %v", err)
+			return "", fmt.Errorf("failed to unmarshal cluster list: %w", err)
 		}
 		clusterName = cmd.Flag("cluster").Value.String()
 		for _, c := range clusterList {
@@ -291,7 +291,7 @@ func getBaseURI(cmd *cobra.Command) (string, error) {
 	} else if configFile != "" && viper.IsSet("default-cluster") {
 		clusterName = viper.GetString("default-cluster")
 		if err := viper.UnmarshalKey("clusters", &clusterList); err != nil {
-			return "", fmt.Errorf("failed to unmarshal cluster list: %v", err)
+			return "", fmt.Errorf("failed to unmarshal cluster list: %w", err)
 		}
 		for _, c := range clusterList {
 			if c["name"] == clusterName {
