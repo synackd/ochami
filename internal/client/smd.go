@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 )
@@ -18,6 +19,23 @@ const (
 	SMDRelpathService    = "/service"
 	SMDRelpathComponents = "/State/Components"
 )
+
+// Component is a minimal subset of SMD's Component struct that contains only
+// what is necessary for sending a valid Component request to SMD.
+type Component struct {
+	ID      string `json:"ID"`
+	State   string `json:"State"`
+	Enabled bool   `json:"Enabled"`
+	Role    string `json:"Role"`
+	Arch    string `json:"Arch"`
+	NID     int64  `json:"NID"`
+}
+
+// ComponentSlice is a convenience data structure to make marshalling Component
+// requests easier.
+type ComponentSlice struct {
+	Components []Component `json:"Components"`
+}
 
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
 // SMDClient. If an error occurred creating the embedded OchamiClient, it is
@@ -107,6 +125,34 @@ func (sc *SMDClient) GetComponentsNid(nid int32, token string) (HTTPEnvelope, er
 	henv, err := sc.GetData(finalEP, "", headers)
 	if err != nil {
 		err = fmt.Errorf("GetComponentsNid(): error getting component for NID %d: %w", nid, err)
+	}
+
+	return henv, err
+}
+
+// PostComponents is a wrapper function around OchamiClient.PostData that takes
+// a ComponentSlice and a token, puts the token in the request headers as an
+// authorization bearer, marshalls compSlice as JSON and sets it as the request
+// body, then basses it to Ochami.PostData.
+func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		err     error
+	)
+	if body, err = json.Marshal(compSlice); err != nil {
+		return henv, fmt.Errorf("PostComponents(): failed to marshal ComponentArray: %w", err)
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("PostComponents(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.PostData(SMDRelpathComponents, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("PostComponents(): failed to POST component(s) to SMD: %w", err)
 	}
 
 	return henv, err
