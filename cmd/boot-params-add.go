@@ -31,7 +31,7 @@ This command sends a POST to BSS. An access token is required.`,
   ochami boot params add --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00 --params 'quiet nosplash'
   ochami boot params add --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00 --kernel https://example.com/kernel
   ochami boot params add -f payload.json
-  ochami boot params add -f payload.yaml --format-input yaml`,
+  ochami boot params add -f payload.yaml --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&

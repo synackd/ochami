@@ -28,7 +28,7 @@ This command sends a DELETE to BSS. An access token is required.`,
 	Example: `  ochami boot params delete --kernel https://example.com/kernel
   ochami boot params delete --kernel https://example.com/kernel --initrd https://example.com/initrd
   ochami boot params delete -f payload.json
-  ochami boot params delete -f payload.yaml --format-input yaml`,
+  ochami boot params delete -f payload.yaml --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&

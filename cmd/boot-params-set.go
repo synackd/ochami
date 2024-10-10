@@ -30,7 +30,7 @@ This command sends a PUT to BSS. An access token is required.`,
   ochami boot params set --xname x1000c1s7b0 --xname x1000c1s7b1 --kernel https://example.com/kernel
   ochami boot params set --xname x1000c1s7b0 --nid 1 --mac 00:c0:ff:ee:00:00 --params 'quiet nosplash'
   ochami boot params set -f payload.json
-  ochami boot params set -f payload.yaml --format-input yaml`,
+  ochami boot params set -f payload.yaml --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
