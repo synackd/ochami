@@ -3,7 +3,10 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path"
+
+	"github.com/synackd/ochami/internal/log"
 )
 
 // SMDClient is an OchamiClient that has its BasePath set configured to the one
@@ -153,6 +156,71 @@ func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (HTT
 	henv, err = sc.PostData(SMDRelpathComponents, "", headers, body)
 	if err != nil {
 		err = fmt.Errorf("PostComponents(): failed to POST component(s) to SMD: %w", err)
+	}
+
+	return henv, err
+}
+
+// DeleteComponents takes a token and xnames and iteratively calls
+// OchamiClient.DeleteData for each xname. This is necessary because SMD only
+// allows deleting one xname at a time. A slice of HTTPEnvelopes is returned
+// containing one HTTPEnvelope per deletion, as well as an error slice
+// containing errors corresponding to each deletion. The indexes of these should
+// correspond. If an error in the function itself occurred, a separate error is
+// returned. This is to distinguish HTTP request errors from control flow
+// errors.
+func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers")
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, xname := range xnames {
+		xnamePath, err := url.JoinPath(SMDRelpathComponents, xname)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteComponents(): failed join component path (%s) with xname (%s): %w", SMDRelpathComponents, xname, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.DeleteData(xnamePath, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteComponents(): failed to DELETE component %s in SMD: %w", xname, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete component %s", xname)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted component %s", xname)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// DeleteComponentsAll is a wrapper function around OchamiClient.DeleteData that
+// takes a token, puts it in the request headers as an authorization bearer, and
+// sends it in a DELETE request to the SMD components endpoint. This should
+// delete all components SMD knows about if the token is authorized.
+func (sc *SMDClient) DeleteComponentsAll(token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("DeleteComponentsAll(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.DeleteData(SMDRelpathComponents, "", headers, nil)
+	if err != nil {
+		err = fmt.Errorf("DeleteComponentsAll(): failed to DELETE component(s) to SMD: %w", err)
 	}
 
 	return henv, err
