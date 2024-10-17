@@ -12,7 +12,7 @@ import (
 
 // configClusterSetCmd represents the config-cluster-set command
 var configClusterSetCmd = &cobra.Command{
-	Use:   "set CLUSTER_NAME",
+	Use:   "set <cluster_name>",
 	Short: "Add or set parameters for a cluster",
 	Long: `Use set-cluster to add cluster with its configuration or set the configuration
 for an existing cluster. For example:

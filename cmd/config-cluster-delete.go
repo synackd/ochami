@@ -13,7 +13,7 @@ import (
 
 // configClusterDeleteCmd represents the config-cluster-delete command
 var configClusterDeleteCmd = &cobra.Command{
-	Use:   "del CLUSTER_NAME",
+	Use:   "delete <cluster_name>",
 	Short: "Delete a cluster from the configuration file",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that cluster name is only arg
