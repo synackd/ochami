@@ -19,8 +19,9 @@ const (
 	serviceNameSMD = "SMD"
 	basePathSMD    = "/hsm/v2"
 
-	SMDRelpathService    = "/service"
-	SMDRelpathComponents = "/State/Components"
+	SMDRelpathService          = "/service"
+	SMDRelpathComponents       = "/State/Components"
+	SMDRelpathRedfishEndpoints = "/Inventory/RedfishEndpoints"
 )
 
 // Component is a minimal subset of SMD's Component struct that contains only
@@ -128,6 +129,30 @@ func (sc *SMDClient) GetComponentsNid(nid int32, token string) (HTTPEnvelope, er
 	henv, err := sc.GetData(finalEP, "", headers)
 	if err != nil {
 		err = fmt.Errorf("GetComponentsNid(): error getting component for NID %d: %w", nid, err)
+	}
+
+	return henv, err
+}
+
+// GetRedfishEndpoints is a wrapper around OchamiClient.GetData that takes an
+// optional query string (without the "?") and a token. It sets token as the
+// authorization bearer in the headers and passes the query string and headers
+// to OchamiClient.GetData, using the SMD RedfishEndpoints API endpoint.
+func (sc *SMDClient) GetRedfishEndpoints(query, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.GetData(SMDRelpathRedfishEndpoints, query, headers)
+	if err != nil {
+		err = fmt.Errorf("GetRedfishEndpoints(): error getting redfish endpoints: %w", err)
 	}
 
 	return henv, err
