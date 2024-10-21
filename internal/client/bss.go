@@ -41,10 +41,10 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 	return bc, err
 }
 
-// PostBootParams is a wrapper function around BSSClient.PostData that takes a
+// PostBootParams is a wrapper function around OchamiClient.PostData that takes a
 // bssTypes.BootParams struct (bp) and a token, puts the token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
-// request body, then passes it to BSSClient.PostData.
+// request body, then passes it to OchamiClient.PostData.
 func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -69,10 +69,10 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 	return henv, err
 }
 
-// PutBootParams is a wrapper function around BSSClient.PutData that takes a
+// PutBootParams is a wrapper function around OchamiClient.PutData that takes a
 // bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
-// request body, then passes it to BSSClient.PutData.
+// request body, then passes it to OchamiClient.PutData.
 func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -97,10 +97,10 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 	return henv, err
 }
 
-// PatchBootParams is a wrapper function around BSSClient.PatchData that takes a
+// PatchBootParams is a wrapper function around OchamiClient.PatchData that takes a
 // bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
-// request body, then passes it to BSSClient.PatchData.
+// request body, then passes it to OchamiClient.PatchData.
 func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -125,10 +125,10 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 	return henv, err
 }
 
-// DeleteBootParams is a wrapper function around BSSClient.DeleteData that takes
+// DeleteBootParams is a wrapper function around OchamiClient.DeleteData that takes
 // a bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
-// request body, then passes it to BSSClient.DeleteData.
+// request body, then passes it to OchamiClient.DeleteData.
 func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -153,10 +153,10 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 	return henv, err
 }
 
-// GetBootParams is a wrapper function around BSSClient.GetData that takes an
+// GetBootParams is a wrapper function around OchamiClient.GetData that takes an
 // optional query string (without the "?") and a token. It sets token as the
 // authorization bearer in the headers and passes the query string and headers
-// to BSSClient.GetData, using /bootparameters as the API endpoint.
+// to OchamiClient.GetData, using /bootparameters as the API endpoint.
 func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
@@ -177,8 +177,8 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetBootScript is a wrapper function around BSSClient.GetData that takes a
-// query string (without the "?") and passes it to BSSClient.GetData, using
+// GetBootScript is a wrapper function around OchamiClient.GetData that takes a
+// query string (without the "?") and passes it to OchamiClient.GetData, using
 // /bootscript as the API endpoint.
 func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathBootScript, query, nil)
@@ -189,7 +189,7 @@ func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetStatus is a wrapper function around BSSClient.GetData that takes an
+// GetStatus is a wrapper function around OchamiClient.GetData that takes an
 // optional component and uses it to determine which subpath of the BSS /service
 // endpoint to query. If empty, the /service/status endpoint is queried.
 // Otherwise:
@@ -227,7 +227,7 @@ func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetDumpState is a wrapper function around BSSClient.GetData that queries the
+// GetDumpState is a wrapper function around OchamiClient.GetData that queries the
 // /dumpstate endpoint and returns its response and an error, if one occurred.
 func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathDumpState, "", nil)
@@ -238,7 +238,7 @@ func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetEndpointHistory is a wrapper function around BSSClient.GetData that
+// GetEndpointHistory is a wrapper function around OchamiClient.GetData that
 // queries /endpoint-history and appends an optional query string (without the
 // "?").
 func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
@@ -250,7 +250,7 @@ func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetHosts is a wrapper function around BSSClient.GetData that queries /hosts
+// GetHosts is a wrapper function around OchamiClient.GetData that queries /hosts
 // and appends an optional query string (without the "?").
 func (bc *BSSClient) GetHosts(query string) (HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathHosts, query, nil)
