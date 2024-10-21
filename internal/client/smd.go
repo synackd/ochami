@@ -56,7 +56,7 @@ func NewSMDClient(baseURI string, insecure bool) (*SMDClient, error) {
 	return sc, err
 }
 
-// GetStatus is a wrapper function around SMDClient.GetData that takes an
+// GetStatus is a wrapper function around OchamiClient.GetData that takes an
 // optional component and uses it to determine which subpath of the SMD /service
 // endpoint to query. If empty, the /service/ready endpoint is queried.
 // Otherwise:
@@ -85,7 +85,7 @@ func (sc *SMDClient) GetStatus(component string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetComponentsAll is a wrapper function around SMDClient.GetData that queries
+// GetComponentsAll is a wrapper function around OchamiClient.GetData that queries
 // /State/Components.
 func (sc *SMDClient) GetComponentsAll() (HTTPEnvelope, error) {
 	henv, err := sc.GetData(SMDRelpathComponents, "", nil)
@@ -161,7 +161,7 @@ func (sc *SMDClient) GetRedfishEndpoints(query, token string) (HTTPEnvelope, err
 // PostComponents is a wrapper function around OchamiClient.PostData that takes
 // a ComponentSlice and a token, puts the token in the request headers as an
 // authorization bearer, marshalls compSlice as JSON and sets it as the request
-// body, then basses it to Ochami.PostData.
+// body, then passes it to Ochami.PostData.
 func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (HTTPEnvelope, error) {
 	var (
 		henv    HTTPEnvelope
