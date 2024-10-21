@@ -20,9 +20,10 @@ const (
 	serviceNameSMD = "SMD"
 	basePathSMD    = "/hsm/v2"
 
-	SMDRelpathService          = "/service"
-	SMDRelpathComponents       = "/State/Components"
-	SMDRelpathRedfishEndpoints = "/Inventory/RedfishEndpoints"
+	SMDRelpathService            = "/service"
+	SMDRelpathComponents         = "/State/Components"
+	SMDRelpathEthernetInterfaces = "/Inventory/EthernetInterfaces"
+	SMDRelpathRedfishEndpoints   = "/Inventory/RedfishEndpoints"
 )
 
 // Component is a minimal subset of SMD's Component struct that contains only
@@ -163,6 +164,49 @@ func (sc *SMDClient) GetRedfishEndpoints(query, token string) (HTTPEnvelope, err
 	}
 
 	return henv, err
+}
+
+// GetEthernetInterfaces is a wrapper around OchamiClient.GetData that takes a
+// query string and passes it to OchamiClient.GetData using SMD's ethernet
+// interfaces endpoint.
+func (sc *SMDClient) GetEthernetInterfaces(query string) (HTTPEnvelope, error) {
+	henv, err := sc.GetData(SMDRelpathEthernetInterfaces, query, nil)
+	if err != nil {
+		err = fmt.Errorf("GetEthernetInterfaces(): error getting ethernet interfaces: %w", err)
+	}
+
+	return henv, err
+}
+
+// GetEthernetInterfacesByID is a wrapper around OchamiClient.GetData that takes
+// an ethernet interface ID, token, and a flag indicating if the ethernet
+// interface itself should be retrieved or a list of its IPs. It passes these to
+// OchamiClient.GetData, setting the token as the authorization bearer in the
+// request headers.
+func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (HTTPEnvelope, error) {
+	var (
+		ep      string
+		err     error
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers")
+		}
+	}
+	if getIPs {
+		if ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id); err != nil {
+			return henv, fmt.Errorf("GetEthernetInterfacesByID(): failed to join ethernet path (%s) with id (%s): %w", SMDRelpathEthernetInterfaces, id, err)
+		}
+		if ep, err = url.JoinPath(ep, "IPAddresses"); err != nil {
+			return henv, fmt.Errorf("GetEthernetInterfacesByID(): failed to join endpoint %s with \"IPAddresses\": %w", ep, err)
+		}
+	} else {
+		ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id)
+	}
+	return sc.GetData(ep, "", headers)
 }
 
 // PostComponents is a wrapper function around OchamiClient.PostData that takes
