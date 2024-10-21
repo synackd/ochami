@@ -1,0 +1,144 @@
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
+package cmd
+
+import (
+	"errors"
+	"os"
+
+	"github.com/openchami/schemas/schemas/csm"
+	"github.com/spf13/cobra"
+	"github.com/synackd/ochami/internal/client"
+	"github.com/synackd/ochami/internal/log"
+)
+
+// rfeAddCmd represents the rfe-add command
+var rfeAddCmd = &cobra.Command{
+	Use:   "add (-f <payload_file> | <xname> <name> <ip_addr> <mac_addr>)",
+	Short: "Add new redfish endpoint(s)",
+	Long: `Add new redfish endpoint(s). An xname, name, IP address, and MAC address are required
+unless -f is passed to read from a payload file. Specifying -f also is mutually exclusive with the other
+flags of this command and its arguments.
+
+This command sends a POST to SMD. An access token is required.`,
+	Example: `  ochami rfe add x3000c1s7b56 bmc-node56 172.16.0.156 de:ca:fc:0f:fe:ee
+  ochami rfe add -f payload.json
+  ochami rfe add -f payload.yaml --payload-format yaml`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Check that all required args are passed
+		if len(args) == 0 && !cmd.Flag("payload").Changed {
+			err := cmd.Usage()
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("failed to print usage")
+				os.Exit(1)
+			}
+			os.Exit(0)
+		} else if len(args) > 4 {
+			log.Logger.Error().Msgf("expected 4 arguments (xname, name, ip_addr, mac_addr) but got %d: %v", len(args), args)
+			os.Exit(1)
+		}
+
+		// Without a base URI, we cannot do anything
+		smdBaseURI, err := getBaseURI(cmd)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			os.Exit(1)
+		}
+
+		// This endpoint requires authentication, so a token is needed
+		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
+
+		// Create client to make request to SMD
+		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			os.Exit(1)
+		}
+
+		// Check if a CA certificate was passed and load it into client if valid
+		useCACert(smdClient.OchamiClient)
+
+		var rfes client.RedfishEndpointSlice
+		if cmd.Flag("payload").Changed {
+			// Use payload file if passed
+			dFile := cmd.Flag("payload").Value.String()
+			dFormat := cmd.Flag("payload-format").Value.String()
+			err := client.ReadPayload(dFile, dFormat, &rfes.RedfishEndpoints)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("unable to read payload for request")
+				os.Exit(1)
+			}
+		} else {
+			// ...otherwise use CLI options/args
+			rfe := csm.RedfishEndpoint{
+				ID:        args[0],
+				Name:      args[1],
+				IPAddress: args[2],
+				MACAddr:   args[3],
+			}
+			if cmd.Flag("domain").Changed {
+				if rfe.Domain, err = cmd.Flags().GetString("domain"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch domain")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("hostname").Changed {
+				if rfe.Hostname, err = cmd.Flags().GetString("hostname"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch hostname")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("username").Changed {
+				if rfe.User, err = cmd.Flags().GetString("username"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch username")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("password").Changed {
+				if rfe.Password, err = cmd.Flags().GetString("password"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch password")
+					os.Exit(1)
+				}
+			}
+			rfes.RedfishEndpoints = append(rfes.RedfishEndpoints, rfe)
+		}
+
+		// Send off request
+		_, errs, err := smdClient.PostRedfishEndpoints(rfes, token)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to add redfish endpoint in SMD")
+			os.Exit(1)
+		}
+		// Since smdClient.PostRedfishEndpoints does the addition iteratively, we need to deal with
+		// each error that might have occurred.
+		var errorsOccurred = false
+		for _, err := range errs {
+			if errors.Is(err, client.UnsuccessfulHTTPError) {
+				log.Logger.Error().Err(err).Msg("SMD redfish endpoint request yielded unsuccessful HTTP response")
+			} else {
+				log.Logger.Error().Err(err).Msg("failed to add redfish endpoint(s) to SMD")
+			}
+		}
+		if errorsOccurred {
+			log.Logger.Warn().Msg("SMD redfish endpoint addition completed with errors")
+			os.Exit(1)
+		}
+	},
+}
+
+func init() {
+	rfeAddCmd.Flags().String("domain", "", "domain of redfish endpoint's FQDN")
+	rfeAddCmd.Flags().String("hostname", "", "hostname of redfish endpoint's FQDN")
+	rfeAddCmd.Flags().String("username", "", "username to use when interrogating endpoint")
+	rfeAddCmd.Flags().String("password", "", "password to use when interrogating endpoint")
+	rfeAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	rfeAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+
+	rfeAddCmd.MarkFlagsMutuallyExclusive("domain", "payload")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("hostname", "payload")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("username", "payload")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("password", "payload")
+
+	rfeCmd.AddCommand(rfeAddCmd)
+}

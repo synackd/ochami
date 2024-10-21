@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/openchami/schemas/schemas/csm"
 	"github.com/synackd/ochami/internal/log"
 )
 
@@ -39,6 +40,12 @@ type Component struct {
 // requests easier.
 type ComponentSlice struct {
 	Components []Component `json:"Components"`
+}
+
+// RedfishEndpoint slice is a convenience data structure to make marshalling
+// RedfishEndpoint requests easier.
+type RedfishEndpointSlice struct {
+	RedfishEndpoints []csm.RedfishEndpoint `json:"RedfishEndpoints"`
 }
 
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
@@ -184,6 +191,46 @@ func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (HTT
 	}
 
 	return henv, err
+}
+
+// PostRedfishEndpoints is a wrapper function around OchamiClient.PostData that
+// takes a RedfishEndpointSlice and a token, puts the token in the request
+// headers as an authorization bearer, and iteratively calls
+// OchamiClient.PostData using each RedfishEndpoint in the slice.
+func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers")
+		}
+	}
+	for _, rfe := range rfes.RedfishEndpoints {
+		var body HTTPBody
+		var err error
+		if body, err = json.Marshal(rfe); err != nil {
+			newErr := fmt.Errorf("PostRedfishEndpoints(): failed to marshal RedfishEndpoint: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PostData(SMDRelpathRedfishEndpoints, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostRedfishEndpoints(): failed to POST redfish endpoint to SMD: %w", err)
+			log.Logger.Debug().Err(err).Msg("failed to add redfish endpoint")
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added component %s", rfe.ID)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
 }
 
 // DeleteComponents takes a token and xnames and iteratively calls
