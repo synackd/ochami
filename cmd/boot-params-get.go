@@ -26,9 +26,7 @@ This command sends a GET to BSS. An access token is required.`,
 	Example: `  ochami bss bootparams get
   ochami bss bootparams get --mac 00:de:ad:be:ef:00
   ochami bss bootparams get --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00
-  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00
-  ochami bss bootparams get -f payload.json
-  ochami bss bootparams get -f payload.yaml --payload-format yaml`,
+  ochami bss bootparams get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
