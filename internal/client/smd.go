@@ -43,6 +43,21 @@ type ComponentSlice struct {
 	Components []Component `json:"Components"`
 }
 
+// EthernetInterface is a minimal subset of SMD's EthernetInterface struct that
+// contains only what is necessary for sending a valid EthernetInterface request
+// to SMD.
+type EthernetInterface struct {
+	ComponentID string       `json:"ComponentID"`
+	Description string       `json:"Description"`
+	MACAddress  string       `json:"MACAddress"`
+	IPAddresses []EthernetIP `json:"IPAddresses"`
+}
+
+type EthernetIP struct {
+	IPAddress string `json:"IPAddress"`
+	Network   string `json:"Network"`
+}
+
 // RedfishEndpoint slice is a convenience data structure to make marshalling
 // RedfishEndpoint requests easier.
 type RedfishEndpointSlice struct {
@@ -271,6 +286,46 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 			continue
 		}
 		log.Logger.Debug().Msgf("successfully added component %s", rfe.ID)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PostEthernetInterfaces is a wrapper function around OchamiClient.PostData
+// that takes a slice of EthernetInterfaces and a token, puts the token in the
+// request headers as an authorization bearer, and iteratively calls
+// OchamiClient.PostData using each EthernetInterface in the slice.
+func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers")
+		}
+	}
+	for _, ei := range eis {
+		var body HTTPBody
+		var err error
+		if body, err = json.Marshal(ei); err != nil {
+			newErr := fmt.Errorf("PostEthernetInterfaces(): failed to marshal EthernetInterface: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PostData(SMDRelpathEthernetInterfaces, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostEthernetInterfaces(): failed to POST ethernet interface(s) to SMD: %w", err)
+			log.Logger.Debug().Err(newErr).Msg("failed to add ethernet interface")
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added ethernet interface for component %s", ei.ComponentID)
 		errors = append(errors, nil)
 	}
 
