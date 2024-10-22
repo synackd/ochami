@@ -47,6 +47,7 @@ type ComponentSlice struct {
 // contains only what is necessary for sending a valid EthernetInterface request
 // to SMD.
 type EthernetInterface struct {
+	ID          string       `json:"ID"`
 	ComponentID string       `json:"ComponentID"`
 	Description string       `json:"Description"`
 	MACAddress  string       `json:"MACAddress"`
@@ -458,6 +459,72 @@ func (sc *SMDClient) DeleteRedfishEndpointsAll(token string) (HTTPEnvelope, erro
 	henv, err = sc.DeleteData(SMDRelpathRedfishEndpoints, "", headers, nil)
 	if err != nil {
 		err = fmt.Errorf("DeleteRedfishEndpointsAll(): failed to DELETE redfish endpoint(s) to SMD: %w", err)
+	}
+
+	return henv, err
+}
+
+// DeleteEthernetInterfaces takes a token and one or more ethernet interface IDs
+// and iteratively calls OchamiClient.DeleteData for each ID. This is necessary
+// because SMD only allows deleting one ethernet interface at a time. A slice of
+// HTTPEnvelopes is returned containing one HTTPEnvelope per deletion, as well
+// as an error slice containing errors corresponding to each deletion. The
+// indexes of these should correspond. If an error in the function itself
+// occurred, a separate error is returned. This is to distinguish HTTP request
+// errors from control flow errors.
+func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers")
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, eId := range eIds {
+		eIdPath, err := url.JoinPath(SMDRelpathEthernetInterfaces, eId)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed join component path (%s) with ethernet interface %s: %w", SMDRelpathEthernetInterfaces, eId, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.DeleteData(eIdPath, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed to DELETE ethernet interface %s in SMD: %w", eId, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete ethernet interface %s", eId)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted ethernet interface %s", eId)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// DeleteEthernetInterfacesAll is a wrapper function around
+// OchamiClient.DeleteData that takes a token, puts it in the request headers as
+// an authorization bearer, and sends it in a DELETE request to the SMD ethernet
+// interfaces endpoint. This should delete all ethernet interfaces SMD knows
+// about if the token is authorized.
+func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("DeleteEthernetInterfacesAll(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.DeleteData(SMDRelpathEthernetInterfaces, "", headers, nil)
+	if err != nil {
+		err = fmt.Errorf("DeleteEthernetInterfacesAll(): failed to DELETE ethernet interface(s) to SMD: %w", err)
 	}
 
 	return henv, err
