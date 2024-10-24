@@ -24,6 +24,7 @@ const (
 	SMDRelpathComponents         = "/State/Components"
 	SMDRelpathEthernetInterfaces = "/Inventory/EthernetInterfaces"
 	SMDRelpathRedfishEndpoints   = "/Inventory/RedfishEndpoints"
+	SMDRelpathComponentEndpoints = "/Inventory/ComponentEndpoints"
 )
 
 // Component is a minimal subset of SMD's Component struct that contains only
@@ -223,6 +224,61 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (HT
 		ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id)
 	}
 	return sc.GetData(ep, "", headers)
+}
+
+// GetComponentEndpoints is similar to GetComponentEndpointsAll except that
+// it iteratively calls OchamiClient.GetData on each xname passed. Each request
+// has a corresponding HTTPEnvelope and error in returned slices. The function
+// also returns a separate error if a control flow error occurs.
+func (sc *SMDClient) GetComponentEndpoints(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henvs, errors, fmt.Errorf("GetComponentEndpoints(): error setting token in HTTP headers")
+		}
+	}
+	for _, xname := range xnames {
+		henv, err := sc.GetData(SMDRelpathComponentEndpoints + "/" + xname, "", headers)
+		if err != nil {
+			newErr := fmt.Errorf("GetComponentEndpoints(): failed to GET component endpoint from SMD: %w", err)
+			log.Logger.Debug().Err(err).Msg("failed to get component endpoint")
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully fetched component endpoint %s", xname)
+		errors = append(errors, nil)
+		henvs = append(henvs, henv)
+	}
+
+	return henvs, errors, nil
+}
+
+// GetComponentEndpointsAll is a wrapper function around OchamiClient.GetData
+// that takes a token and puts it in the request headers as an authorization
+// bearer, then sends a get to the SMD component endpoint API endpoint.
+func (sc *SMDClient) GetComponentEndpointsAll(token string) (HTTPEnvelope, error) {
+	var (
+		err     error
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("GetComponentEndpointsAll(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.GetData(SMDRelpathComponentEndpoints, "", headers)
+	if err != nil {
+		err = fmt.Errorf("GetComponentEndpointsAll(): error getting component endpoints: %w", err)
+	}
+
+	return henv, err
 }
 
 // PostComponents is a wrapper function around OchamiClient.PostData that takes
