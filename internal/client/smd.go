@@ -585,3 +585,69 @@ func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (HTTPEnvelope, er
 
 	return henv, err
 }
+
+// DeleteComponentEndpoints takes a token and one or more xnames and iteratively
+// calls OchamiClient.DeleteData for each xname. This is necessary because SMD
+// only allows deleting one component endpoint at a time. A slice of
+// HTTPEnvelopes is returned containing one HTTPEnvelope per deletion, as well
+// as an error slice containing errors corresponding to each deletion. The
+// indexes of these should correspond. If an error in the function itself
+// occurred, a separate error is returned. This is to distinguish HTTP request
+// errors from control flow errors.
+func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers")
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, xname := range xnames {
+		finalEP, err := url.JoinPath(SMDRelpathComponentEndpoints, xname)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed join component path (%s) with xname %s: %w", SMDRelpathComponentEndpoints, xname, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.DeleteData(finalEP, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed to DELETE component endpoint %s in SMD: %w", xname, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete component endpoint %s", xname)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted component endpoint %s", xname)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// DeleteComponentEndpointsAll is a wrapper function around
+// OchamiClient.DeleteData that takes a token, puts it in the request headers as
+// an authorization bearer, and sends it in a DELETE request to the SMD
+// component endpoints endpoint. This should delete all component endpoints SMD
+// knows about if the token is authorized.
+func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("DeleteComponentEndpointsAll(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.DeleteData(SMDRelpathComponentEndpoints, "", headers, nil)
+	if err != nil {
+		err = fmt.Errorf("DeleteComponentEndpointsAll(): failed to DELETE component endpoint(s) to SMD: %w", err)
+	}
+
+	return henv, err
+}
