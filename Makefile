@@ -13,7 +13,7 @@ $(error 'git' command not found.)
 endif
 
 NAME    ?= ochami
-VERSION ?= $(shell git describe --tags --always --abbrev=0)
+VERSION ?= $(shell git describe --tags --always --dirty --broken --abbrev=0)
 BUILD   ?= $(shell git rev-parse --short HEAD)
 LDFLAGS := -s -X=$(IMPORT)internal/version.Version=$(VERSION) -X=$(IMPORT)internal/version.Commit=$(BUILD) -X=$(IMPORT)internal/version.Date=$(shell date -Iseconds)
 
