@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/OpenCHAMI/bss v1.31.3
 	github.com/OpenCHAMI/smd/v2 v2.16.1
+	github.com/google/uuid v1.6.0
 	github.com/openchami/schemas v0.0.0-20240826142248-37b8af32208a
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -21,7 +22,6 @@ require (
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
