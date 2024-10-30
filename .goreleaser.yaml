@@ -2,17 +2,20 @@ version: 2
 
 before:
   hooks:
-    - go mod download
+    - go mod tidy
 
 builds:
   - ldflags:
-      - "-s -X=github.com/synackd/ochami/internal/version.Version={{ .Version }} -X=github.com/synackd/ochami/internal/version.Commit={{ .Commit }} -X=github.com/synackd/ochami/internal/version.Date={{ .Date }}"
-    env:
-      - CGO_ENABLED=1
+      - "-s"
+      - "-X=github.com/synackd/ochami/internal/version.Version={{ .Version }} \
+         -X=github.com/synackd/ochami/internal/version.Commit={{ .Commit }} \
+         -X=github.com/synackd/ochami/internal/version.Date={{ .Date }}"
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
+      - arm64
 
 archives:
   - format: tar.gz
@@ -30,18 +33,54 @@ archives:
 dockers:
   - dockerfile: goreleaser.dockerfile
     image_templates:
-      - ghcr.io/synackd/{{ .ProjectName }}:latest
-      - ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}
-      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}
-      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}
+      - &amd64_linux_image ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}-amd64
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}-amd64
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}-amd64
+    use: buildx
+    goarch: amd64
     build_flag_templates:
       - "--pull"
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{ .Date }}"
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
     extra_files:
       - LICENSE
+  - dockerfile: goreleaser.dockerfile
+    image_templates:
+      - &arm64v8_linux_image ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}-arm64
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}-arm64
+      - ghcr.io/synackd/{{ .ProjectName }}:v{{ .Major }}.{{ .Minor }}-arm64
+    use: buildx
+    goarch: arm64
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+    extra_files:
+      - LICENSE
+
+docker_manifests:
+  - name_template: "ghcr.io/synackd/{{ .ProjectName }}:latest"
+    image_templates:
+      - *amd64_linux_image
+      - *arm64v8_linux_image
+  - name_template: "ghcr.io/synackd/{{ .ProjectName }}:{{ .Tag }}"
+    image_templates:
+      - *amd64_linux_image
+      - *arm64v8_linux_image
+  - name_template: "ghcr.io/synackd/{{ .ProjectName }}:{{ .Major }}"
+    image_templates:
+      - *amd64_linux_image
+      - *arm64v8_linux_image
+  - name_template: "ghcr.io/synackd/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - *amd64_linux_image
+      - *arm64v8_linux_image
 
 checksum:
   name_template: checksums.txt
