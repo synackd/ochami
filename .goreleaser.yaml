@@ -48,10 +48,22 @@ checksum:
 
 changelog:
   sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
+  use: github
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Documentation
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Build System
+      regexp: '^.*?(build|ci)(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: Other
+      order: 999
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
@@ -60,4 +72,4 @@ release:
   github:
   name_template: "v{{ .Version }}"
   prerelease: auto
-  mode: append
+  mode: replace
