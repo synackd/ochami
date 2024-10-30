@@ -345,7 +345,7 @@ func setTokenFromEnvVar(cmd *cobra.Command) {
 		os.Exit(1)
 	}
 	varPrefix = strings.ReplaceAll(clusterName, "-", "_")
-	varPrefix = strings.ReplaceAll(clusterName, " ", "_")
+	varPrefix = strings.ReplaceAll(varPrefix, " ", "_")
 
 	envVarToRead := strings.ToUpper(varPrefix) + "_ACCESS_TOKEN"
 	log.Logger.Debug().Msg("Reading token from environment variable: " + envVarToRead)
