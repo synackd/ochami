@@ -26,6 +26,7 @@ const (
 	SMDRelpathEthernetInterfaces = "/Inventory/EthernetInterfaces"
 	SMDRelpathRedfishEndpoints   = "/Inventory/RedfishEndpoints"
 	SMDRelpathComponentEndpoints = "/Inventory/ComponentEndpoints"
+	SMDRelpathGroups             = "/groups"
 )
 
 // Component is a minimal subset of SMD's Component struct that contains only
@@ -313,6 +314,31 @@ func (sc *SMDClient) GetComponentEndpointsAll(token string) (HTTPEnvelope, error
 	henv, err = sc.GetData(SMDRelpathComponentEndpoints, "", headers)
 	if err != nil {
 		err = fmt.Errorf("GetComponentEndpointsAll(): error getting component endpoints: %w", err)
+	}
+
+	return henv, err
+}
+
+// GetGroups is a wrapper function around OchamiClient.GetData that takes a
+// query string and token. It puts the token in the request headers as an
+// authorization bearer, then sends a get to the SMD groups API endpoint with
+// the query string, returning the response as an HTTPEnvelope and an error if
+// one occurred.
+func (sc *SMDClient) GetGroups(query, token string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		err     error
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err = headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("GetGroups(): error setting token in HTTP headers")
+		}
+	}
+	henv, err = sc.GetData(SMDRelpathGroups, query, headers)
+	if err != nil {
+		err = fmt.Errorf("GetGroups(): error getting groups: %w", err)
 	}
 
 	return henv, err
