@@ -803,3 +803,43 @@ func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (HTTPEnvelope, er
 
 	return henv, err
 }
+
+// DeleteGroups takes a token and one or more group labels and iteratively
+// calls OchamiClient.DeleteData for each label. This is necessary because SMD
+// only allows deleting one group at a time. A slice of HTTPEnvelopes is
+// returned containing one HTTPEnvelope per deletion, as well as an error slice
+// containing errors corresponding to each deletion. The indexes of these
+// should correspond. If an error in the function itself occurred, a separate
+// error is returned. This is to distinguish HTTP request errors from control
+// flow errors.
+func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers")
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, label := range groupLabels {
+		labelPath, err := url.JoinPath(SMDRelpathGroups, label)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteGroups(): failed join group path (%s) with group label (%s): %w", SMDRelpathGroups, label, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.DeleteData(labelPath, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteGroups(): failed to DELETE group %s in SMD: %w", label, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete group %s", label)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted group %s", label)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
