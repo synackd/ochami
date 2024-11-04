@@ -567,6 +567,60 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, [
 	return henvs, errors, nil
 }
 
+// PostGroupMembers is a wrapper function around OchamiClient.PostData that
+// takes a token, group name, and a list of one or more component IDs. It puts
+// the token in the request headers as an authorization bearer, and iteratively
+// calls OchamiClient.PostData for each member on the group.
+func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	if group == "" {
+		return nil, []error{}, fmt.Errorf("PostGroupMembers(): no group label specified to add members to")
+	}
+	if len(members) == 0 {
+		return nil, []error{}, fmt.Errorf("PostGroupMembers(): no new members specified to add to group")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers")
+		}
+	}
+	for _, member := range members {
+		groupPath, err := url.JoinPath(SMDRelpathGroups, group, "members")
+		if err != nil {
+			newErr := fmt.Errorf("PostGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		m := make(map[string]string)
+		m["id"] = member
+		if body, err = json.Marshal(m); err != nil {
+			newErr := fmt.Errorf("PostGroupMembers(): failed to marshal member id %s: %w", member, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.PostData(groupPath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostGroupMembers(): failed to POST member %s to group %s: %w", member, group, err)
+			log.Logger.Debug().Err(err).Msgf("failed to add member %s to group %s", member, group)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added member %s to group %s", member, group)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
 // PatchGroups is a wrapper function around OchamiClient.PatchData that takes a
 // Group slice and a token, puts token in the request headers as an
 // authorization bearer, marshals each group as JSON and sets it as the request
