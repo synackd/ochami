@@ -1,8 +1,11 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
+
+	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
 )
 
 // CloudInitClient is an OchamiClient that has its BasePath configured to the
@@ -82,4 +85,91 @@ func (cic *CloudInitClient) GetConfigsSecure(id, token string) (HTTPEnvelope, er
 	}
 
 	return henv, err
+}
+
+// PostConfigs is a wrapper function around OchamiClient.PostData that takes a
+// slice of citypes.CI structs and a token. It iteratively passes these to
+// PostData and returns an HTTPEnvelope and error for each, contained within
+// separate slices. If an error in the function itself occurs, a separate error
+// is returned.
+func (cic *CloudInitClient) PostConfigs(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	if len(data) == 0 {
+		return nil, []error{}, fmt.Errorf("PostConfigs(): no data passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostConfigs(): error setting token in HTTP headers")
+		}
+	}
+	for _, ciData := range data {
+		var err error
+		body, err = json.Marshal(ciData)
+		if err != nil {
+			newErr := fmt.Errorf("PostConfigs(): failed to marshal open cloud-init data for %s: %w", ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.PostData(cloudInitRelpathOpen, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostConfigs(): error posting open cloud-init config %s: %w", ciData.Name, err)
+			log.Logger.Debug().Err(err).Msgf("failed to add open cloud-init config %s", ciData.Name)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added open cloud-init config %s", ciData.Name)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PostConfigsSecure is like PostConfigs except that it uses the secure
+// cloud-init endpoint.
+func (cic *CloudInitClient) PostConfigsSecure(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	if len(data) == 0 {
+		return nil, []error{}, fmt.Errorf("PostConfigsSecure(): no data passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostConfigsSecure(): error setting token in HTTP headers")
+		}
+	}
+	for _, ciData := range data {
+		var err error
+		body, err = json.Marshal(data)
+		if err != nil {
+			newErr := fmt.Errorf("PostConfigsSecure(): failed to marshal secure cloud-init data for %s: %w", ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.PostData(cloudInitRelpathSecure, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostConfigsSecure(): error posting secure cloud-init config %s: %w", ciData.Name, err)
+			log.Logger.Debug().Err(err).Msgf("failed to add secure cloud-init config %s", ciData.Name)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added secure cloud-init config %s", ciData.Name)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
 }

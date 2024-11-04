@@ -9,6 +9,8 @@ github.com/Cray-HPE/hms-securestorage v1.13.0 h1:ut6z9TMtCzL902f9NPxcbtkkDuk9zbX
 github.com/Cray-HPE/hms-securestorage v1.13.0/go.mod h1:P4CMKqQVlx/lv+AdyEjNQubZw2FKNyo/IAtFNgQ3VuI=
 github.com/OpenCHAMI/bss v1.31.3 h1:aSxu+nBBtUNeFuD5qAKbcVDef9DoRd8CHz6DOkW5g+s=
 github.com/OpenCHAMI/bss v1.31.3/go.mod h1:NzQeaLKsq6C1tHy/FdLcadWq+zJB37QLVGroA9ksVuA=
+github.com/OpenCHAMI/cloud-init v0.1.1 h1:wtrY1pqDXwZRcHl2UYYpH3yZeTUXVlMB2WqYYs3xlno=
+github.com/OpenCHAMI/cloud-init v0.1.1/go.mod h1:d1JxOq+s0aaGl/lE0NNIJxAqD4F8FS15hkNxpKrCeqE=
 github.com/OpenCHAMI/smd/v2 v2.16.1 h1:P+KdWoUVegnZOKUlj5cyBIswPfM8yR75ACdn3Xyt88g=
 github.com/OpenCHAMI/smd/v2 v2.16.1/go.mod h1:RtFmMtTYmMUc74gw4FnfZKDpFMTQJeemAVXB0O+Qaa0=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
