@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
+	"github.com/synackd/ochami/internal/log"
 )
 
 // CloudInitClient is an OchamiClient that has its BasePath configured to the
@@ -279,6 +280,87 @@ func (cic *CloudInitClient) PutConfigsSecure(data []citypes.CI, token string) ([
 			continue
 		}
 		log.Logger.Debug().Msgf("successfully set secure cloud-init config %s", ciData.Name)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// DeleteConfigs is a wrapper function around OchamiClient.DeleteData that takes
+// a token and one or more ids and passes them to DeleteData, using the
+// unsecured cloud-init endpoint as the target.
+func (cic *CloudInitClient) DeleteConfigs(token string, ids ...string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		errors  []error
+	)
+	if len(ids) == 0 {
+		return nil, []error{}, fmt.Errorf("DeleteConfigs(): no ids passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteConfigs(): error setting token in HTTP headers")
+		}
+	}
+	for _, id := range ids {
+		finalEP, err := url.JoinPath(cloudInitRelpathOpen, id)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteConfigs(): failed to join cloud-init open path (%s) with cloud-init config ID %s: %w", cloudInitRelpathOpen, id, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.DeleteData(finalEP, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteConfigs(): failed to DELETE cloud-init config %s: %w", id, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete cloud-init config %s", id)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted cloud-init config %s", id)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// DeleteConfigsSecure is like DeleteConfigs except that it uses the secure
+// cloud-init endpoint.
+func (cic *CloudInitClient) DeleteConfigsSecure(token string, ids ...string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		errors  []error
+	)
+	if len(ids) == 0 {
+		return nil, []error{}, fmt.Errorf("DeleteConfigsSecure(): no ids passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteConfigsSecure(): error setting token in HTTP headers")
+		}
+	}
+	for _, id := range ids {
+		finalEP, err := url.JoinPath(cloudInitRelpathSecure, id)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteConfigsSecure(): failed to join cloud-init secure path (%s) with cloud-init config ID %s: %w", cloudInitRelpathSecure, id, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.DeleteData(finalEP, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteConfigsSecure(): failed to DELETE cloud-init config %s: %w", id, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete cloud-init config %s", id)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted cloud-init config %s", id)
 		errors = append(errors, nil)
 	}
 
