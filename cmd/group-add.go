@@ -1,0 +1,149 @@
+// This source code is licensed under the license found in the LICENSE file at
+// the root directory of this source tree.
+package cmd
+
+import (
+	"errors"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/synackd/ochami/internal/client"
+	"github.com/synackd/ochami/internal/log"
+)
+
+// groupAddCmd represents the group-add command
+var groupAddCmd = &cobra.Command{
+	Use:   "add (-f <payload_file> | <group_label>)",
+	Short: "Add new group",
+	Long: `Add new group. A group name is required unless -f is passed to read the payload file.
+Specifying -f also is mutually exclusive with the other flags of this commands
+and its arguments.
+
+This command sends a POST to SMD. An access token is required.`,
+	Example: `  ochami group add computes
+  ochami group add -d "Compute group" computes
+  ochami group add -d "Compute group" --tag tag1,tag2 --m x3000c1s7b0n1,x3000c1s7b1n1 computes
+  ochami group add \
+    --description "ARM64 group" \
+    --tag arm,64-bit \
+    --member x3000c1s7b0n1,x3000c1s7b1n1 \
+    --exclusive-group amd64 \
+    arm64
+  ochami group add -f payload.json
+  ochami group add -f payload.yaml --payload-format yaml`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Check that all required args are passed
+		if len(args) == 0 && !cmd.Flag("payload").Changed {
+			err := cmd.Usage()
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("failed to print usage")
+				os.Exit(1)
+			}
+			os.Exit(0)
+		} else if len(args) > 1 {
+			log.Logger.Error().Msgf("expected 1 arguments (group_name) but got %d: %v", len(args), args)
+			os.Exit(1)
+		}
+
+		// Without a base URI, we cannot do anything
+		smdBaseURI, err := getBaseURI(cmd)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			os.Exit(1)
+		}
+
+		// This endpoint requires authentication, so a token is needed
+		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
+
+		// Create client to make request to SMD
+		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			os.Exit(1)
+		}
+
+		// Check if a CA certificate was passed and load it into client if valid
+		useCACert(smdClient.OchamiClient)
+
+		var groups []client.Group
+		if cmd.Flag("payload").Changed {
+			// Use payload file if passed
+			dFile := cmd.Flag("payload").Value.String()
+			dFormat := cmd.Flag("payload-format").Value.String()
+			err := client.ReadPayload(dFile, dFormat, &groups)
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("unable to read payload for request")
+				os.Exit(1)
+			}
+		} else {
+			// ...otherwise use CLI options/args
+			group := client.Group{Label: args[0]}
+			if cmd.Flag("description").Changed {
+				if group.Description, err = cmd.Flags().GetString("description"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch description")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("tag").Changed {
+				if group.Tags, err = cmd.Flags().GetStringSlice("tag"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch tags")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("exclusive-group").Changed {
+				if group.ExclusiveGroup, err = cmd.Flags().GetString("exclusive-group"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch exclusive group name")
+					os.Exit(1)
+				}
+			}
+			if cmd.Flag("member").Changed {
+				if group.Members.IDs, err = cmd.Flags().GetStringSlice("member"); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to fetch members")
+					os.Exit(1)
+				}
+			}
+			groups = append(groups, group)
+		}
+
+		// Send off request
+		_, errs, err := smdClient.PostGroups(groups, token)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to add group to SMD")
+			os.Exit(1)
+		}
+		// Since smdClient.PostGroups does the addition iteratively, we need to deal with
+		// each error that might have occurred.
+		var errorsOccurred = false
+		for _, err := range errs {
+			if err != nil {
+				if errors.Is(err, client.UnsuccessfulHTTPError) {
+					log.Logger.Error().Err(err).Msg("SMD group request yielded unsuccessful HTTP response")
+				} else {
+					log.Logger.Error().Err(err).Msg("failed to add group(s) to SMD")
+				}
+				errorsOccurred = true
+			}
+		}
+		if errorsOccurred {
+			log.Logger.Warn().Msg("SMD group addition completed with errors")
+			os.Exit(1)
+		}
+	},
+}
+
+func init() {
+	groupAddCmd.Flags().StringP("description", "d", "", "brief description of group")
+	groupAddCmd.Flags().StringSlice("tag", []string{}, "one or more tags for group")
+	groupAddCmd.Flags().StringP("exclusive-group", "e", "", "name of group that cannot share members with this one")
+	groupAddCmd.Flags().StringSliceP("member", "m", []string{}, "one or more component IDs to add to the new group")
+	groupAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	groupAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+
+	groupAddCmd.MarkFlagsMutuallyExclusive("description", "payload")
+	groupAddCmd.MarkFlagsMutuallyExclusive("tag", "payload")
+	groupAddCmd.MarkFlagsMutuallyExclusive("exclusive-group", "payload")
+	groupAddCmd.MarkFlagsMutuallyExclusive("member", "payload")
+
+	groupCmd.AddCommand(groupAddCmd)
+}

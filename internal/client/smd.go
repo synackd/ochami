@@ -104,6 +104,17 @@ type Manager struct {
 	Type        string `json:"type"`
 }
 
+// Group represents the payload structure for SMD groups.
+type Group struct {
+	Label          string   `json:"label"`
+	Description    string   `json:"description"`
+	Tags           []string `json:"tags"`
+	ExclusiveGroup string   `json:"exclusiveGroup"`
+	Members        struct {
+		IDs []string `json:"ids"`
+	} `json:"members"`
+}
+
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
 // SMDClient. If an error occurred creating the embedded OchamiClient, it is
 // returned. If insecure is true, TLS certificates will not be verified.
@@ -484,6 +495,46 @@ func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token strin
 			continue
 		}
 		log.Logger.Debug().Msgf("successfully added ethernet interface for component %s", ei.ComponentID)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PostGroups is a wrapper function around OchamiClient.PostData that takes a
+// Group slice and a token, puts the token in the request headers as an
+// authorization bearer, and iteratively calls OchamiClient.PostData using each
+// Group in the slice.
+func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers")
+		}
+	}
+	for _, group := range groups {
+		var body HTTPBody
+		var err error
+		if body, err = json.Marshal(group); err != nil {
+			newErr := fmt.Errorf("PostGroups(): failed to marshal Group: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PostData(SMDRelpathGroups, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PostGroups(): failed to POST group to SMD: %w", err)
+			log.Logger.Debug().Err(err).Msg("failed to add group")
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully added group %s", group.Label)
 		errors = append(errors, nil)
 	}
 
