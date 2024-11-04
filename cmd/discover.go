@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -30,6 +31,7 @@ each node entry would look something like:
   xname: x1000c1s7b0n0
   bmc_mac: de:ca:fc:0f:ee:ee
   bmc_ip: 172.16.0.101
+  group: compute
   interfaces:
   - mac_addr: de:ad:be:ee:ee:f1
     ip_addrs:
@@ -138,6 +140,49 @@ each node entry would look something like:
 			}
 		}
 
+		// Put together list of groups to add and which components to add to those groups
+		groupsToAdd := make(map[string]client.Group)
+		for _, node := range nodes {
+			if node.Group != "" {
+				if g, ok := groupsToAdd[node.Group]; !ok {
+					newGroup := client.Group{
+						Label:       node.Group,
+						Description: fmt.Sprintf("The %s group", node.Group),
+					}
+					newGroup.Members.IDs = []string{node.Xname}
+					groupsToAdd[node.Group] = newGroup
+				} else {
+					g.Members.IDs = append(g.Members.IDs, node.Xname)
+				}
+			}
+		}
+		groupList := make([]client.Group, len(groupsToAdd))
+		var idx = 0
+		for _, g := range groupsToAdd {
+			groupList[idx] = g
+			idx++
+		}
+
+		// Add groups and components to those groups
+		groupErrorsOccurred := false
+		_, errs, err = smdClient.PostGroups(groupList, token)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to add groups to SMD")
+			groupErrorsOccurred = true
+		}
+		for _, err := range errs {
+			if err != nil {
+				var errMsg string
+				if errors.Is(err, client.UnsuccessfulHTTPError) {
+					errMsg = "SMD groups request yielded unsuccessful HTTP response"
+				} else {
+					errMsg = "failed to add groups to SMD"
+				}
+				log.Logger.Error().Err(err).Msg(errMsg)
+				groupErrorsOccurred = true
+			}
+		}
+
 		// Notify user if any request errors occurred
 		exitStatus := 0
 		if rfeErrorsOccurred {
@@ -146,6 +191,10 @@ each node entry would look something like:
 		}
 		if ifaceErrorsOccurred {
 			log.Logger.Warn().Msg("ethernet interface requests completed with errors")
+			exitStatus = 1
+		}
+		if groupErrorsOccurred {
+			log.Logger.Warn().Msg("group requests completed with errors")
 			exitStatus = 1
 		}
 		os.Exit(exitStatus)

@@ -35,6 +35,7 @@ type Node struct {
 	Name   string  `json:"name"`
 	NID    int64   `json:"nid"`
 	Xname  string  `json:"xname"`
+	Group  string  `json:"group"`
 	BMCMac string  `json:"bmc_mac"`
 	BMCIP  string  `json:"bmc_ip"`
 	Ifaces []Iface `json:"interfaces"`
