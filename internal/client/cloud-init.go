@@ -173,3 +173,114 @@ func (cic *CloudInitClient) PostConfigsSecure(data []citypes.CI, token string) (
 
 	return henvs, errors, nil
 }
+
+// PutConfigs is a wrapper function around OchamiClient.PutData that takes a
+// slice of citypes.CI structs and a token. It iteratively passes these to
+// PutData and returns an HTTPEnvelope and error for each, contained within
+// separate slices. If an error in the function itself occurs, a separate error
+// is returned.
+func (cic *CloudInitClient) PutConfigs(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	if len(data) == 0 {
+		return nil, []error{}, fmt.Errorf("PutConfigs(): no data passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PutConfigs(): error setting token in HTTP headers")
+		}
+	}
+	for _, ciData := range data {
+		if ciData.Name == "" {
+			newErr := fmt.Errorf("PutConfigsSecure(): CI.Name field cannot be empty")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		finalEP, err := url.JoinPath(cloudInitRelpathOpen, ciData.Name)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigs(): failed to join cloud-init open path (%s) with cloud-init config ID %s: %w", cloudInitRelpathOpen, ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		body, err = json.Marshal(ciData)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigs(): failed to marshal cloud-init data for %s: %w", ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.PutData(finalEP, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigs(): error putting open cloud-init config %s: %w", ciData.Name, err)
+			log.Logger.Debug().Err(err).Msgf("failed to set open cloud-init config %s", ciData.Name)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully set open cloud-init config %s", ciData.Name)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PutConfigsSecure is like PutConfigs except that it uses the secure cloud-init
+// endpoint.
+func (cic *CloudInitClient) PutConfigsSecure(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	if len(data) == 0 {
+		return nil, []error{}, fmt.Errorf("PutConfigsSecure(): no data passed")
+	}
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PutConfigsSecure(): error setting token in HTTP headers")
+		}
+	}
+	for _, ciData := range data {
+		if ciData.Name == "" {
+			newErr := fmt.Errorf("PutConfigsSecure(): CI.Name field cannot be empty")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		finalEP, err := url.JoinPath(cloudInitRelpathSecure, ciData.Name)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigs(): failed to join cloud-init secure path (%s) with cloud-init config ID %s: %w", cloudInitRelpathSecure, ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		body, err = json.Marshal(ciData)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigsSecure(): failed to marshal secure cloud-init data for %s: %w", ciData.Name, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.PutData(finalEP, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PutConfigsSecure(): error putting secure cloud-init config %s: %w", ciData.Name, err)
+			log.Logger.Debug().Err(err).Msgf("failed to set secure cloud-init config %s", ciData.Name)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully set secure cloud-init config %s", ciData.Name)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
