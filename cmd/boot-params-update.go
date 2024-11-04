@@ -20,7 +20,7 @@ var bootParamsUpdateCmd = &cobra.Command{
 	Long: `Update some or all boot parameters for one or more components. At least one of
 --kernel, initrd, or --params must be specified as well as at least one of --xname, --mac, or
 --nid. Alternatively, pass -f to pass a file (optionally specifying --payload-format, JSON by
-default), but the rules abo e still apply for the payload.
+default), but the rules above still apply for the payload.
 
 This command sends a PATCH to BSS. An access token is required.`,
 	Example: `  ochami boot params update --xname x1000c1s7b0 --kernel https://example.com/kernel
