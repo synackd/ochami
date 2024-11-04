@@ -355,6 +355,32 @@ func (sc *SMDClient) GetGroups(query, token string) (HTTPEnvelope, error) {
 	return henv, err
 }
 
+// GetGroupMembers is a wrapper function around OchamiClient.GetData that takes
+// a group name, which it passes to the GetData function using the SMD group
+// membership endpoint. It also takes a token, which it puts into the headers as
+// the authorization bearer.
+func (sc *SMDClient) GetGroupMembers(group, token string) (HTTPEnvelope, error) {
+	if group == "" {
+		return HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): group label cannot be empty")
+	}
+	finalEP, err := url.JoinPath(SMDRelpathGroups, group, "members")
+	if err != nil {
+		return HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): failed to join group path (%s) with membership path for gorup %s: %w", SMDRelpathGroups, group)
+	}
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return HTTPEnvelope{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers")
+		}
+	}
+	henv, err := sc.GetData(finalEP, "", headers)
+	if err != nil {
+		err = fmt.Errorf("GetGroupMembers(): error getting group members for group %s: %w", group, err)
+	}
+
+	return henv, err
+}
+
 // PostComponents is a wrapper function around OchamiClient.PostData that takes
 // a ComponentSlice and a token, puts the token in the request headers as an
 // authorization bearer, marshalls compSlice as JSON and sets it as the request
