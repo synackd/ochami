@@ -121,7 +121,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2
 		rfe.ID = bmcXname
 		rfe.MACAddr = node.BMCMac
 		rfe.IPAddress = node.BMCIP
-		rfe.SchemaVersion = 1  // Tells SMD to use new (v2) parsing code
+		rfe.SchemaVersion = 1 // Tells SMD to use new (v2) parsing code
 
 		// Deduplication maps for fake BMC Managers and Systems
 		systemMap := make(map[string]string)
@@ -133,7 +133,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2
 			base.Path = "/redfish/v1/Systems/" + node.Xname
 
 			s := client.System{
-				URI: base.String(),
+				URI:  base.String(),
 				Name: node.Name,
 			}
 
@@ -183,7 +183,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2
 
 			m := client.Manager{
 				System: client.System{
-					URI: base.String(),
+					URI:  base.String(),
 					Name: bmcXname,
 				},
 				Type: "NodeBMC",
@@ -194,7 +194,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2
 				log.Logger.Warn().Err(err).Msgf("BMC %s: could not generate UUID for fake BMC Manager, it will be zero", bmcXname)
 			} else {
 				m.UUID = mngerUUID.String()
-				rfe.UID = mngerUUID  // Redfish UUID will be fake Manager's UUID
+				rfe.UID = mngerUUID // Redfish UUID will be fake Manager's UUID
 			}
 
 			// BMC interface

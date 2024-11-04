@@ -89,9 +89,9 @@ type RedfishEndpointV2 struct {
 // System represents data that would be retrieved from BMC System data, except
 // reduced to a minimum needed for discovery.
 type System struct {
-	URI string                                     `json:"uri"`
-	UUID string                                    `json:"uuid"`
-	Name string                                    `json:"name"`
+	URI                string                      `json:"uri"`
+	UUID               string                      `json:"uuid"`
+	Name               string                      `json:"name"`
 	EthernetInterfaces []schemas.EthernetInterface `json:"ethernet_interfaces"`
 }
 
@@ -100,7 +100,7 @@ type System struct {
 type Manager struct {
 	System
 	Description string `json:"description"`
-	Type string        `json:"type"`
+	Type        string `json:"type"`
 }
 
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
@@ -280,7 +280,7 @@ func (sc *SMDClient) GetComponentEndpoints(token string, xnames ...string) ([]HT
 		}
 	}
 	for _, xname := range xnames {
-		henv, err := sc.GetData(SMDRelpathComponentEndpoints + "/" + xname, "", headers)
+		henv, err := sc.GetData(SMDRelpathComponentEndpoints+"/"+xname, "", headers)
 		if err != nil {
 			newErr := fmt.Errorf("GetComponentEndpoints(): failed to GET component endpoint from SMD: %w", err)
 			log.Logger.Debug().Err(err).Msg("failed to get component endpoint")
