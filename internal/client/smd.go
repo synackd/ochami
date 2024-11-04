@@ -108,11 +108,11 @@ type Manager struct {
 type Group struct {
 	Label          string   `json:"label"`
 	Description    string   `json:"description"`
-	Tags           []string `json:"tags"`
-	ExclusiveGroup string   `json:"exclusiveGroup"`
+	Tags           []string `json:"tags,omitempty"`
+	ExclusiveGroup string   `json:"exclusiveGroup,omitempty"`
 	Members        struct {
-		IDs []string `json:"ids"`
-	} `json:"members"`
+		IDs []string `json:"ids,omitempty"`
+	} `json:"members,omitempty"`
 }
 
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
@@ -535,6 +535,59 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, [
 			continue
 		}
 		log.Logger.Debug().Msgf("successfully added group %s", group.Label)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PatchGroups is a wrapper function around OchamiClient.PatchData that takes a
+// Group slice and a token, puts token in the request headers as an
+// authorization bearer, marshals each group as JSON and sets it as the request
+// body, then passes it to OchamiClient.PatchData using the group label in the
+// path.
+func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+		errors  []error
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PatchGroups(): error setting token in HTTP headers")
+		}
+	}
+	for _, group := range groups {
+		if group.Label == "" {
+			newErr := fmt.Errorf("PatchGroups(): no group label specified to update")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		groupPath, err := url.JoinPath(SMDRelpathGroups, group.Label)
+		if err != nil {
+			newErr := fmt.Errorf("PatchGroups(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group.Label)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		if body, err = json.Marshal(group); err != nil {
+			newErr := fmt.Errorf("PatchGroups(): failed to marshal Group: %w")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.PatchData(groupPath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PatchGroups(): failed to PATCH group %s in SMD: %w", group.Label, err)
+			log.Logger.Debug().Err(err).Msgf("failed to update group %s", group.Label)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully updated group %s", group.Label)
 		errors = append(errors, nil)
 	}
 
