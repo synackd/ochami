@@ -976,3 +976,43 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEn
 
 	return henvs, errors, nil
 }
+
+// DeleteGroupMembers takes a token, group name, and one or more component IDs and iteratively
+// calls OchamiClient.DeleteData for each member for the group. This is necessary because SMD
+// only allows deleting one member at a time. A slice of HTTPEnvelopes is
+// returned containing one HTTPEnvelope per deletion, as well as an error slice
+// containing errors corresponding to each deletion. The indexes of these
+// should correspond. If an error in the function itself occurred, a separate
+// error is returned. This is to distinguish HTTP request errors from control
+// flow errors.
+func (sc *SMDClient) DeleteGroupMembers(token, group string, members ...string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers")
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, member := range members {
+		memberPath, err := url.JoinPath(SMDRelpathGroups, group, "members", member)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteGroupMembers(): failed join group path (%s) with group %s and member %s: %w", SMDRelpathGroups, group, member, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := sc.DeleteData(memberPath, "", headers, nil)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("DeleteGroupMembers(): failed to DELETE member %s from group %s in SMD: %w", member, group, err)
+			log.Logger.Debug().Err(err).Msgf("failed to delete member %s from group %s", member, group)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully deleted member %s from group %s", member, group)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
