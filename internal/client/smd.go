@@ -379,7 +379,7 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added component %s", rfe.ID)
+		log.Logger.Debug().Msgf("successfully added redfish endpoint %s", rfe.ID)
 		errors = append(errors, nil)
 	}
 
@@ -417,7 +417,7 @@ func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token s
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added component %s", rfe.ID)
+		log.Logger.Debug().Msgf("successfully added redfish endpoint %s", rfe.ID)
 		errors = append(errors, nil)
 	}
 
