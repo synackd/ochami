@@ -155,7 +155,7 @@ func InitConfig() {
 		configFile = filepath.Join(configDir, "config."+configFormat)
 	}
 
-	// Try to reate config file with default values if it doesn't exist
+	// Try to create config file with default values if it doesn't exist
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		respConfigCreate := loopYesNo(fmt.Sprintf("Config file %s does not exist. Create it?", configFile))
 		if respConfigCreate {
@@ -252,7 +252,7 @@ func useCACert(client *client.OchamiClient) {
 	if cacertPath != "" {
 		log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
 		if err := client.UseCACert(cacertPath); err != nil {
-			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s: %v", cacertPath)
+			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s", cacertPath)
 			os.Exit(1)
 		}
 	}
