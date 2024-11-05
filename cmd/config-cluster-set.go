@@ -93,9 +93,11 @@ with a different base URL will change the base URL for the 'foobar' cluster.`,
 			// Add new cluster to list
 			clusterList = append(clusterList, newCluster)
 			log.Logger.Info().Msgf("added new cluster: %s", clusterName)
-
 		} else {
 			// Cluster exists, modify it
+			if (*modCluster)["cluster"] == nil {
+				(*modCluster)["cluster"] = make(map[string]any)
+			}
 			if clusterUrl != "" {
 				modClusterData := (*modCluster)["cluster"].(map[string]any)
 				modClusterData["base-uri"] = clusterUrl
