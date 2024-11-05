@@ -105,8 +105,8 @@ Now, we should be able to contact the API on an endpoint that requires
 authentication:
 
 ```bash
-$ ochami bss bootparams get
-[]
+$ ochami boot params get
+null
 
 ```
 
