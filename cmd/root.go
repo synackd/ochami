@@ -72,6 +72,7 @@ func init() {
 	cobra.OnInitialize(
 		InitConfig,
 		InitLogging,
+		InitialStatus,
 	)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "path to configuration file to use")
 	rootCmd.PersistentFlags().StringVar(&configFormat, "config-format", defaultConfigFormat, "format of configuration file; if none passed, tries to infer from file extension")
@@ -190,6 +191,14 @@ func InitConfig() {
 			fmt.Fprintf(os.Stderr, "%s: failed to load configuration file %s: %v\n", progName, configFile, err)
 		}
 		os.Exit(1)
+	}
+}
+
+func InitialStatus() {
+	if configFile != "" {
+		log.Logger.Debug().Msgf("config file loaded: %s", configFile)
+	} else {
+		log.Logger.Debug().Msgf("no config file loaded")
 	}
 }
 
