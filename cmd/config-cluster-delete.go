@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/synackd/ochami/internal/config"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/config"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // configClusterDeleteCmd represents the config-cluster-delete command

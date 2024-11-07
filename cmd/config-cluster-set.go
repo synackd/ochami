@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // configClusterSetCmd represents the config-cluster-set command

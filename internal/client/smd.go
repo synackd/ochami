@@ -8,7 +8,7 @@ import (
 
 	"github.com/openchami/schemas/schemas"
 	"github.com/openchami/schemas/schemas/csm"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // SMDClient is an OchamiClient that has its BasePath set configured to the one

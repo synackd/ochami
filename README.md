@@ -125,7 +125,7 @@ If you need to build without `make`, populating the build metadata and building
 can be done manually via:
 
 ```bash
-IMPORT=github.com/synackd/ochami/
+IMPORT=github.com/OpenCHAMI/ochami/
 VERSION="$(git describe --tags --always --abbrev=0)"
 BUILD="$(git rev-parse --short HEAD)"
 LDFLAGS="-s -X=${IMPORT}internal/version.Version=${VERSION} -X=${IMPORT}internal/version.Commit=${BUILD} -X=${IMPORT}internal/version.Date=$(date -Iseconds)"

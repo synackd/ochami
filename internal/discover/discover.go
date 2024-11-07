@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openchami/schemas/schemas"
-	"github.com/synackd/ochami/internal/client"
-	"github.com/synackd/ochami/internal/log"
-	"github.com/synackd/ochami/internal/xname"
+	"github.com/OpenCHAMI/ochami/internal/client"
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/xname"
 )
 
 // NodeList is simply a list of Nodes. Data from a payload file is unmarshalled

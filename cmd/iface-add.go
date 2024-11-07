@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/synackd/ochami/internal/client"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/client"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // ifaceAddCmd represents the iface-add command

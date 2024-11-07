@@ -2,7 +2,7 @@
 GO  ?= $(shell command -v go)
 GIT ?= $(shell command -v git)
 
-IMPORT := github.com/synackd/ochami/
+IMPORT := github.com/OpenCHAMI/ochami/
 
 # Check that commands are present
 ifeq ($(GO),)

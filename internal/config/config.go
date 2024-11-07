@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // RemoveFromSlice removes an element from a slice and returns the resulting

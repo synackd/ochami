@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // CloudInitClient is an OchamiClient that has its BasePath configured to the

@@ -8,8 +8,8 @@ import (
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 	"github.com/spf13/cobra"
-	"github.com/synackd/ochami/internal/client"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/client"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // bootParamsAddCmd represents the add command

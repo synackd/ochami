@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/synackd/ochami/internal/client"
-	"github.com/synackd/ochami/internal/discover"
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/client"
+	"github.com/OpenCHAMI/ochami/internal/discover"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // discoverCmd represents the discover command

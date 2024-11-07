@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/synackd/ochami/internal/version"
+	"github.com/OpenCHAMI/ochami/internal/version"
 )
 
 var output string

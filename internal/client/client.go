@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/synackd/ochami/internal/log"
-	"github.com/synackd/ochami/internal/version"
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/version"
 )
 
 var (

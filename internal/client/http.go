@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/synackd/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 var (

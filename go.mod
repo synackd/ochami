@@ -1,4 +1,4 @@
-module github.com/synackd/ochami
+module github.com/OpenCHAMI/ochami
 
 go 1.21
 
