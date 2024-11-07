@@ -35,7 +35,27 @@ jobs:
           version: latest
           args: release --clean
         id: goreleaser
-      - name: Attest binaries
+      - name: Attest ochami binary linux_amd64
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: '${{ github.workspace }}/dist/ochami_linux_amd64_v1/ochami'
+      - name: Attest ochami binary linux_arm64
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{ github.workspace }}/dist/ochami_linux_arm64/ochami'
+      - name: Attest ochami binary darwin_amd64
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{ github.workspace }}/dist/ochami_darwin_amd64_v1/ochami'
+      - name: Attest ochami binary darwin_arm64
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{ github.workspace }}/dist/ochami_darwin_arm64/ochami'
+      - name: Attest ochami binary windows_amd64
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{ github.workspace }}/dist/ochami_windows_amd64_v1/ochami.exe'
+      - name: Attest ochami binary windows_arm64
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{ github.workspace }}/dist/ochami_windows_arm64/ochami.exe'
