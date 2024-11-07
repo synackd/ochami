@@ -98,14 +98,36 @@ func (i IfaceIP) String() string {
 // [Magellan](https://github.com/OpenCHAMI/magellan) would do), except the
 // information is sourced from a file instead of dynamically reaching out to
 // BMCs.
-func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2, []client.EthernetInterface, error) {
-	var rfes client.RedfishEndpointSliceV2
-	var ifaces []client.EthernetInterface
+func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client.RedfishEndpointSliceV2, []client.EthernetInterface, error) {
+	var (
+		comps  client.ComponentSlice
+		rfes   client.RedfishEndpointSliceV2
+		ifaces []client.EthernetInterface
+	)
 	base, err := url.Parse(baseURI)
 	if err != nil {
-		return rfes, ifaces, fmt.Errorf("invalid URI: %s", baseURI)
+		return comps, rfes, ifaces, fmt.Errorf("invalid URI: %s", baseURI)
 	}
+
+	// Deduplication map for Components
+	compMap := make(map[string]string)
 	for _, node := range nl {
+		log.Logger.Debug().Msgf("generating component structure for node with xname %s", node.Xname)
+		if _, ok := compMap[node.Xname]; !ok {
+			comp := client.Component{
+				ID:      node.Xname,
+				NID:     node.NID,
+				Type:    "Node",
+				State:   "On",
+				Enabled: true,
+			}
+			log.Logger.Debug().Msgf("adding component %v", comp)
+			compMap[node.Xname] = "present"
+			comps.Components = append(comps.Components, comp)
+		} else {
+			log.Logger.Warn().Msgf("component with xname %s already exists (duplicate?), not adding", node.Xname)
+		}
+
 		log.Logger.Debug().Msgf("generating redfish structure for node with xname %s", node.Xname)
 		var rfe client.RedfishEndpointV2
 
@@ -214,5 +236,5 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.RedfishEndpointSliceV2
 		}
 		rfes.RedfishEndpoints = append(rfes.RedfishEndpoints, rfe)
 	}
-	return rfes, ifaces, nil
+	return comps, rfes, ifaces, nil
 }
