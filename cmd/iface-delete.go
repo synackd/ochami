@@ -13,7 +13,7 @@ import (
 
 // ifaceDeleteCmd represents the iface-delete command
 var ifaceDeleteCmd = &cobra.Command{
-	Use:   "delete (-f <payload_file> | --all | <iface_id>...",
+	Use:   "delete -f <payload_file> | --all | <iface_id>...",
 	Short: "Delete one or more ethernet interfaces",
 	Long: `Delete one or more ethernet interfaces. These can be specified by one or more ethernet
 interface IDs (note this is not the same as a component xname).

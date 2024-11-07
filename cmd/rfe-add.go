@@ -14,7 +14,7 @@ import (
 
 // rfeAddCmd represents the rfe-add command
 var rfeAddCmd = &cobra.Command{
-	Use:   "add (-f <payload_file> | <xname> <name> <ip_addr> <mac_addr>)",
+	Use:   "add -f <payload_file> | (<xname> <name> <ip_addr> <mac_addr>)",
 	Short: "Add new redfish endpoint(s)",
 	Long: `Add new redfish endpoint(s). An xname, name, IP address, and MAC address are required
 unless -f is passed to read from a payload file. Specifying -f also is mutually exclusive with the other

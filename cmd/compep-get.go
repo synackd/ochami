@@ -15,7 +15,7 @@ import (
 
 // compepGetCmd represents the compep-get command
 var compepGetCmd = &cobra.Command{
-	Use:   "get [xname...]",
+	Use:   "get [<xname>...]",
 	Short: "Get all component endpoints or one identified by an xname",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything

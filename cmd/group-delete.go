@@ -13,7 +13,7 @@ import (
 
 // groupDeleteCmd represents the group-delete command
 var groupDeleteCmd = &cobra.Command{
-	Use:   "delete (-f <payload_file> | <group_label>...)",
+	Use:   "delete -f <payload_file> | <group_label>...",
 	Short: "Delete one or more groups",
 	Long: `Delete one or more groups. These can be specified by one or more group labels.
 

@@ -15,7 +15,7 @@ import (
 
 // discoverCmd represents the discover command
 var discoverCmd = &cobra.Command{
-	Use:   "discover -f <payload_file> [--payload-format <format]",
+	Use:   "discover -f <payload_file> [--payload-format <format>]",
 	Args:  cobra.NoArgs,
 	Short: "Populate SMD with data",
 	Long: `Populate SMD with data. Currently, this command performs "fake" discovery,

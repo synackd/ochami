@@ -13,7 +13,7 @@ import (
 
 // componentDeleteCmd represents the component-delete command
 var componentDeleteCmd = &cobra.Command{
-	Use:   "delete (-f <payload_file> | --all | <xname>...)",
+	Use:   "delete -f <payload_file> | --all | <xname>...",
 	Short: "Delete one or more components",
 	Long: `Delete one or more components. These can be specified by one or more xnames, one
 or more NIDs, or a combination of both.

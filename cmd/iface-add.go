@@ -15,7 +15,7 @@ import (
 
 // ifaceAddCmd represents the iface-add command
 var ifaceAddCmd = &cobra.Command{
-	Use:   "add (-f <payload_file> | <comp_id> <mac_addr> (<net_name>,<ip_addr>)...)",
+	Use:   "add -f <payload_file> | (<comp_id> <mac_addr> (<net_name>,<ip_addr>)...)",
 	Short: "Add new ethernet interface(s)",
 	Long: `Add new ethernet interface(s). A component ID (usually an xname), MAC address, and
 one or more pairs of network name and IP address (delimited by a comma) are required unless -f is

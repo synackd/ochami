@@ -13,7 +13,7 @@ import (
 
 // groupAddCmd represents the group-add command
 var groupAddCmd = &cobra.Command{
-	Use:   "add (-f <payload_file> | <group_label>)",
+	Use:   "add -f <payload_file> | <group_label>",
 	Short: "Add new group",
 	Long: `Add new group. A group name is required unless -f is passed to read the payload file.
 Specifying -f also is mutually exclusive with the other flags of this commands

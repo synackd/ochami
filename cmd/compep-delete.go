@@ -14,7 +14,7 @@ import (
 
 // compepDeleteCmd represents the compep-delete command
 var compepDeleteCmd = &cobra.Command{
-	Use:   "delete (-f <payload_file> | --all | <xname>...)",
+	Use:   "delete -f <payload_file> | --all | <xname>...",
 	Short: "Delete one or more component endpoints",
 	Long: `Delete one or more component endpoints. These can be specified by one or more xnames.
 

@@ -13,7 +13,7 @@ import (
 
 // componentAddCmd represents the component-add command
 var componentAddCmd = &cobra.Command{
-	Use:   "add (-f <payload_file> | <xname> <node_id>)",
+	Use:   "add -f <payload_file> | (<xname> <node_id>)",
 	Short: "Add new component(s)",
 	Long: `Add new component(s). A name (xname) and node ID (int64) are required unless
 -f is passed to read from a payload file. Specifying -f also is mutually exclusive with the

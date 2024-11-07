@@ -13,7 +13,7 @@ import (
 
 // rfeDeleteCmd represents the delete command
 var rfeDeleteCmd = &cobra.Command{
-	Use:   "delete (-f <payload_file> | --all | <xname>...)",
+	Use:   "delete -f <payload_file> | --all | <xname>...",
 	Short: "Delete one or more redfish endpoints",
 	Long: `Delete one or more redfish endpoints. These can be specified by one or more xnames.
 
