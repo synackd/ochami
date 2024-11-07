@@ -91,16 +91,16 @@ changelog:
   use: github
   groups:
     - title: Features
-      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?feat(\([[:print:]]+\))??!?:.+$'
       order: 0
     - title: Fixes
-      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?fix(\([[:print:]]+\))??!?:.+$'
       order: 1
     - title: Documentation
-      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?docs(\([[:print:]]+\))??!?:.+$'
       order: 2
     - title: Build System
-      regexp: '^.*?(build|ci)(\([[:word:]]+\))??!?:.+$'
+      regexp: '^.*?(build|ci)(\([[:print:]]+\))??!?:.+$'
       order: 3
     - title: Other
       order: 999
