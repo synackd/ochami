@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          version: latest
+          version: '~> v2'
           args: release --clean
         id: goreleaser
       - name: Attest ochami binary linux_amd64
