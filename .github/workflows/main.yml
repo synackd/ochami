@@ -35,6 +35,16 @@ jobs:
           version: '~> v2'
           args: release --clean
         id: goreleaser
+      - name: Process goreleaser output
+        id: process_goreleaser_output
+        run: |
+          echo "const fs = require('fs');" > process.js
+          echo 'const artifacts = ${{ steps.goreleaser.outputs.artifacts }}' >> process.js
+          echo "const firstNonNullDigest = artifacts.find(artifact => artifact.extra && artifact.extra.Digest != null)?.extra.Digest;" >> process.js
+          echo "console.log(firstNonNullDigest);" >> process.js
+          echo "fs.writeFileSync('digest.txt', firstNonNullDigest);" >> process.js
+          node process.js
+          echo "digest=$(cat digest.txt)" >> $GITHUB_OUTPUT
       - name: Attest ochami binary linux_amd64
         uses: actions/attest-build-provenance@v1
         with:
@@ -59,3 +69,9 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: '${{ github.workspace }}/dist/ochami_windows_arm64/ochami.exe'
+      - name: Attest ochami docker container
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/openchami/ochami
+          subject-digest: ${{ steps.process_goreleaser_output.outputs.digest }}
+          push-to-registry: true
