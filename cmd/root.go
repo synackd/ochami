@@ -9,7 +9,9 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/OpenCHAMI/ochami/internal/client"
@@ -241,6 +243,35 @@ func checkToken(cmd *cobra.Command) {
 	// TODO: Check token validity/expiration
 	if token == "" {
 		log.Logger.Error().Msg("no token set")
+		os.Exit(1)
+	}
+
+	// Try to parse token
+	t, err := jwt.ParseString(token, jwt.WithValidate(false))
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("failed to parse token")
+		os.Exit(1)
+	}
+
+	// Check expiration
+	now := time.Now()
+	exp := t.Expiration()
+	if exp.Compare(now) < 0 {
+		log.Logger.Error().Msgf("token is expired (expired %s ago at %s)",
+			now.Sub(exp), exp.Local().Format(time.RFC1123))
+		os.Exit(1)
+	} else if exp.Sub(now).Minutes() <= 15 {
+		log.Logger.Warn().Msgf("%s until token expires", exp.Sub(now))
+	}
+
+	// Validate not before (nbf), issued at (iat), and expiration (exp) fields
+	err = jwt.Validate(t,
+		jwt.WithValidator(jwt.IsNbfValid()),
+		jwt.WithValidator(jwt.IsIssuedAtValid()),
+		jwt.WithValidator(jwt.IsExpirationValid()),
+	)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("token is invalid")
 		os.Exit(1)
 	}
 }
