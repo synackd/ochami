@@ -35,6 +35,23 @@ archives:
     files:
       - LICENSE
 
+nfpms:
+  - id: ochami
+    formats:
+      - deb
+      - rpm
+      - apk
+      - archlinux
+    maintainer: "Devon T. Bautista <devonb@lanl.gov>"
+    description: "Command line interface for OpenCHAMI services"
+    homepage: "https://www.openchami.org"
+    license: MIT
+    section: utils
+    priority: optional
+    contents:
+      - src: dist/ochami_{{ .Os }}_{{ if eq .Arch "amd64" }}{{ .Arch }}_{{ .Amd64 }}{{ else if eq .Arch "arm64" }}{{ .Arch }}_{{ .Arm64 }}{{ else }}{{ .Arch }}{{ end }}/ochami
+        dst: /usr/local/bin/ochami
+
 dockers:
   - dockerfile: goreleaser.dockerfile
     image_templates:
