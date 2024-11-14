@@ -13,11 +13,13 @@ import (
 
 // NodeList is simply a list of Nodes. Data from a payload file is unmarshalled
 // into this.
-type NodeList []Node
+type NodeList struct {
+	Nodes []Node `json:"nodes"`
+}
 
 func (nl NodeList) String() string {
 	nlStr := "["
-	for idx, node := range nl {
+	for idx, node := range nl.Nodes {
 		if idx == 0 {
 			nlStr += fmt.Sprintf("node%d={%s}", idx, node)
 		} else {
@@ -111,7 +113,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 
 	// Deduplication map for Components
 	compMap := make(map[string]string)
-	for _, node := range nl {
+	for _, node := range nl.Nodes {
 		log.Logger.Debug().Msgf("generating component structure for node with xname %s", node.Xname)
 		if _, ok := compMap[node.Xname]; !ok {
 			comp := client.Component{

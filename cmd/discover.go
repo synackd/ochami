@@ -26,6 +26,7 @@ but statically populates SMD using a file.
 The format of the payload file is an array of node specifications. In YAML,
 each node entry would look something like:
 
+nodes:
 - name: node01
   nid: 1
   xname: x1000c1s7b0n0
@@ -88,7 +89,7 @@ each node entry would look something like:
 			log.Logger.Error().Err(err).Msg("unable to read payload for request")
 			os.Exit(1)
 		}
-		log.Logger.Debug().Msgf("read %d nodes", len(nodes))
+		log.Logger.Debug().Msgf("read %d nodes", len(nodes.Nodes))
 		log.Logger.Debug().Msgf("nodes: %s", nodes)
 
 		// Put together payload for different endpoints
@@ -160,7 +161,7 @@ each node entry would look something like:
 
 		// Put together list of groups to add and which components to add to those groups
 		groupsToAdd := make(map[string]client.Group)
-		for _, node := range nodes {
+		for _, node := range nodes.Nodes {
 			if node.Group != "" {
 				if g, ok := groupsToAdd[node.Group]; !ok {
 					newGroup := client.Group{
