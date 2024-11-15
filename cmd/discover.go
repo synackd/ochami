@@ -172,6 +172,7 @@ nodes:
 					groupsToAdd[node.Group] = newGroup
 				} else {
 					g.Members.IDs = append(g.Members.IDs, node.Xname)
+					groupsToAdd[node.Group] = g
 				}
 			}
 		}
