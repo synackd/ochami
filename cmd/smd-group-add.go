@@ -17,7 +17,8 @@ var groupAddCmd = &cobra.Command{
 	Short: "Add new group",
 	Long: `Add new group. A group name is required unless -f is passed to read the payload file.
 Specifying -f also is mutually exclusive with the other flags of this commands
-and its arguments.
+and its arguments. If - is used as the argument to -f, the data is read from
+standard input.
 
 This command sends a POST to SMD. An access token is required.`,
 	Example: `  ochami smd group add computes
@@ -30,7 +31,9 @@ This command sends a POST to SMD. An access token is required.`,
     --exclusive-group amd64 \
     arm64
   ochami smd group add -f payload.json
-  ochami smd group add -f payload.yaml --payload-format yaml`,
+  ochami smd group add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd group add -f -
+  echo '<yaml_data>' | ochami smd group add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
@@ -69,13 +72,7 @@ This command sends a POST to SMD. An access token is required.`,
 		var groups []client.Group
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &groups)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &groups)
 		} else {
 			// ...otherwise use CLI options/args
 			group := client.Group{Label: args[0]}

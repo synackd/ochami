@@ -398,3 +398,17 @@ func setTokenFromEnvVar(cmd *cobra.Command) {
 	log.Logger.Error().Msgf("Environment variable %s unset for reading token for cluster %q", envVarToRead, clusterName)
 	os.Exit(1)
 }
+
+// handlePayload unmarshals a payload file into data for command cmd if
+// --payload and, optionally, --payload-format, are passed.
+func handlePayload(cmd *cobra.Command, data any) {
+	if cmd.Flag("payload").Changed {
+		dFile := cmd.Flag("payload").Value.String()
+		dFormat := cmd.Flag("payload-format").Value.String()
+		err := client.ReadPayload(dFile, dFormat, data)
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("unable to read payload for request")
+			os.Exit(1)
+		}
+	}
+}

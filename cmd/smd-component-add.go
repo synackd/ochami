@@ -16,14 +16,17 @@ var componentAddCmd = &cobra.Command{
 	Use:   "add -f <payload_file> | (<xname> <node_id>)",
 	Short: "Add new component(s)",
 	Long: `Add new component(s). A name (xname) and node ID (int64) are required unless
--f is passed to read from a payload file. Specifying -f also is mutually exclusive with the
-other flags of this command.
+-f is passed to read from a payload file. Specifying -f also is
+mutually exclusive with the other flags of this command. If - is
+used as the argument to -f, the data is read from standard input.
 
 This command sends a POST to SMD. An access token is required.`,
 	Example: `  ochami smd component add x3000c1s7b56n0 56
   ochami smd component add --state Ready --enabled --role Compute --arch X86 x3000c1s7b56n0 56
   ochami smd component add -f payload.json
-  ochami smd component add -f payload.yaml --payload-format yaml`,
+  ochami smd component add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd component add -f -
+  echo '<yaml_data>' | ochami smd component add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
@@ -61,14 +64,7 @@ This command sends a POST to SMD. An access token is required.`,
 
 		var compSlice client.ComponentSlice
 		if cmd.Flag("payload").Changed {
-			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &compSlice)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &compSlice)
 		} else {
 			// ...otherwise use CLI options
 			comp := client.Component{

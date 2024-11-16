@@ -16,13 +16,18 @@ var rfeDeleteCmd = &cobra.Command{
 	Use:   "delete -f <payload_file> | --all | <xname>...",
 	Short: "Delete one or more redfish endpoints",
 	Long: `Delete one or more redfish endpoints. These can be specified by one or more xnames.
+Alternatively, use -f to read the payload data from a file (optionally
+specifying --payload-format, JSON by default). If - is used as the
+argument to -f, the data is read from standard input.
 
 This command sends a DELETE to SMD. An access token is required.`,
 	Example: `  ochami smd rfe delete x3000c1s7b56
   ochami smd rfe delete x3000c1s7b56 x3000c1s7b56
   ochami smd rfe delete --all
   ochami smd rfe delete -f payload.json
-  ochami smd rfe delete -f payload.yaml --payload-format yaml`,
+  ochami smd rfe delete -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd rfe delete -f -
+  echo '<yaml_data>' | ochami smd rfe delete -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// With options, only one of:
 		// - A payload file with -f
@@ -83,16 +88,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 		var xnameSlice []string
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &rfeSlice.RedfishEndpoints)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-			for _, rfe := range rfeSlice.RedfishEndpoints {
-				xnameSlice = append(xnameSlice, rfe.ID)
-			}
+			handlePayload(cmd, rfeSlice.RedfishEndpoints)
 		} else {
 			// ...otherwise, use passed CLI arguments
 			xnameSlice = args

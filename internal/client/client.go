@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	oio "github.com/OpenCHAMI/ochami/internal/io"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/internal/version"
 )
@@ -340,6 +341,48 @@ func (oc *OchamiClient) UseCACert(caCertPath string) error {
 	return nil
 }
 
+// BytesToHTTPBody takes byte slice and string representing the format of the
+// data, and tries to marshal it into an HTTPBody (byte array) in JSON form,
+// returning it. If an unmarshalling error occurs or either of the arguments are
+// empty, nil and an error are returned. Current file formats supported are JSON
+// and YAML.
+func BytesToHTTPBody(data []byte, format string) (HTTPBody, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("byte slice is empty")
+	}
+	if format == "" {
+		return nil, fmt.Errorf("format is empty")
+	}
+
+	var b HTTPBody
+	var err error
+	switch strings.ToLower(format) {
+	case "json":
+		var j interface{}
+		err = json.Unmarshal(data, &j)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		}
+		b, err = json.Marshal(j)
+		if err != nil {
+			err = fmt.Errorf("failed to marshal JSON: %w", err)
+		}
+	case "yaml":
+		var y interface{}
+		err = yaml.Unmarshal(data, &y)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal YAML: %w", err)
+		}
+		y = CanonicalizeInterface(y)
+		b, err = json.Marshal(y)
+		if err != nil {
+			err = fmt.Errorf("failed to marshal JSON (converted from YAML): %w", err)
+		}
+	}
+
+	return b, err
+}
+
 // FileToHTTPBody takes a file path and string representing the format of the
 // file, reads the file, and tries to marshal it into an HTTPBody (byte array)
 // in JSON form, returning it. If an unmarshalling error occurs or either of the
@@ -391,14 +434,30 @@ func FileToHTTPBody(path, format string) (HTTPBody, error) {
 // FileToHTTPBody supports), such as YAML. If a marshalling/unmarshalling error
 // occurs or either path or format are empty, an error is returned.
 func ReadPayload(path, format string, v any) error {
-	log.Logger.Debug().Msgf("Payload file: %s", path)
-	log.Logger.Debug().Msgf("Payload file format: %s", format)
+	log.Logger.Debug().Msgf("payload file: %s", path)
+	log.Logger.Debug().Msgf("payload file format: %s", format)
 
-	body, err := FileToHTTPBody(path, format)
-	if err != nil {
-		return fmt.Errorf("unable to create HTTP body from file: %w", err)
+	var body HTTPBody
+	var err error
+	if path == "-" {
+		log.Logger.Debug().Msg("payload file was -, reading from stdin")
+		var data []byte
+		data, err = oio.ReadStdin()
+		if err != nil {
+			return fmt.Errorf("unable to read payload data: %w", err)
+		}
+		log.Logger.Debug().Msgf("bytes read: %q", data)
+		body, err = BytesToHTTPBody(data, format)
+		if err != nil {
+			return fmt.Errorf("unable to create HTTP body from payload bytes: %w", err)
+		}
+	} else {
+		body, err = FileToHTTPBody(path, format)
+		if err != nil {
+			return fmt.Errorf("unable to create HTTP body from file: %w", err)
+		}
 	}
-	log.Logger.Debug().Msgf("Body bytes: %s", string(body))
+	log.Logger.Debug().Msgf("body bytes: %q", body)
 
 	err = json.Unmarshal(body, v)
 	if err != nil {

@@ -16,14 +16,19 @@ var ifaceDeleteCmd = &cobra.Command{
 	Use:   "delete -f <payload_file> | --all | <iface_id>...",
 	Short: "Delete one or more ethernet interfaces",
 	Long: `Delete one or more ethernet interfaces. These can be specified by one or more ethernet
-interface IDs (note this is not the same as a component xname).
+interface IDs (note this is not the same as a component xname). Alternatively,
+pass -f to pass a file (optionally specifying --payload-format, JSON by default)
+containing the payload data. If - is used as the argument to -f, the data is
+read from standard input.
 
 This command sends a DELETE to SMD. An access token is required.`,
 	Example: `  ochami smd iface delete decafc0ffeee
   ochami smd iface delete decafc0ffeee de:ad:be:ee:ee:ef
   ochami smd iface delete --all
   ochami smd iface delete -f payload.json
-  ochami smd iface delete -f payload.yaml --payload-format yaml`,
+  ochami smd iface delete -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd iface delete -f -
+  echo '<yaml_data>' | ochami smd iface delete -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// With options, only one of:
 		// - A payload file with -f
@@ -84,16 +89,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 		var eIdSlice []string
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &eiSlice)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-			for _, ei := range eiSlice {
-				eIdSlice = append(eIdSlice, ei.ID)
-			}
+			handlePayload(cmd, &eiSlice)
 		} else {
 			// ...otherwise, use passed CLI arguments
 			eIdSlice = args

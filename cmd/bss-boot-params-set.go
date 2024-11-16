@@ -18,11 +18,13 @@ var bootParamsSetCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Set boot parameters for one or more components, overwriting any previous",
 	Long: `Set boot parameters for one or mote components, overwriting any previously-set
-parameters. At least one of --kernel, --initrd, or --params is required to
-tell ochami which boot data to set. Also, at least one of --xname, --mac,
-or --nid is required to tell ochami which components need modification. Alternatively, pass -f
-to pass a file (optionally specifying --payload-format, JSON by default), but the rules above
-still apply for the payload.
+parameters. At least one of --kernel, --initrd, or --params is
+required to tell ochami which boot data to set. Also, at least
+one of --xname, --mac, or --nid is required to tell ochami which
+components need modification. Alternatively, pass -f to pass a
+file (optionally specifying --payload-format, JSON by default),
+but the rules above still apply for the payload. If the specified
+file path is -, the data is read from standard input.
 
 This command sends a PUT to BSS. An access token is required.`,
 	Example: `  ochami bss boot params set --xname x1000c1s7b0 --kernel https://example.com/kernel
@@ -30,7 +32,9 @@ This command sends a PUT to BSS. An access token is required.`,
   ochami bss boot params set --xname x1000c1s7b0 --xname x1000c1s7b1 --kernel https://example.com/kernel
   ochami bss boot params set --xname x1000c1s7b0 --nid 1 --mac 00:c0:ff:ee:00:00 --params 'quiet nosplash'
   ochami bss boot params set -f payload.json
-  ochami bss boot params set -f payload.yaml --payload-format yaml`,
+  ochami bss boot params set -f payload.yaml --payload-format yaml
+  echo <json_data> | ochami bss boot params set -f -
+  echo <yaml_data> | ochami bss boot params set -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -69,15 +73,7 @@ This command sends a PUT to BSS. An access token is required.`,
 		bp := bssTypes.BootParams{}
 
 		// Read payload from file first, allowing overwrites from flags
-		if cmd.Flag("payload").Changed {
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &bp)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-		}
+		handlePayload(cmd, &bp)
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {

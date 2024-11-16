@@ -13,12 +13,13 @@ import (
 
 // groupUpdateCmd represents the smd-group-update command
 var groupUpdateCmd = &cobra.Command{
-	Use:   "update [-f <payload_file>] | ([--description <description>] [--tag <tag>]... <group_label>)",
+	Use:   "update -f <payload_file> | ([--description <description>] [--tag <tag>]... <group_label>)",
 	Short: "Update the description and/or tags of a group",
 	Long: `Update the description and/or tags of a group. At least one of --description
 or --tag must be specified. Alternatively, pass -f to pass a file
 (optionally specifying --payload-format, JSON by default), but the
-rules above still apply for the payload.
+rules above still apply for the payload. If - is used as the
+argument to -f, the data is read from standard input.
 
 This command sends a PATCH to SMD. An access token is required.`,
 	Example: `  ochami smd group update --description "New description for compute" compute
@@ -26,7 +27,9 @@ This command sends a PATCH to SMD. An access token is required.`,
   ochami smd group update --tag existing_tag,new_tag compute
   ochami smd group update --tag existing_tag,new_tag -d "New description for compute" compute
   ochami smd group update -f payload.json
-  ochami smd group update -f payload.yaml --payload-format yaml`,
+  ochami smd group update -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd group update -f -
+  echo '<yaml_data>' | ochami smd group update -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 && !cmd.Flag("description").Changed && !cmd.Flag("tag").Changed {
@@ -64,13 +67,7 @@ This command sends a PATCH to SMD. An access token is required.`,
 
 		// Read payload from file first, allowing overwrites from flags
 		if cmd.Flag("payload").Changed {
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &groups)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &groups)
 		} else {
 			// ...otherwise use CLI options/args
 			group := client.Group{Label: args[0]}

@@ -21,7 +21,8 @@ var discoverCmd = &cobra.Command{
 	Long: `Populate SMD with data. Currently, this command performs "fake" discovery,
 whereby data from a payload file is used to create the SMD structures.
 In this way, the command does not perform dynamic discovery like Magellan,
-but statically populates SMD using a file.
+but statically populates SMD using a file. If - is used as the argument to
+-f, the payload data is read from standard input.
 
 The format of the payload file is an array of node specifications. In YAML,
 each node entry would look something like:
@@ -82,13 +83,7 @@ nodes:
 
 		// Read data from payload file
 		nodes := discover.NodeList{}
-		dFile := cmd.Flag("payload").Value.String()
-		dFormat := cmd.Flag("payload-format").Value.String()
-		err = client.ReadPayload(dFile, dFormat, &nodes)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("unable to read payload for request")
-			os.Exit(1)
-		}
+		handlePayload(cmd, &nodes)
 		log.Logger.Debug().Msgf("read %d nodes", len(nodes.Nodes))
 		log.Logger.Debug().Msgf("nodes: %s", nodes)
 

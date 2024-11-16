@@ -17,13 +17,16 @@ var rfeAddCmd = &cobra.Command{
 	Use:   "add -f <payload_file> | (<xname> <name> <ip_addr> <mac_addr>)",
 	Short: "Add new redfish endpoint(s)",
 	Long: `Add new redfish endpoint(s). An xname, name, IP address, and MAC address are required
-unless -f is passed to read from a payload file. Specifying -f also is mutually exclusive with the other
-flags of this command and its arguments.
+unless -f is passed to read from a payload file. Specifying -f also is
+mutually exclusive with the other flags of this command and its arguments.
+If - is used as the argument to -f, the data is read from standard input.
 
 This command sends a POST to SMD. An access token is required.`,
 	Example: `  ochami smd rfe add x3000c1s7b56 bmc-node56 172.16.0.156 de:ca:fc:0f:fe:ee
   ochami smd rfe add -f payload.json
-  ochami smd rfe add -f payload.yaml --payload-format yaml`,
+  ochami smd rfe add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd rfe add -f -
+  echo '<yaml_data>' | ochami smd rfe add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
@@ -62,13 +65,7 @@ This command sends a POST to SMD. An access token is required.`,
 		var rfes client.RedfishEndpointSlice
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &rfes.RedfishEndpoints)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &rfes.RedfishEndpoints)
 		} else {
 			// ...otherwise use CLI options/args
 			rfe := csm.RedfishEndpoint{

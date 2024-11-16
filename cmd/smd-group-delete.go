@@ -16,8 +16,16 @@ var groupDeleteCmd = &cobra.Command{
 	Use:   "delete -f <payload_file> | <group_label>...",
 	Short: "Delete one or more groups",
 	Long: `Delete one or more groups. These can be specified by one or more group labels.
+Alternatively, pass the group labels in an array of group structures
+within a payload file and specify that file via -f. If - is used as
+the argument to -f, the data is read from standard input.
 
 This command sends a DELETE to SMD. An access token is required.`,
+	Example: `  ochami smd group delete compute
+  ochami smd group delete -f payload.json
+  ochami smd group delete -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd group delete -f -
+  echo '<yaml_data>' | ochami smd group delete -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// With options, only one of:
 		// - A payload file with -f
@@ -72,16 +80,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 		var gLabelSlice []string
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &groups)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-			for _, group := range groups {
-				gLabelSlice = append(gLabelSlice, group.Label)
-			}
+			handlePayload(cmd, &groups)
 		} else {
 			// ...otherwise, use passed CLI arguments
 			gLabelSlice = args

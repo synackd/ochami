@@ -21,12 +21,12 @@ var cloudInitConfigAddCmd = &cobra.Command{
 	Long: `Add one or more new cloud-init configs. Either a payload file
 containing the data or the JSON data itself must be passed.
 Data is represented by a JSON array of cloud-init configs,
-even if only one is being passed.
+even if only one is being passed. An alternative to using
+-d would be to use -f and passing -, which will cause ochami
+to read the data from standard input.
 
 This command sends a POST to cloud-init.`,
-	Example: `  ochami cloud-init config add -f payload.json
-  ochami cloud-init config add -f payload.yaml --payload-format yaml
-  ochami cloud-init config add -d \
+	Example: `  ochami cloud-init config add -d \
     '[ \
        { \
          "name": "compute", \
@@ -44,7 +44,11 @@ This command sends a POST to cloud-init.`,
            } \
          } \
        } \
-     ]'`,
+     ]'
+  ochami cloud-init config add -f payload.json
+  ochami cloud-init config add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami cloud-init config add -f -
+  echo '<yaml_data>' | ochami cloud-init config add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		cloudInitBaseURI, err := getBaseURI(cmd)
@@ -70,13 +74,7 @@ This command sends a POST to cloud-init.`,
 		var ciData []citypes.CI
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &ciData)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &ciData)
 		} else if cmd.Flag("data").Changed {
 			// ...otherwise try to read raw JSON from CLI
 			rawJSON, err := cmd.Flags().GetString("data")

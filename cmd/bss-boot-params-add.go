@@ -18,9 +18,10 @@ var bootParamsAddCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Add new boot parameters for one or more components",
 	Long: `Add new boot parameters for one or more components. At least one of --kernel,
---initrd, or --params must be specified as well as at least one of --xname, --mac, or --nid.
-Alternatively, pass -f to pass a file (optionally specifying --payload-format, JSON by default),
-but the rules above still apply for the payload.
+--initrd, or --params must be specified as well as at least one of --xname,
+--mac, or --nid. Alternatively, pass -f to pass a file (optionally specifying
+--payload-format, JSON by default), but the rules above still apply for the
+payload. If the specified file path is -, the data is read from standard input.
 
 This command sends a POST to BSS. An access token is required.`,
 	Example: `  ochami bss boot params add \
@@ -31,7 +32,9 @@ This command sends a POST to BSS. An access token is required.`,
   ochami bss boot params add --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00 --params 'quiet nosplash'
   ochami bss boot params add --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00 --kernel https://example.com/kernel
   ochami bss boot params add -f payload.json
-  ochami bss boot params add -f payload.yaml --payload-format yaml`,
+  ochami bss boot params add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami bss boot params add -f -
+  echo '<yaml_data>' | ochami bss boot params add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -70,15 +73,7 @@ This command sends a POST to BSS. An access token is required.`,
 		bp := bssTypes.BootParams{}
 
 		// Read payload from file first, allowing overwrites from flags
-		if cmd.Flag("payload").Changed {
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &bp)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-		}
+		handlePayload(cmd, &bp)
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {

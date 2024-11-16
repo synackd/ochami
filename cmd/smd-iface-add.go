@@ -18,16 +18,20 @@ var ifaceAddCmd = &cobra.Command{
 	Use:   "add -f <payload_file> | (<comp_id> <mac_addr> (<net_name>,<ip_addr>)...)",
 	Short: "Add new ethernet interface(s)",
 	Long: `Add new ethernet interface(s). A component ID (usually an xname), MAC address, and
-one or more pairs of network name and IP address (delimited by a comma) are required unless -f is
-passed to read from a payload file. Specifying -f also is mutually exclusive with the other flags
-of this command and its arguments.
+one or more pairs of network name and IP address (delimited by a comma)
+are required unless -f is passed to read from a payload file. Specifying
+-f also is mutually exclusive with the other flags of this command and
+its arguments. If - is used as the argument to -f, the data is read
+from standard input.
 
 This command sends a POST to SMD. An access token is required.`,
 	Example: `  ochami smd iface add x3000c1s7b55n0 de:ca:fc:0f:fe:ee NMN,172.16.0.55
   ochami smd iface add -d "Node Management for n55" x3000c1s7b55n0 de:ca:fc:0f:fe:ee NMN,172.16.0.55
   ochami smd iface add x3000c1s7b55n0 de:ca:fc:0f:fe:ee external,10.1.0.55 internal,172.16.0.55
   ochami smd iface add -f payload.json
-  ochami smd iface add -f payload.yaml --payload-format yaml`,
+  ochami smd iface add -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami smd iface add -f -
+  echo '<yaml_data>' | ochami smd iface add -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
@@ -66,13 +70,7 @@ This command sends a POST to SMD. An access token is required.`,
 		var eis []client.EthernetInterface
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &eis)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
+			handlePayload(cmd, &eis)
 		} else {
 			// ...otherwise use CLI options/args
 			var nets []client.EthernetIP

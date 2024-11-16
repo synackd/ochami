@@ -18,17 +18,22 @@ var bootParamsDeleteCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Delete boot parameters for one or more components",
 	Long: `Delete boot parameters for one or more components. At least one of --kernel,
---initrd, --params, --xname, --mac, or --nid must be specified. This command can delete
-boot parameters by config (kernel URI, initrd URI, or kernel command line) or by component
-(--xname, --mac, or --nid). The user will be asked for confirmation before deletion unless
---force is passed. Alternatively, pass -f to pass a file (optionally specifying --payload-format,
-JSON by default), but the rules above still apply for the payload.
+--initrd, --params, --xname, --mac, or --nid must be specified.
+This command can delete boot parameters by config (kernel URI,
+initrd URI, or kernel command line) or by component (--xname,
+--mac, or --nid). The user will be asked for confirmation before
+deletion unless --force is passed. Alternatively, pass -f to pass
+a file (optionally specifying --payload-format, JSON by default),
+but the rules above still apply for the payload. If the specified
+file path is -, the data is read from standard input.
 
 This command sends a DELETE to BSS. An access token is required.`,
 	Example: `  ochami bss boot params delete --kernel https://example.com/kernel
   ochami bss boot params delete --kernel https://example.com/kernel --initrd https://example.com/initrd
   ochami bss boot params delete -f payload.json
-  ochami bss boot params delete -f payload.yaml --payload-format yaml`,
+  ochami bss boot params delete -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami bss boot params delete -f -
+  echo '<yaml_data>' | ochami bss boot params delete -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
@@ -67,15 +72,7 @@ This command sends a DELETE to BSS. An access token is required.`,
 		bp := bssTypes.BootParams{}
 
 		// Read payload from file first, allowing overwrites from flags
-		if cmd.Flag("payload").Changed {
-			dFile := cmd.Flag("payload").Value.String()
-			dFormat := cmd.Flag("payload-format").Value.String()
-			err := client.ReadPayload(dFile, dFormat, &bp)
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("unable to read payload for request")
-				os.Exit(1)
-			}
-		}
+		handlePayload(cmd, &bp)
 
 		// Set the hosts the boot parameters are for
 		if cmd.Flag("xname").Changed {
