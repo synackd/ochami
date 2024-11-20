@@ -21,6 +21,8 @@ builds:
       - v1
     goarm64:
       - v8.0
+    env:
+      - CGO_ENABLED=0
 
 archives:
   - format: tar.gz
