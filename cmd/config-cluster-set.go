@@ -14,8 +14,8 @@ import (
 var configClusterSetCmd = &cobra.Command{
 	Use:   "set <cluster_name>",
 	Short: "Add or set parameters for a cluster",
-	Long: `Use set-cluster to add cluster with its configuration or set the configuration
-for an existing cluster. For example:
+	Long: `Add cluster with its configuration or set the configuration for
+an existing cluster. For example:
 
 	ochami config cluster set foobar --base-uri https://foobar.openchami.cluster
 
@@ -33,7 +33,7 @@ default-cluster is used to determine which cluster in the list should be used fo
 
 This same command can be use to modify existing cluster information. Running the same command above
 with a different base URL will change the base URL for the 'foobar' cluster.`,
-	Example: `  ochami config set-cluster foobar.openchami.cluster --base-uri https://foobar.openchami.cluster`,
+	Example: `  ochami config cluster set foobar.openchami.cluster --base-uri https://foobar.openchami.cluster`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check that cluster name is only arg
 		if len(args) == 0 {
