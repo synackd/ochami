@@ -3,6 +3,7 @@ version: 2
 before:
   hooks:
     - go mod tidy
+    - bash -c 'for src in man/*.sc; do scdoc < $src > ${src%.*}; done'
 
 builds:
   - ldflags:
@@ -36,6 +37,8 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     files:
       - LICENSE
+      - man/*.1
+      - man/*.5
 
 nfpms:
   - id: ochami
@@ -53,6 +56,10 @@ nfpms:
     contents:
       - src: dist/ochami_{{ .Os }}_{{ if eq .Arch "amd64" }}{{ .Arch }}_{{ .Amd64 }}{{ else if eq .Arch "arm64" }}{{ .Arch }}_{{ .Arm64 }}{{ else }}{{ .Arch }}{{ end }}/ochami
         dst: /usr/local/bin/ochami
+      - src: man/*.1
+        dst: /usr/local/share/man/man1/
+      - src: man/*.5
+        dst: /usr/local/share/man/man5/
 
 dockers:
   - dockerfile: goreleaser.dockerfile
