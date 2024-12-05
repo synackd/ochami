@@ -4,6 +4,7 @@ before:
   hooks:
     - go mod tidy
     - bash -c 'for src in man/*.sc; do scdoc < $src > ${src%.*}; done'
+    - ./scripts/completions.sh
 
 builds:
   - ldflags:
@@ -37,6 +38,7 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     files:
       - LICENSE
+      - completions/
       - man/*.1
       - man/*.5
 
@@ -56,10 +58,28 @@ nfpms:
     contents:
       - src: dist/ochami_{{ .Os }}_{{ if eq .Arch "amd64" }}{{ .Arch }}_{{ .Amd64 }}{{ else if eq .Arch "arm64" }}{{ .Arch }}_{{ .Arm64 }}{{ else }}{{ .Arch }}{{ end }}/ochami
         dst: /usr/local/bin/ochami
+        file_info:
+          mode: 0755
+      - src: completions/ochami.bash
+        dst: /usr/share/bash-completion/completions/ochami
+        file_info:
+          mode: 0644
+      - src: completions/ochami.fish
+        dst: /usr/share/fish/vendor_completions.d/ochami.fish
+        file_info:
+          mode: 0644
+      - src: completions/ochami.zsh
+        dst: /usr/share/zsh/vendor-completions/_ochami
+        file_info:
+          mode: 0644
       - src: man/*.1
         dst: /usr/local/share/man/man1/
+        file_info:
+          mode: 0644
       - src: man/*.5
         dst: /usr/local/share/man/man5/
+        file_info:
+          mode: 0644
 
 dockers:
   - dockerfile: goreleaser.dockerfile
