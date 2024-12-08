@@ -241,6 +241,42 @@ func ModifyConfig(path, key string, value interface{}) error {
 	return nil
 }
 
+// DeleteConfig deletes a key from a config file. It does this by reading in the
+// config file at path and loading it into a koanf instance, then using that
+// koanf instance to delete the key. It then unmarshals the config to a config
+// struct and writes it back out to the config file. If an error in this process
+// occurs or there is an error in the config (e.g. the key was not found), then
+// an error is returned. Otherwise, nil is returned.
+func DeleteConfig(path, key string) error {
+	// Open file for writing
+	cfg, err := ReadConfig(path)
+	if err != nil {
+		return fmt.Errorf("failed to read %s for deletion: %w", path, err)
+	}
+
+	// Perform deletion
+	ko := koanf.NewWithConf(kConfig)
+	if err := ko.Load(structs.Provider(cfg, "yaml"), nil); err != nil {
+		return fmt.Errorf("failed to load config from %s: %w", path, err)
+	}
+
+	ko.Delete(key)
+
+	var modCfg Config
+	kuc := kUnmarshalConf
+	kuc.DecoderConfig.Result = &modCfg
+	if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
+		return fmt.Errorf("failed to unset key %s from config for %s: %w", key, path, err)
+	}
+
+	// Write modified config back to file
+	if err := WriteConfig(path, modCfg); err != nil {
+		return fmt.Errorf("failed to write modified config to %s: %w", path, err)
+	}
+
+	return nil
+}
+
 // ReadConfig opens the config file at path and loads it into koanf to check for
 // errors, then unmarshals the config into a Config struct and returns it. If an
 // error in this process occurs or there is an error in the config, an error is
