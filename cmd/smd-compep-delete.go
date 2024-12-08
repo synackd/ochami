@@ -6,10 +6,10 @@ import (
 	"errors"
 	"os"
 
-	"github.com/OpenCHAMI/smd/v2/pkg/sm"
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/smd/v2/pkg/sm"
+	"github.com/spf13/cobra"
 )
 
 // compepDeleteCmd represents the smd-compep-delete command

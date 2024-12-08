@@ -6,10 +6,10 @@ import (
 	"errors"
 	"os"
 
-	"github.com/openchami/schemas/schemas/csm"
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/openchami/schemas/schemas/csm"
+	"github.com/spf13/cobra"
 )
 
 // rfeAddCmd represents the smd-rfe-add command

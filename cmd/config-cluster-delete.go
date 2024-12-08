@@ -5,10 +5,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // configClusterDeleteCmd represents the config-cluster-delete command

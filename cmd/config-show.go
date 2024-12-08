@@ -8,9 +8,9 @@ import (
 	"gopkg.in/yaml.v3"
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // The 'show' subcommand of the 'config' command prints out the configuration

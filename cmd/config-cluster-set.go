@@ -5,9 +5,9 @@ package cmd
 import (
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // configClusterSetCmd represents the config-cluster-set command

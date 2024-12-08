@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
 )
 
 // cloudInitConfigSetCmd represents the cloud-init-config-set command

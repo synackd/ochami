@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
 )
 
 // ifaceGetCmd represents the smd-iface-get command

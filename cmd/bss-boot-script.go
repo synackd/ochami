@@ -5,8 +5,8 @@ package cmd
 import (
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
 )
 
 // bootScriptCmd represents the bss-boot-script command

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/google/uuid"
-	"github.com/openchami/schemas/schemas"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/internal/xname"
+	"github.com/google/uuid"
+	"github.com/openchami/schemas/schemas"
 )
 
 // NodeList is simply a list of Nodes. Data from a payload file is unmarshalled

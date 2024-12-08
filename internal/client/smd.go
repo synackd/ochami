@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/openchami/schemas/schemas"
 	"github.com/openchami/schemas/schemas/csm"
-	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // SMDClient is an OchamiClient that has its BasePath set configured to the one

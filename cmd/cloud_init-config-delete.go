@@ -6,9 +6,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
 )
 
 // cloudInitConfigDeleteCmd represents the cloud-init-config-delete command

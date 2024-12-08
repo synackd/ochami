@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/internal/version"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (

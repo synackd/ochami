@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
-	"github.com/spf13/cobra"
 	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/spf13/cobra"
 )
 
 // bootParamsDeleteCmd represents the bss-boot-params-delete command
