@@ -38,12 +38,13 @@ var cloudInitConfigGetCmd = &cobra.Command{
 		// Check if a CA certificate was passed and load it into client if valid
 		useCACert(cloudInitClient.OchamiClient)
 
+		// Make requests
 		var httpEnv client.HTTPEnvelope
 		var id string
 		if len(args) > 0 {
 			id = args[0]
 		}
-		if cmd.Flag("secure").Changed {
+		if cloudInitCmd.Flag("secure").Changed {
 			// This endpoint requires authentication, so a token is needed
 			setTokenFromEnvVar(cmd)
 			checkToken(cmd)
@@ -60,11 +61,23 @@ var cloudInitConfigGetCmd = &cobra.Command{
 			}
 			os.Exit(1)
 		}
-		fmt.Println(string(httpEnv.Body))
+
+		// Format output
+		outFmt, err := cmd.Flags().GetString("output-format")
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			os.Exit(1)
+		}
+		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			os.Exit(1)
+		} else {
+			fmt.Printf(string(outBytes))
+		}
 	},
 }
 
 func init() {
-	cloudInitConfigGetCmd.Flags().BoolP("secure", "s", false, "use secure cloud-init endpoint (token required)")
+	cloudInitConfigGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
 	cloudInitConfigCmd.AddCommand(cloudInitConfigGetCmd)
 }

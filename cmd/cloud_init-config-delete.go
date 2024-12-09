@@ -53,7 +53,7 @@ var cloudInitConfigDeleteCmd = &cobra.Command{
 
 		// Send off request
 		var errs []error
-		if cmd.Flag("secure").Changed {
+		if cloudInitCmd.Flag("secure").Changed {
 			_, errs, err = cloudInitClient.DeleteConfigsSecure(token, args...)
 		} else {
 			_, errs, err = cloudInitClient.DeleteConfigs(token, args...)
@@ -84,7 +84,6 @@ var cloudInitConfigDeleteCmd = &cobra.Command{
 }
 
 func init() {
-	cloudInitConfigDeleteCmd.Flags().BoolP("secure", "s", false, "use secure cloud-init endpoint (token required)")
 	cloudInitConfigDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 	cloudInitConfigCmd.AddCommand(cloudInitConfigDeleteCmd)
 }

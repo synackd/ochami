@@ -9,14 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// cloudInitConfigCmd represents the cloud-init-config command
-var cloudInitConfigCmd = &cobra.Command{
-	Use:   "config",
+// cloudInitDataCmd represents the cloud-init-data command
+var cloudInitDataCmd = &cobra.Command{
+	Use:   "data",
 	Args:  cobra.NoArgs,
-	Short: "Manage cloud-init configurations for components",
-	Long: `Manage cloud-init configurations for components. This is a metacommand. Commands
-under this one interact with the cloud-init service and deal with
-cloud-init configurations.`,
+	Short: "View cloud-init data",
+	Long: `View cloud-init data. This is a metacommand. Commands under this one
+interact with the cloud-init service and deal with cloud-init data.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := cmd.Usage()
@@ -30,5 +29,5 @@ cloud-init configurations.`,
 }
 
 func init() {
-	cloudInitCmd.AddCommand(cloudInitConfigCmd)
+	cloudInitCmd.AddCommand(cloudInitDataCmd)
 }

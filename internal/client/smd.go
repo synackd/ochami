@@ -178,7 +178,7 @@ func (sc *SMDClient) GetComponentsXname(xname, token string) (HTTPEnvelope, erro
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentsXname(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetComponentsXname(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
@@ -197,7 +197,7 @@ func (sc *SMDClient) GetComponentsNid(nid int32, token string) (HTTPEnvelope, er
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentsNid(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetComponentsNid(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
@@ -221,7 +221,7 @@ func (sc *SMDClient) GetRedfishEndpoints(query, token string) (HTTPEnvelope, err
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w")
 		}
 	}
 	henv, err = sc.GetData(SMDRelpathRedfishEndpoints, query, headers)
@@ -259,7 +259,7 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (HT
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	if getIPs {
@@ -288,7 +288,7 @@ func (sc *SMDClient) GetComponentEndpoints(token string, xnames ...string) ([]HT
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("GetComponentEndpoints(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("GetComponentEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, xname := range xnames {
@@ -319,7 +319,7 @@ func (sc *SMDClient) GetComponentEndpointsAll(token string) (HTTPEnvelope, error
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentEndpointsAll(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetComponentEndpointsAll(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.GetData(SMDRelpathComponentEndpoints, "", headers)
@@ -344,7 +344,7 @@ func (sc *SMDClient) GetGroups(query, token string) (HTTPEnvelope, error) {
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetGroups(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.GetData(SMDRelpathGroups, query, headers)
@@ -370,7 +370,7 @@ func (sc *SMDClient) GetGroupMembers(group, token string) (HTTPEnvelope, error) 
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return HTTPEnvelope{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers")
+			return HTTPEnvelope{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
@@ -398,7 +398,7 @@ func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (HTT
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PostComponents(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("PostComponents(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.PostData(SMDRelpathComponents, "", headers, body)
@@ -422,7 +422,7 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -460,7 +460,7 @@ func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token s
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostRedfishEndpointsV2(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PostRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -500,7 +500,7 @@ func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token strin
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ei := range eis {
@@ -540,7 +540,7 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, [
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, group := range groups {
@@ -587,7 +587,7 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, member := range members {
@@ -636,7 +636,7 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]HTTPEnvelope, 
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PatchGroups(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("PatchGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, group := range groups {
@@ -686,7 +686,7 @@ func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]HTTPEnv
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error
@@ -728,7 +728,7 @@ func (sc *SMDClient) DeleteComponentsAll(token string) (HTTPEnvelope, error) {
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteComponentsAll(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("DeleteComponentsAll(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.DeleteData(SMDRelpathComponents, "", headers, nil)
@@ -751,7 +751,7 @@ func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]H
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteRedfishEndpoints(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error
@@ -794,7 +794,7 @@ func (sc *SMDClient) DeleteRedfishEndpointsAll(token string) (HTTPEnvelope, erro
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteRedfishEndpointsAll(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("DeleteRedfishEndpointsAll(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.DeleteData(SMDRelpathRedfishEndpoints, "", headers, nil)
@@ -817,7 +817,7 @@ func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]H
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error
@@ -860,7 +860,7 @@ func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (HTTPEnvelope, er
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteEthernetInterfacesAll(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("DeleteEthernetInterfacesAll(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.DeleteData(SMDRelpathEthernetInterfaces, "", headers, nil)
@@ -883,7 +883,7 @@ func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error
@@ -926,7 +926,7 @@ func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (HTTPEnvelope, er
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteComponentEndpointsAll(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("DeleteComponentEndpointsAll(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.DeleteData(SMDRelpathComponentEndpoints, "", headers, nil)
@@ -949,7 +949,7 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEn
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error
@@ -989,7 +989,7 @@ func (sc *SMDClient) DeleteGroupMembers(token, group string, members ...string) 
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers")
+			return nil, []error{}, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	var errors []error

@@ -13,20 +13,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// cloudInitConfigSetCmd represents the cloud-init-config-set command
-var cloudInitConfigSetCmd = &cobra.Command{
-	Use:   "set -f <payload_file> | -d <payload_data>",
+// cloudInitConfigUpdateCmd represents the cloud-init-config-update command
+var cloudInitConfigUpdateCmd = &cobra.Command{
+	Use:   "update (-f <payload_file> | -d <payload_data>)",
 	Args:  cobra.NoArgs,
-	Short: "Set cloud-init config for one or more ids, overwriting any previous",
-	Long: `Set cloud-init config for one or more ids, overwriting any previous.
-Either a payload file containing the data or the JSON data itself
-must be passed. Data is represented by a JSON array of cloud-init
-configs, even if only one is being passed. An alternative to using
--d would be to use -f and passing -, which will cause ochami
-to read the data from standard input.
+	Short: "Update cloud-init config for one or more ids, overwriting any previous",
+	Long: `Update cloud-init config for one or more ids. Either a payload file
+containing the data or the JSON data itself must be passed. Data
+is represented by a JSON array of cloud-init configs, even if only
+one is being passed. An alternative to using -d would be to use -f
+and passing -, which will cause ochami to read the data from
+standard input.
 
 This command sends a PUT to cloud-init.`,
-	Example: `  ochami cloud-init config set -d \
+	Example: `  ochami cloud-init config update -d \
     '[ \
        { \
          "name": "compute", \
@@ -42,10 +42,10 @@ This command sends a PUT to cloud-init.`,
          } \
        } \
      ]'
-  ochami cloud-init config set -f payload.json
-  ochami cloud-init config set -f payload.yaml --payload-format yaml
-  echo '<json_data>' | ochami cloud-init config set -f -
-  echo '<yaml_data>' | ochami cloud-init config set -f - --payload-format yaml`,
+  ochami cloud-init config update -f payload.json
+  ochami cloud-init config update -f payload.yaml --payload-format yaml
+  echo '<json_data>' | ochami cloud-init config update -f -
+  echo '<yaml_data>' | ochami cloud-init config update -f - --payload-format yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		cloudInitBaseURI, err := getBaseURI(cmd)
@@ -88,7 +88,7 @@ This command sends a PUT to cloud-init.`,
 
 		// Send off request
 		var errs []error
-		if cmd.Flag("secure").Changed {
+		if cloudInitCmd.Flag("secure").Changed {
 			_, errs, err = cloudInitClient.PutConfigsSecure(ciData, token)
 		} else {
 			_, errs, err = cloudInitClient.PutConfigs(ciData, token)
@@ -119,14 +119,13 @@ This command sends a PUT to cloud-init.`,
 }
 
 func init() {
-	cloudInitConfigSetCmd.Flags().BoolP("secure", "s", false, "use secure cloud-init endpoint (token required)")
-	cloudInitConfigSetCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
-	cloudInitConfigSetCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	cloudInitConfigSetCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	cloudInitConfigUpdateCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
+	cloudInitConfigUpdateCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
+	cloudInitConfigUpdateCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
-	cloudInitConfigSetCmd.MarkFlagsMutuallyExclusive("data", "payload")
-	cloudInitConfigSetCmd.MarkFlagsMutuallyExclusive("data", "payload-format")
-	cloudInitConfigSetCmd.MarkFlagsOneRequired("data", "payload")
+	cloudInitConfigUpdateCmd.MarkFlagsMutuallyExclusive("data", "payload")
+	cloudInitConfigUpdateCmd.MarkFlagsMutuallyExclusive("data", "payload-format")
+	cloudInitConfigUpdateCmd.MarkFlagsOneRequired("data", "payload")
 
-	cloudInitConfigCmd.AddCommand(cloudInitConfigSetCmd)
+	cloudInitConfigCmd.AddCommand(cloudInitConfigUpdateCmd)
 }

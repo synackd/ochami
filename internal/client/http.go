@@ -113,7 +113,15 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 func FormatBody(body HTTPBody, format string) ([]byte, error) {
 	switch strings.ToLower(format) {
 	case "json":
-		return body, nil
+		var jmap interface{}
+		if err := json.Unmarshal(body, &jmap); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
+		}
+		if jbytes, err := json.Marshal(jmap); err != nil {
+			return nil, fmt.Errorf("failed to marshal HTTP body into JSON: %w", err)
+		} else {
+			return jbytes, nil
+		}
 	case "yaml":
 		var ymap interface{}
 		if err := json.Unmarshal(body, &ymap); err != nil {

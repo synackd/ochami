@@ -28,5 +28,6 @@ var cloudInitCmd = &cobra.Command{
 }
 
 func init() {
+	cloudInitCmd.PersistentFlags().BoolP("secure", "s", false, "use secure cloud-init endpoint (token required)")
 	rootCmd.AddCommand(cloudInitCmd)
 }

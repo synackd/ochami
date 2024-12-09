@@ -58,7 +58,7 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PostBootParams(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("PostBootParams(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = bc.PostData(BSSRelpathBootParams, "", headers, body)
@@ -86,7 +86,7 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PutBootParams(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("PutBootParams(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = bc.PutData(BSSRelpathBootParams, "", headers, body)
@@ -114,7 +114,7 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PatchBootParams(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("PatchBootParams(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = bc.PatchData(BSSRelpathBootParams, "", headers, body)
@@ -142,7 +142,7 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteBootParams(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("DeleteBootParams(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = bc.DeleteData(BSSRelpathBootParams, "", headers, body)
@@ -166,7 +166,7 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetBootParams(): error setting token in HTTP headers")
+			return henv, fmt.Errorf("GetBootParams(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = bc.GetData(BSSRelpathBootParams, query, headers)

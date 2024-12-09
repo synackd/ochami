@@ -15,7 +15,7 @@ import (
 
 // cloudInitConfigAddCmd represents the cloud-init-config-add command
 var cloudInitConfigAddCmd = &cobra.Command{
-	Use:   "add -f <payload_file> | -d <json_data>",
+	Use:   "add (-f <payload_file> | -d <json_data>)",
 	Args:  cobra.NoArgs,
 	Short: "Add one or more new cloud-init configs",
 	Long: `Add one or more new cloud-init configs. Either a payload file
@@ -91,7 +91,7 @@ This command sends a POST to cloud-init.`,
 
 		// Send off request
 		var errs []error
-		if cmd.Flag("secure").Changed {
+		if cloudInitCmd.Flag("secure").Changed {
 			_, errs, err = cloudInitClient.PostConfigsSecure(ciData, token)
 		} else {
 			_, errs, err = cloudInitClient.PostConfigs(ciData, token)
@@ -122,7 +122,6 @@ This command sends a POST to cloud-init.`,
 }
 
 func init() {
-	cloudInitConfigAddCmd.Flags().BoolP("secure", "s", false, "use secure cloud-init endpoint (token required)")
 	cloudInitConfigAddCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
 	cloudInitConfigAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
 	cloudInitConfigAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")

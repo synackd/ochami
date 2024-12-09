@@ -9,6 +9,10 @@ import (
 	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
+// CIDataType is an enum that represents the types of cloud-init data: user,
+// meta, and vendor.
+type CIDataType string
+
 // CloudInitClient is an OchamiClient that has its BasePath configured to the
 // one that the cloud-init service uses.
 type CloudInitClient struct {
@@ -23,6 +27,13 @@ const (
 	basePathCloudInit      = "/"
 	cloudInitRelpathOpen   = "/cloud-init"
 	cloudInitRelpathSecure = "/cloud-init-secure"
+)
+
+// The different types of cloud-init data.
+const (
+	CloudInitUserData CIDataType   = "user-data"
+	CloudInitMetaData CIDataType   = "meta-data"
+	CloudInitVendorData CIDataType = "vendor-data"
 )
 
 // NewCloudInitClient takes a baseURI and basePath and returns a pointer to a
@@ -69,7 +80,7 @@ func (cic *CloudInitClient) GetConfigsSecure(id, token string) (HTTPEnvelope, er
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return HTTPEnvelope{}, fmt.Errorf("GetConfigsSecure(): error setting token in HTTP headers")
+			return HTTPEnvelope{}, fmt.Errorf("GetConfigsSecure(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	finalEP := cloudInitRelpathSecure
@@ -95,18 +106,17 @@ func (cic *CloudInitClient) GetConfigsSecure(id, token string) (HTTPEnvelope, er
 // is returned.
 func (cic *CloudInitClient) PostConfigs(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		body    HTTPBody
 		errors  []error
 	)
 	if len(data) == 0 {
-		return nil, []error{}, fmt.Errorf("PostConfigs(): no data passed")
+		return henvs, errors, fmt.Errorf("PostConfigs(): no data passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostConfigs(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("PostConfigs(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ciData := range data {
@@ -137,18 +147,17 @@ func (cic *CloudInitClient) PostConfigs(data []citypes.CI, token string) ([]HTTP
 // cloud-init endpoint.
 func (cic *CloudInitClient) PostConfigsSecure(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		body    HTTPBody
 		errors  []error
 	)
 	if len(data) == 0 {
-		return nil, []error{}, fmt.Errorf("PostConfigsSecure(): no data passed")
+		return henvs, errors, fmt.Errorf("PostConfigsSecure(): no data passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostConfigsSecure(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("PostConfigsSecure(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ciData := range data {
@@ -182,18 +191,17 @@ func (cic *CloudInitClient) PostConfigsSecure(data []citypes.CI, token string) (
 // is returned.
 func (cic *CloudInitClient) PutConfigs(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		body    HTTPBody
 		errors  []error
 	)
 	if len(data) == 0 {
-		return nil, []error{}, fmt.Errorf("PutConfigs(): no data passed")
+		return henvs, errors, fmt.Errorf("PutConfigs(): no data passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PutConfigs(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("PutConfigs(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ciData := range data {
@@ -236,18 +244,17 @@ func (cic *CloudInitClient) PutConfigs(data []citypes.CI, token string) ([]HTTPE
 // endpoint.
 func (cic *CloudInitClient) PutConfigsSecure(data []citypes.CI, token string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		body    HTTPBody
 		errors  []error
 	)
 	if len(data) == 0 {
-		return nil, []error{}, fmt.Errorf("PutConfigsSecure(): no data passed")
+		return henvs, errors, fmt.Errorf("PutConfigsSecure(): no data passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PutConfigsSecure(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("PutConfigsSecure(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ciData := range data {
@@ -291,17 +298,16 @@ func (cic *CloudInitClient) PutConfigsSecure(data []citypes.CI, token string) ([
 // unsecured cloud-init endpoint as the target.
 func (cic *CloudInitClient) DeleteConfigs(token string, ids ...string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		errors  []error
 	)
 	if len(ids) == 0 {
-		return nil, []error{}, fmt.Errorf("DeleteConfigs(): no ids passed")
+		return henvs, errors, fmt.Errorf("DeleteConfigs(): no ids passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteConfigs(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("DeleteConfigs(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, id := range ids {
@@ -331,17 +337,16 @@ func (cic *CloudInitClient) DeleteConfigs(token string, ids ...string) ([]HTTPEn
 // cloud-init endpoint.
 func (cic *CloudInitClient) DeleteConfigsSecure(token string, ids ...string) ([]HTTPEnvelope, []error, error) {
 	var (
+		headers = NewHTTPHeaders()
 		henvs   []HTTPEnvelope
-		headers *HTTPHeaders
 		errors  []error
 	)
 	if len(ids) == 0 {
-		return nil, []error{}, fmt.Errorf("DeleteConfigsSecure(): no ids passed")
+		return henvs, errors, fmt.Errorf("DeleteConfigsSecure(): no ids passed")
 	}
-	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteConfigsSecure(): error setting token in HTTP headers")
+			return henvs, errors, fmt.Errorf("DeleteConfigsSecure(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, id := range ids {
@@ -361,6 +366,84 @@ func (cic *CloudInitClient) DeleteConfigsSecure(token string, ids ...string) ([]
 			continue
 		}
 		log.Logger.Debug().Msgf("successfully deleted cloud-init config %s", id)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// GetCloudInitData is a wrapper function around OchamiClient.GetData that,
+// depending on the value of typ, fetchesthe user-data, meta-data, or
+// vendor-data from cloud-init for a slice of ids. Since cloud-init only returns
+// data for a single ID at a time, GetCloudInitData performs the GETs
+// iteratively, and returns the HTTPEnvelope and error for each request,
+// contained in a slice for each. If an error in the function itself occurs, a
+// separate error is also returned.
+func (cic *CloudInitClient) GetCloudInitData(typ CIDataType, ids []string) ([]HTTPEnvelope, []error, error) {
+	var (
+		headers  = NewHTTPHeaders()
+		henvs    []HTTPEnvelope
+		errors   []error
+	)
+	if len(ids) == 0 {
+		return henvs, errors, fmt.Errorf("GetCloudInitData(%s): no ids passed", typ)
+	}
+	for _, id := range ids {
+		finalEP, err := url.JoinPath(cloudInitRelpathOpen, id, string(typ))
+		if err != nil {
+			newErr := fmt.Errorf("GetCloudInitData(%s): failed to join cloud-init open path (%s) with cloud-init config ID: %s: %w", typ, cloudInitRelpathOpen, id, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.GetData(finalEP, "", headers)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("GetCloudInitData(%s): failed to get cloud-init data for %s: %w", typ, id, err)
+			log.Logger.Debug().Err(err).Msgf("failed to get cloud-init %s for %s", typ, id)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully got cloud-init %s for %s", typ, id)
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// GetCloudInitDataSecure is like GetCloudInitData except that it uses the
+// secure cloud-init endpoint and requires a token.
+func (cic *CloudInitClient) GetCloudInitDataSecure(typ CIDataType, ids []string, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		headers  = NewHTTPHeaders()
+		henvs    []HTTPEnvelope
+		errors   []error
+	)
+	if len(ids) == 0 {
+		return henvs, errors, fmt.Errorf("GetCloudInitDataSecure(%s): no ids passed", typ)
+	}
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henvs, errors, fmt.Errorf("GetCloudInitDataSecure(%s): error setting token in HTTP headers: %w", typ, err)
+		}
+	}
+	for _, id := range ids {
+		finalEP, err := url.JoinPath(cloudInitRelpathSecure, id, string(typ))
+		if err != nil {
+			newErr := fmt.Errorf("GetCloudInitDataSecure(%s): failed to join cloud-init secure path (%s) with cloud-init config ID: %s: %w", typ, cloudInitRelpathSecure, id, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		henv, err := cic.GetData(finalEP, "", headers)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("GetCloudInitDataSecure(%s): failed to get cloud-init data for %s: %w", typ, id, err)
+			log.Logger.Debug().Err(err).Msgf("failed to get cloud-init %s for %s", typ, id)
+			errors = append(errors, newErr)
+			continue
+		}
+		log.Logger.Debug().Msgf("successfully got cloud-init %s for %s", typ, id)
 		errors = append(errors, nil)
 	}
 
