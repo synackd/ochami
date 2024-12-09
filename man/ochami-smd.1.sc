@@ -245,13 +245,21 @@ Subcommands for this command are as follows:
 		Format of the file used with _-f_. If unspecified, the payload format is
 		_json_ by default. Supported formats are: _yaml_.
 
-*get* [_xname_]...
+*get* [--output-format _format_] [_xname_]...
 	Get all or a subset of component endpoints.
 
 	If no arguments are passed, all component endpoints are returned. Otherwise,
 	the results are filtered by one or more passed xnames.
 
 	This command sends a GET request to SMD's /ComponentEndpoints endpoint.
+
+	This command accepts the following options:
+
+	*-F, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 ## component
 
@@ -349,13 +357,31 @@ Subcommands for this command are as follows:
 		Format of the file used with _-f_. If unspecified, the payload format is
 		_json_ by default. Supported formats are: _yaml_.
 
-*get* [--nid _nid_] [--xname _xname_]
+*get* [--output-format _format_] [--nid _nid_] [--xname _xname_]
 	Get all components or one identified by xname or node ID.
 
-	If no flags are passed, all components are returned. Otherwise, the
+	If no filter flags are passed, all components are returned. Otherwise, the
 	component specified by the passed filter flag(s) is returned.
 
 	This command sends a GET request to SMD's /Components endpoint.
+
+	This command accepts the following options:
+
+	*-f, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
+
+	*-n, --nid* _nid_,...
+		One or more node IDs to filter results by. For multiple NIDs, either
+		this flag can be specified multiple times or this flag can be specified
+		once and multiple NIDs can be specified, separated by commas.
+
+	*-x, --xname* _xname_,...
+		One or more xnames to filter results by. For multiple xnames, either
+		this flag can be specified multiple times or this flag can be specified
+		once and multiple xnames, separated by commas.
 
 ## group
 
@@ -448,13 +474,19 @@ Subcommands for this command are as follows:
 		Format of the file used with _-f_. If unspecified, the payload format is
 		_json_ by default. Supported formats are: _yaml_.
 
-*get* [--name _name_,...] [--tag _tag_,...]
+*get* [--output-format _format_] [--name _name_,...] [--tag _tag_,...]
 	Get group information for all groups in SMD or for a subset, specified by
 	filters.
 
 	This command sends a GET to SMD's /groups endpoint.
 
 	This command accepts the following options:
+
+	*-f, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*--name* _group_name_,...
 		One or more group names to filter groups by. For multiple groups names,
@@ -523,11 +555,19 @@ Subcommands for this command are as follows:
 	This command sends one or more DELETE requests to the members subendpoint
 	under SMD's /groups endpoint.
 
-*get* _group_name_
+*get* [--output-format _format_] _group_name_
 	Get members of an SMD group.
 
 	This command sends a GET request to the members subendpoint under SMD's
 	/groups endpoint.
+
+	This command accepts the following options:
+
+	*-f, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 # AUTHOR
 

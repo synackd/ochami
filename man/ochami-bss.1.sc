@@ -151,13 +151,19 @@ Subcommands for this command are as follows:
 	*--params* _kernel_params_
 		Command line arguments to pass to kernel for components.
 
-*get* [--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]
+*get* [--output-format _format_] [--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]
 	Get boot parameters for all components or a subset of components, filtered
 	by MAC address, node ID, and/or xname.
 
 	This command sends a GET to BSS's /bootparameters endpoint.
 
 	This command accepts the following options:
+
+	*-F, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to filter boot parameters by. For multiple MAC
@@ -325,7 +331,19 @@ associated information, along with the known boot parameter info. The format of
 the output is similar to the boot parameters struct above with the addition of a
 components list.
 
+The format of this command is:
+
+*dumpstate* [--output-format _format_]
+
 This command sends a GET to BSS's /dumpstate endpoint.
+
+This command accepts the following options:
+
+*-F, --output-format* _format_
+	Output response data in specified _format_. Supported values are:
+
+	- _json_ (default)
+	- _yaml_
 
 ## history
 
@@ -335,11 +353,17 @@ to BSS endpoints with UNIX timestamps. Output can be filtered by component name
 
 The format of the command is:
 
-*history* [--xname _xname_,...] [--endpoint _endpoint_,...]
+*history* [--output-format _format_] [--xname _xname_,...] [--endpoint _endpoint_,...]
 
 This command sends a GET to BSS's /endpoint-history endpoint.
 
 This command accepts the following options:
+
+*-F, --output-format* _format_
+	Output response data in specified _format_. Supported values are:
+
+	- _json_ (default)
+	- _yaml_
 
 *--xname* _xname_,...
 	One or more xnames to filter endpoint history results by. For multiple
@@ -358,7 +382,7 @@ Work with hosts in BSS.
 
 Subcommands for this command are as follows:
 
-*get* [--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]
+*get* [--output-format _format_ ] [--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]
 	Get a list of hosts that BSS knows about that are in SMD. These results can
 	be optionally filtered by MAC address, node ID, or xname. If no filters are
 	specified, all results are returned.
@@ -366,6 +390,12 @@ Subcommands for this command are as follows:
 	This command sends a GET to BSS's /hosts endpoint.
 
 	This command accepts the following options:
+
+	*-F, --output-format* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to filter results by. For multiple MAC
@@ -390,7 +420,7 @@ connected to SMD, or checking the storage backend type/connection status.
 
 The format of this command is:
 
-*status* [--all | --smd | --storage | --version]
+*status* [--output-format _format_] [--all | --smd | --storage | --version]
 
 This command sends a GET to endpoints under BSS's /service endpoint.
 
@@ -398,6 +428,12 @@ This command accepts the following options:
 
 *--all*
 	Print out all of the status information BSS knows about.
+
+*-F, --output-format* _format_
+	Output response data in specified _format_. Supported values are:
+
+	- _json_ (default)
+	- _yaml_
 
 *--smd*
 	Print out the status of BSS's connection to SMD.
