@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,6 +25,9 @@ const (
 )
 
 var (
+	// Errors
+	UserDeclinedError = fmt.Errorf("user declined")
+
 	configFile string
 	logLevel   string
 	logFormat  string
@@ -112,6 +116,34 @@ func InitLogging() {
 	log.Logger.Debug().Msg("logging has been initialized")
 }
 
+// AskToCreate prompts the user to, if path does not exist, to create a blank
+// file at path. If it exists, nil is returned. If the user declines, a
+// UserDeclinedError is returned. If an error occurs during creation, an error
+// is returned.
+func AskToCreate(path string) error {
+	if path == "" {
+		return fmt.Errorf("path cannot be empty")
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		respConfigCreate := loopYesNo(fmt.Sprintf("%s does not exist. Create it?", path))
+		if respConfigCreate {
+			parentDir := filepath.Dir(path)
+			if err := os.MkdirAll(parentDir, 0755); err != nil {
+				return fmt.Errorf("could not create parent dir %s: %w", parentDir, err)
+			}
+			f, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0644)
+			if err != nil {
+				return fmt.Errorf("creating %s failed: %w", path, err)
+			}
+			f.Close()
+		} else {
+			return UserDeclinedError
+		}
+	}
+
+	return nil
+}
+
 func InitConfig() {
 	// Do not read or write config file if --ignore-config passed
 	if rootCmd.Flag("ignore-config").Changed {
@@ -120,29 +152,13 @@ func InitConfig() {
 
 	if configFile != "" {
 		// Try to create config file with default values if it doesn't exist
-		if _, err := os.Stat(configFile); os.IsNotExist(err) {
-			respConfigCreate := loopYesNo(fmt.Sprintf("Config file %s does not exist. Create it?", configFile))
-			if respConfigCreate {
-				configDir := filepath.Dir(configFile)
-				err := os.MkdirAll(configDir, 0755)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "%s: could not create config dir %s: %v\n", config.ProgName, configDir, err)
-					os.Exit(1)
-				}
-				f, err := os.OpenFile(configFile, os.O_RDONLY|os.O_CREATE, 0644)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "%s: creating %s failed: %v\n", config.ProgName, configFile, err)
-					os.Exit(1)
-				}
-				f.Close()
-				err = config.WriteConfig(configFile, config.GlobalConfig)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "%s: writing %s failed: %v\n", config.ProgName, configFile, err)
-					os.Exit(1)
-				}
-			} else {
-				fmt.Fprintf(os.Stderr, "%s: not creating config file. Exiting...\n", config.ProgName)
+		if err := AskToCreate(configFile); err != nil {
+			if errors.Is(err, UserDeclinedError) {
+				fmt.Fprintf(os.Stderr, "%s: user declined to create file; exiting...\n", config.ProgName)
 				os.Exit(0)
+			} else {
+				fmt.Fprintf(os.Stderr, "%s: failed to create %s: %v\n", config.ProgName, configFile, err)
+				os.Exit(1)
 			}
 		}
 	}

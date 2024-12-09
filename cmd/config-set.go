@@ -3,6 +3,7 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -52,6 +53,17 @@ This command does not handle cluster configs. For that, use the
 			fileToModify = config.SystemConfigFile
 		} else {
 			fileToModify = config.UserConfigFile
+		}
+
+		// Ask user to create file if it does not exist
+		if err := AskToCreate(fileToModify); err != nil {
+			if errors.Is(err, UserDeclinedError) {
+				log.Logger.Info().Msgf("user declined creating config file %s, exiting")
+				os.Exit(0)
+			} else {
+				log.Logger.Error().Err(err).Msgf("failed to create %s")
+				os.Exit(1)
+			}
 		}
 
 		// Refuse to modify config if user tries to modify cluster config
