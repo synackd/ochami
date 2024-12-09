@@ -13,5 +13,5 @@ scriptdir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 rm -rf "${scriptdir}/../completions"
 mkdir "${scriptdir}/../completions"
 for sh in bash fish zsh; do
-  go run "${scriptdir}/../main.go" completion "$sh" > "${scriptdir}/../completions/ochami.$sh"
+  go run "${scriptdir}/../main.go" --ignore-config completion "$sh" > "${scriptdir}/../completions/ochami.$sh"
 done
