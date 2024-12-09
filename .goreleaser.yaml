@@ -39,6 +39,7 @@ archives:
     files:
       - LICENSE
       - completions/
+      - doc/
       - man/*.1
       - man/*.5
 
@@ -70,6 +71,10 @@ nfpms:
           mode: 0644
       - src: completions/ochami.zsh
         dst: /usr/share/zsh/vendor-completions/_ochami
+        file_info:
+          mode: 0644
+      - src: doc/config.example.yaml
+        dst: /usr/share/doc/ochami/config.example.yaml
         file_info:
           mode: 0644
       - src: man/*.1
