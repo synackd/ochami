@@ -96,7 +96,18 @@ This command sends a GET to BSS. An access token is required.`,
 			}
 			os.Exit(1)
 		}
-		fmt.Println(string(httpEnv.Body))
+
+		outFmt, err := cmd.Flags().GetString("output-format")
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			os.Exit(1)
+		}
+		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			os.Exit(1)
+		} else {
+			fmt.Printf(string(outBytes))
+		}
 	},
 }
 
@@ -104,5 +115,6 @@ func init() {
 	bootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
 	bootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
 	bootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
+	bootParamsGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
 	bootParamsCmd.AddCommand(bootParamsGetCmd)
 }

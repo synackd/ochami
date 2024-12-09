@@ -119,7 +119,19 @@ endpoints returned.`,
 			}
 			os.Exit(1)
 		}
-		fmt.Println(string(httpEnv.Body))
+
+		// Print output
+		outFmt, err := cmd.Flags().GetString("output-format")
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			os.Exit(1)
+		}
+		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			os.Exit(1)
+		} else {
+			fmt.Printf(string(outBytes))
+		}
 	},
 }
 
@@ -130,5 +142,6 @@ func init() {
 	rfeGetCmd.Flags().StringSlice("uuid", []string{}, "filter redfish endpoints by UUID")
 	rfeGetCmd.Flags().StringSliceP("mac", "m", []string{}, "filter redfish endpoints by MAC address")
 	rfeGetCmd.Flags().StringSliceP("ip", "i", []string{}, "filter redfish endpoints by IP address")
+	rfeGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
 	rfeCmd.AddCommand(rfeGetCmd)
 }

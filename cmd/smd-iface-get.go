@@ -151,7 +151,19 @@ ethernet interfaces returned.`,
 			}
 			os.Exit(1)
 		}
-		fmt.Println(string(httpEnv.Body))
+
+		// Print output
+		outFmt, err := cmd.Flags().GetString("output-format")
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			os.Exit(1)
+		}
+		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			os.Exit(1)
+		} else {
+			fmt.Printf(string(outBytes))
+		}
 	},
 }
 
@@ -165,6 +177,7 @@ func init() {
 	ifaceGetCmd.Flags().StringSlice("type", []string{}, "filter ethernet interfaces by type")
 	ifaceGetCmd.Flags().String("older-than", "", "filter ethernet interfaces by update time older than specified time (RFC3339-formatted)")
 	ifaceGetCmd.Flags().String("newer-than", "", "filter ethernet interfaces by update time older than specified time (RFC3339-formatted)")
+	ifaceGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
 
 	ifaceGetCmd.MarkFlagsMutuallyExclusive("id", "mac")
 	ifaceGetCmd.MarkFlagsMutuallyExclusive("id", "ip")

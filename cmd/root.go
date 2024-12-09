@@ -20,6 +20,7 @@ import (
 
 const (
 	defaultPayloadFormat = "json"
+	defaultOutputFormat  = "json"
 )
 
 var (
