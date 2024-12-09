@@ -6,7 +6,11 @@ ochami-config - Manage configuration for ochami CLI
 
 # SYNOPSIS
 
-ochami config [OPTIONS] COMMAND
+ochami config cluster delete _cluster_name_++
+ochami config cluster set [-u _base_uri_] [-d] _cluster_name_++
+ochami config set [--user | --system | --config _path_] _key_ _value_++
+ochami config show [-f _format_]++
+ochami config unset [--user | --system | --config _path_] _key_
 
 # COMMANDS
 
@@ -35,6 +39,33 @@ Subcommands for this command are as follows:
 		is not specified on the command line, this cluster's configuration is
 		used.
 
+## set
+
+Set configuration option for ochami CLI.
+
+The format of this command is:
+
+*set* [--user | --system | --config _path_] _key_ _value_
+
+This command sets configuration values for configuration files for the ochami
+CLI. It sets the _key_ in the file to _value_. By default, or if *--user* is
+specified, the user configuration file is modified. If *--system* is specified,
+the system configuration file is modified. Otherwise, if *--config* is specified
+(this is the same flag that is available to all commands), _path_ is modified.
+See the *FILES* section in *ochami*(1) for details on the user and system files.
+
+This command accepts the following options:
+
+*--config* _path_
+	Modify the config file at _path_. The *--config* flag is the same one that
+	is global to all commands and is not unique to this command.
+
+*--system*
+	Modify the system config file.
+
+*--user*
+	Modify the user config file (the default).
+
 ## show
 
 Show the current configuration. This command can be used to generate a
@@ -49,6 +80,31 @@ This command accepts the following options:
 	Supported:
 	- _json_
 	- _yaml_
+
+## unset
+
+Unset configuration option for ochami CLI.
+
+The format of this command is:
+
+*unset* [--user | --system | --config _path_] _key_
+
+This commands unsets configuration key _key_ for configuration files for the
+ochami CLI, in effect deleting it. By default, or if *--user* is specified, the
+user configuration file is modified. If *--system* is specified, the system
+configuration file is modified. Otherwise, if *--config* is specified (this is
+the same flag that is available to all command), _path_ is modified. See the
+*FILES* section in *ochami*(1) for details on the user and system files.
+
+*--config* _path_
+	Modify the config file at _path_. The *--config* flag is the same one that
+	is global to all commands and is not unique to this command.
+
+*--system*
+	Modify the system config file.
+
+*--user*
+	Modify the user config file (the default).
 
 # AUTHOR
 

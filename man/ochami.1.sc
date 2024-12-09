@@ -54,15 +54,19 @@ cluster configuration will need to be specified. Both can be done with the
 following command:
 
 ```
-ochami config cluster set -d -u https://foobar.openchami.cluster foobar
+ochami config --user cluster set --default --base-uri https://foobar.openchami.cluster foobar
 ```
 
 This will create a cluster called _foobar_ and set its base URI to
 _https://foobar.openchami.cluster_, placing this config in
-_~/.config/ochami/config.yaml_. Since *ochami* supports multiple cluster
-configurations, the _-d_ tells *ochami* to set this cluster as the default
-cluster, which means that this cluster's configuration will be used if
-_--cluster_ is not specified on the command line.
+_~/.config/ochami/config.yaml_ (the user config file). Since *ochami* supports
+multiple cluster configurations, the _--default_ tells *ochami* to set this
+cluster as the default cluster, which means that this cluster's configuration
+will be used if _--cluster_ is not specified on the command line.
+
+If _--config_ is not passed, the configuration is merged from the system
+configuration with the user configuration. See *FILES* below for the location of
+these files. If none of these exist, compile-time default values are used.
 
 Once the cluster configuration has been specified, one will need to store a
 token to be able to be used to authenticate to protected endpoints without
@@ -89,24 +93,14 @@ _foobar_.
 	Specify the path to a certificate authority (CA) certificate file to use to
 	verify TLS certificates. Must be PEM-formatted.
 
-*--cluster* _cluster_name_
+*-C, --cluster* _cluster_name_
 	Specify the name of a cluster to use. The cluster corresponding to the
-	passed cluster name must exist in the config file.
+	passed cluster name must exist in a config file.
 
 *-c, --config* _config_file_
-	Specify the path to a config file to use. By default, this is
-	_~/.config/ochami/config.yaml_. The format of this file is assumed to be
-	YAML unless either the file extension differs from _yaml_ (in which case
-	*ochami* attempts to infer the format from the file extention) or
-	_--payload-format_ is specified. See the description of _--payload-format_
-	for supported config file formats.
-
-*--config-format* _format_
-	Explicitly specify the format of the default config file or the config file
-	passed with _--config_. Supported config formats are:
-
-	- _json_
-	- _yaml_
+	Specify the path to a config file to use. By default, the configuration is
+	merged from the system config with the user config (see *FILES* below). The
+	format of this file should be YAML.
 
 *--ignore-config*
 	Do not read configuration from any configuration file.
@@ -114,7 +108,7 @@ _foobar_.
 *-k, --insecure*
 	Do not verify TLS certificates.
 
-*--log-format* _format_
+*-L, --log-format* _format_
 	Specify the format of log messages, overriding what is set in the config
 	file. Defaults to _json_.
 
@@ -135,14 +129,19 @@ _foobar_.
 	- _debug_
 
 *-t, --token* _token_
-	Access token to include in request headers for authenticated to protected
+	Access token to include in request headers for authentication to protected
 	service endpoints. Overrides token set in environment variable.
 
 # FILES
 
+_/usr/share/doc/ochami/config.example.yaml_
+	An example configuration file that can be used for reference.
+
+_/etc/ochami/config.yaml_
+	The system-wide ochami CLI configuration file.
+
 _~/.config/ochami/config.yaml_
-	The ochami CLI configuration file. Generated if non-existent upon
-	command invocation.
+	The user-level ochami CLI configuration file.
 
 # AUTHOR
 
@@ -150,7 +149,7 @@ Written by Devon T. Bautista and maintained by the OpenCHAMI developers.
 
 # SEE ALSO
 
-*ochami-bss*(1), *ochami-discover*(1), *ochami-smd*(1)
+*ochami-bss*(1), *ochami-config*(1), *ochami-discover*(1), *ochami-smd*(1)
 
 ; Vim modeline settings
 ; vim: set tw=80 noet sts=4 ts=4 sw=4 syntax=scdoc:
