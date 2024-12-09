@@ -31,8 +31,8 @@ const (
 
 // The different types of cloud-init data.
 const (
-	CloudInitUserData CIDataType   = "user-data"
-	CloudInitMetaData CIDataType   = "meta-data"
+	CloudInitUserData   CIDataType = "user-data"
+	CloudInitMetaData   CIDataType = "meta-data"
 	CloudInitVendorData CIDataType = "vendor-data"
 )
 
@@ -381,9 +381,9 @@ func (cic *CloudInitClient) DeleteConfigsSecure(token string, ids ...string) ([]
 // separate error is also returned.
 func (cic *CloudInitClient) GetCloudInitData(typ CIDataType, ids []string) ([]HTTPEnvelope, []error, error) {
 	var (
-		headers  = NewHTTPHeaders()
-		henvs    []HTTPEnvelope
-		errors   []error
+		headers = NewHTTPHeaders()
+		henvs   []HTTPEnvelope
+		errors  []error
 	)
 	if len(ids) == 0 {
 		return henvs, errors, fmt.Errorf("GetCloudInitData(%s): no ids passed", typ)
@@ -415,9 +415,9 @@ func (cic *CloudInitClient) GetCloudInitData(typ CIDataType, ids []string) ([]HT
 // secure cloud-init endpoint and requires a token.
 func (cic *CloudInitClient) GetCloudInitDataSecure(typ CIDataType, ids []string, token string) ([]HTTPEnvelope, []error, error) {
 	var (
-		headers  = NewHTTPHeaders()
-		henvs    []HTTPEnvelope
-		errors   []error
+		headers = NewHTTPHeaders()
+		henvs   []HTTPEnvelope
+		errors  []error
 	)
 	if len(ids) == 0 {
 		return henvs, errors, fmt.Errorf("GetCloudInitDataSecure(%s): no ids passed", typ)
