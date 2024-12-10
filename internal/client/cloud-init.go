@@ -162,7 +162,7 @@ func (cic *CloudInitClient) PostConfigsSecure(data []citypes.CI, token string) (
 	}
 	for _, ciData := range data {
 		var err error
-		body, err = json.Marshal(data)
+		body, err = json.Marshal(ciData)
 		if err != nil {
 			newErr := fmt.Errorf("PostConfigsSecure(): failed to marshal secure cloud-init data for %s: %w", ciData.Name, err)
 			henvs = append(henvs, HTTPEnvelope{})
