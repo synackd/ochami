@@ -66,7 +66,7 @@ nfpms:
         file_info:
           mode: 0644
       - src: completions/ochami.zsh
-        dst: /usr/share/zsh/vendor-completions/_ochami
+        dst: /usr/share/zsh/site-functions/_ochami
         file_info:
           mode: 0644
       - src: doc/config.example.yaml
