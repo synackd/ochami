@@ -74,11 +74,11 @@ nfpms:
         file_info:
           mode: 0644
       - src: man/*.1
-        dst: /usr/local/share/man/man1/
+        dst: /usr/share/man/man1/
         file_info:
           mode: 0644
       - src: man/*.5
-        dst: /usr/local/share/man/man5/
+        dst: /usr/share/man/man5/
         file_info:
           mode: 0644
 
