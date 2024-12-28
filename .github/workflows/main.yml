@@ -35,6 +35,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          AUR_SSH_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
         with:
           version: '~> v2'
           args: release --clean
