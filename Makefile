@@ -58,15 +58,28 @@ clean:
 clean-man:
 	rm -f $(MANBIN)
 
+.PHONY: clean-completions
+clean-completions:
+	rm -rf completions/
+
+completions: $(NAME)
+	./scripts/completions.sh
+
 .PHONY: distclean
-distclean: clean clean-man
+distclean: clean clean-completions clean-man
 
 .PHONY: install
-install: install-prog install-man
+install: install-prog install-completions install-man
 
 .PHONY: install-prog
 install-prog: $(NAME)
 	$(INSTALL_PROGRAM) $(NAME) $(DESTDIR)$(bindir)/$(NAME)
+
+.PHONY: install-completions
+install-completions: completions
+	$(INSTALL_DATA) ./completions/ochami.bash $(DESTDIR)/usr/share/bash-completion/completions/ochami
+	$(INSTALL_DATA) ./completions/ochami.fish $(DESTDIR)/usr/share/fish/vendor_completions.d/ochami.fish
+	$(INSTALL_DATA) ./completions/ochami.zsh $(DESTDIR)/usr/share/zsh/site-functions/_ochami
 
 .PHONY: install-man
 install-man: $(MANBIN)
@@ -82,11 +95,17 @@ man/%: man/%.sc
 	$(SCDOC) < $< > $@
 
 .PHONY: uninstall
-uninstall: uninstall-prog uninstall-man
+uninstall: uninstall-prog uninstall-completions uninstall-man
 
 .PHONY: uninstall-prog
 uninstall-prog:
 	rm -f $(DESTDIR)$(bindir)/$(NAME)
+
+.PHONY: uninstall-completions
+uninstall-completions:
+	rm -f $(DESTDIR)/usr/share/bash-completion/completions/ochami
+	rm -f $(DESTDIR)/usr/share/fish/vendor_completions.d/ochami.fish
+	rm -f $(DESTDIR)/usr/share/zsh/site-functions/_ochami
 
 .PHONY: uninstall-man
 uninstall-man:
