@@ -2,6 +2,8 @@
 # Set path to commands
 GO      ?= $(shell command -v go)
 GIT     ?= $(shell command -v git)
+# Use HOSTCMD to not conflict with Make's $(HOSTNAME)
+HOSTCMD ?= $(shell command -v hostname)
 INSTALL ?= $(shell command -v install)
 SCDOC   ?= $(shell command -v scdoc)
 SHELL   ?= /bin/sh
@@ -18,16 +20,19 @@ mandir      ?= $(exec_prefix)/man
 
 # Check that commands are present
 ifeq ($(GO),)
-$(error '$(GO)' command not found.)
+$(error go command not found.)
 endif
 ifeq ($(GIT),)
-$(error '$(GIT)' command not found.)
+$(error git command not found.)
+endif
+ifeq ($(HOSTCMD),)
+$(error hostname command not found.)
 endif
 ifeq ($(INSTALL),)
-$(error '$(INSTALL)' command not found.)
+$(error install command not found.)
 endif
 ifeq ($(SCDOC),)
-$(error '$(SCDOC)' command not found.)
+$(error scdoc command not found.)
 endif
 ifeq ($(SHELL),)
 $(error '$(SHELL)' command not found.)
@@ -40,7 +45,7 @@ BRANCH    ?= $(shell $(GIT) branch --show-current)
 BUILD     ?= $(shell $(GIT) rev-parse HEAD)
 GOVER     := $(shell $(GO) env GOVERSION)
 GITSTATE  := $(shell if output=$($(GIT) status --porcelain) && [ -n "$output" ]; then echo dirty; else echo clean; fi)
-BUILDHOST := $(shell hostname)
+BUILDHOST := $(shell $(HOSTCMD))
 BUILDUSER := $(shell whoami)
 LDFLAGS := -s \
 	   -X=$(IMPORT)internal/version.Version=$(VERSION) \
