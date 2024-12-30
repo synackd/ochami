@@ -112,7 +112,23 @@ null
 
 ## Building
 
-### Bare Metal
+### Goreleaser
+
+Goreleaser is the way ochami gets built for releases, and is the officially
+supported build method for troubleshooting.
+
+```bash
+export GOVERSION=$(go env GOVERSION)
+export BUILD_HOST=$(hostname)
+export BUILD_USER=$(whoami)
+goreleaser build --clean --snapshot --single-target
+```
+
+Remove `--single-target` to build for all targets.
+
+### Make
+
+Make provides convenient and quick building for fast iteration and development.
 
 Linker flags are used to embed build metadata into the binary. Building can
 simply be done via:
@@ -121,24 +137,11 @@ simply be done via:
 make
 ```
 
-If you need to build without `make`, populating the build metadata and building
-can be done manually via:
+On Unix-like systems, one can also install the binary, man pages, and
+completions:
 
 ```bash
-IMPORT=github.com/OpenCHAMI/ochami/
-VERSION="$(git describe --tags --always --abbrev=0)"
-BUILD="$(git rev-parse --short HEAD)"
-LDFLAGS="-s -X=${IMPORT}internal/version.Version=${VERSION} -X=${IMPORT}internal/version.Commit=${BUILD} -X=${IMPORT}internal/version.Date=$(date -Iseconds)"
-go build -v -ldflags="${LDFLAGS}"
-```
-
-It can be verified if the build info got embedded by running the `version`
-subcommand. If the output is all zeros (like in the below incantation), then the
-build info did *not* get embedded.
-
-```bash
-$ ochami version --all
-v0.0.0 0000000 @ 0000-00-00:00:00:00
+sudo make install
 ```
 
 ## Container
