@@ -15,25 +15,21 @@ var output string
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Args:  cobra.NoArgs,
-	Short: "Print version to stdout and exit",
-	Example: `  ochami version
-  ochami version --all
-  ochami version -c`,
+	Short: "Print detailed version to stdout and exit",
+	Example: `  ochami version`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if cmd.Flag("all").Value.String() == "true" {
-			output = fmt.Sprintf("%s %s @ %s", version.Version, version.Commit, version.Date)
-		} else if cmd.Flag("commit").Value.String() == "true" {
-			output = fmt.Sprintf("%s @ %s", version.Commit, version.Date)
-		} else {
-			output = version.Version
-		}
-		fmt.Println(output)
+		fmt.Printf("Version:    %s\n", version.Version)
+		fmt.Printf("Tag:        %s\n", version.Tag)
+		fmt.Printf("Branch:     %s\n", version.Branch)
+		fmt.Printf("Commit:     %s\n", version.Commit)
+		fmt.Printf("Git State:  %s\n", version.GitState)
+		fmt.Printf("Date:       %s\n", version.Date)
+		fmt.Printf("Go:         %s\n", version.GoVersion)
+		fmt.Printf("Build Host: %s\n", version.BuildHost)
+		fmt.Printf("Build User: %s\n", version.BuildUser)
 	},
 }
 
 func init() {
-	versionCmd.Flags().Bool("commit", false, "print just git commit and build date")
-	versionCmd.Flags().BoolP("all", "a", false, "print version, git commit, and build date")
-	versionCmd.MarkFlagsMutuallyExclusive("all", "commit")
 	rootCmd.AddCommand(versionCmd)
 }

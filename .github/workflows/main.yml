@@ -31,6 +31,11 @@ jobs:
         with:
           fetch-tags: 1
           fetch-depth: 0
+      - name: Set build environment variables
+        run: |
+          echo GOVERSION=$(go env GOVERSION) >> $GITHUB_ENV
+          echo BUILD_HOST=$(hostname) >> $GITHUB_ENV
+          echo BUILD_USER=$(whoami) >> $GITHUB_ENV
       - name: Release with goreleaser
         uses: goreleaser/goreleaser-action@v6
         env:

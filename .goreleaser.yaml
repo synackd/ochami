@@ -10,8 +10,14 @@ builds:
   - ldflags:
       - "-s"
       - "-X=github.com/OpenCHAMI/ochami/internal/version.Version={{ .Version }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.Tag={{ .Tag }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.Branch={{ .Branch }} \
          -X=github.com/OpenCHAMI/ochami/internal/version.Commit={{ .Commit }} \
-         -X=github.com/OpenCHAMI/ochami/internal/version.Date={{ .Date }}"
+         -X=github.com/OpenCHAMI/ochami/internal/version.Date={{ .Date }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.GoVersion={{ .Env.GOVERSION }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.GitState={{ .GitTreeState }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.BuildHost={{ .Env.BUILD_HOST }} \
+         -X=github.com/OpenCHAMI/ochami/internal/version.BuildUser={{ .Env.BUILD_USER }}"
     goos:
       - linux
       - darwin

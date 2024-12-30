@@ -1,7 +1,16 @@
 package version
 
 var (
-	Version = "v0.0.0"
-	Commit  = "0000000"
-	Date    = "0000-00-00:00:00:00"
+	// Basic values
+	Version = "unknown"
+	Tag     = "unknown"
+	Branch  = "unknown"
+	Commit  = "unknown"
+	Date    = "unknown"
+
+	// Other useful values
+	GoVersion = "unknown"
+	GitState  = "unknown"
+	BuildHost = "unknown"
+	BuildUser = "unknown"
 )

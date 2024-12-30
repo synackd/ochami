@@ -11,10 +11,10 @@ INSTALL_DATA    ?= $(INSTALL) -Dm644
 
 IMPORT := github.com/OpenCHAMI/ochami/
 
-prefix ?= /usr/local
+prefix      ?= /usr/local
 exec_prefix ?= $(prefix)
-bindir ?= $(exec_prefix)/bin
-mandir ?= $(exec_prefix)/man
+bindir      ?= $(exec_prefix)/bin
+mandir      ?= $(exec_prefix)/man
 
 # Check that commands are present
 ifeq ($(GO),)
@@ -33,10 +33,25 @@ ifeq ($(SHELL),)
 $(error '$(SHELL)' command not found.)
 endif
 
-NAME    ?= ochami
-VERSION ?= $(shell git describe --tags --always --dirty --broken --abbrev=0)
-BUILD   ?= $(shell git rev-parse --short HEAD)
-LDFLAGS := -s -X=$(IMPORT)internal/version.Version=$(VERSION) -X=$(IMPORT)internal/version.Commit=$(BUILD) -X=$(IMPORT)internal/version.Date=$(shell date -Iseconds)
+NAME      ?= ochami
+VERSION   ?= $(shell $(GIT) describe --tags --always --dirty --broken --abbrev=0)
+TAG       ?= $(shell $(GIT) describe --tags --always --abbrev=0)
+BRANCH    ?= $(shell $(GIT) branch --show-current)
+BUILD     ?= $(shell $(GIT) rev-parse HEAD)
+GOVER     := $(shell $(GO) env GOVERSION)
+GITSTATE  := $(shell if output=$($(GIT) status --porcelain) && [ -n "$output" ]; then echo dirty; else echo clean; fi)
+BUILDHOST := $(shell hostname)
+BUILDUSER := $(shell whoami)
+LDFLAGS := -s \
+	   -X=$(IMPORT)internal/version.Version=$(VERSION) \
+	   -X=$(IMPORT)internal/version.Tag=$(TAG) \
+	   -X=$(IMPORT)internal/version.Branch=$(BRANCH) \
+	   -X=$(IMPORT)internal/version.Commit=$(BUILD) \
+	   -X=$(IMPORT)internal/version.Date=$(shell date -Iseconds) \
+	   -X=$(IMPORT)internal/version.GoVersion=$(GOVER) \
+	   -X=$(IMPORT)internal/version.GitState=$(GITSTATE) \
+	   -X=$(IMPORT)internal/version.BuildHost=$(BUILDHOST) \
+	   -X=$(IMPORT)internal/version.BuildUser=$(BUILDUSER)
 
 INTERNAL := $(wildcard internal/*)
 MANSRC   := $(wildcard man/*.sc)
