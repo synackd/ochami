@@ -97,7 +97,9 @@ aurs:
     conflicts:
       - ochami-git
     optdepends:
+      - 'bash-completion: for bash completion support'
       - 'jq: for pretty-printing JSON'
+      - 'zsh-completions: for zsh completion support'
     commit_author:
       name: goreleaserbot
       email: 17506592+synackd@users.noreply.github.com
