@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/spf13/cobra"
@@ -25,6 +26,7 @@ var versionCmd = &cobra.Command{
 		fmt.Printf("Git State:  %s\n", version.GitState)
 		fmt.Printf("Date:       %s\n", version.Date)
 		fmt.Printf("Go:         %s\n", version.GoVersion)
+		fmt.Printf("Compiler:   %s\n", runtime.Compiler)
 		fmt.Printf("Build Host: %s\n", version.BuildHost)
 		fmt.Printf("Build User: %s\n", version.BuildUser)
 	},
