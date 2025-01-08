@@ -14,9 +14,9 @@ var output string
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Args:  cobra.NoArgs,
-	Short: "Print detailed version to stdout and exit",
+	Use:     "version",
+	Args:    cobra.NoArgs,
+	Short:   "Print detailed version to stdout and exit",
 	Example: `  ochami version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Version:    %s\n", version.Version)
