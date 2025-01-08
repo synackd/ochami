@@ -25,7 +25,7 @@ endpoints returned.`,
 		// Without a base URI, we cannot do anything
 		smdBaseURI, err := getBaseURI(cmd)
 		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
+			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
 			os.Exit(1)
 		}
 

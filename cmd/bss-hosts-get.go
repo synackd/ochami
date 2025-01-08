@@ -17,7 +17,7 @@ import (
 var bssHostsGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,
-	Short: "Get information on hosts known to SMD",
+	Short: "Get information on hosts known to BSS",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
