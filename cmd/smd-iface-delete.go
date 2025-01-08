@@ -118,12 +118,13 @@ This command sends a DELETE to SMD. An access token is required.`,
 			// with each error that might have occurred.
 			var errorsOccurred = false
 			for _, e := range errs {
-				if errors.Is(e, client.UnsuccessfulHTTPError) {
+				if err != nil {
+					if errors.Is(e, client.UnsuccessfulHTTPError) {
+						log.Logger.Error().Err(e).Msg("SMD ethernet interface deletion yielded unsuccessful HTTP response")
+					} else {
+						log.Logger.Error().Err(e).Msg("failed to delete ethernet interfaces")
+					}
 					errorsOccurred = true
-					log.Logger.Error().Err(e).Msg("SMD ethernet interface deletion yielded unsuccessful HTTP response")
-				} else if e != nil {
-					errorsOccurred = true
-					log.Logger.Error().Err(e).Msg("failed to delete ethernet interfaces")
 				}
 			}
 			// Warn the user if any errors occurred during deletion iterations

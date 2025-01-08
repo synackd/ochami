@@ -74,12 +74,13 @@ var compepGetCmd = &cobra.Command{
 			// deal with each error that might have occurred.
 			var errorsOccurred = false
 			for _, e := range errs {
-				if errors.Is(e, client.UnsuccessfulHTTPError) {
+				if err != nil {
+					if errors.Is(e, client.UnsuccessfulHTTPError) {
+						log.Logger.Error().Err(e).Msg("SMD redfish endpoint deletion yielded unsuccessful HTTP response")
+					} else {
+						log.Logger.Error().Err(e).Msg("failed to delete redfish endpoint")
+					}
 					errorsOccurred = true
-					log.Logger.Error().Err(e).Msg("SMD redfish endpoint deletion yielded unsuccessful HTTP response")
-				} else if e != nil {
-					errorsOccurred = true
-					log.Logger.Error().Err(e).Msg("failed to delete redfish endpoint")
 				}
 			}
 

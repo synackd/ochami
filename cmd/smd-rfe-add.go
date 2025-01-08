@@ -111,10 +111,13 @@ This command sends a POST to SMD. An access token is required.`,
 		// each error that might have occurred.
 		var errorsOccurred = false
 		for _, err := range errs {
-			if errors.Is(err, client.UnsuccessfulHTTPError) {
-				log.Logger.Error().Err(err).Msg("SMD redfish endpoint request yielded unsuccessful HTTP response")
-			} else {
-				log.Logger.Error().Err(err).Msg("failed to add redfish endpoint(s) to SMD")
+			if err != nil {
+				if errors.Is(err, client.UnsuccessfulHTTPError) {
+					log.Logger.Error().Err(err).Msg("SMD redfish endpoint request yielded unsuccessful HTTP response")
+				} else {
+					log.Logger.Error().Err(err).Msg("failed to add redfish endpoint(s) to SMD")
+				}
+				errorsOccurred = true
 			}
 		}
 		if errorsOccurred {
