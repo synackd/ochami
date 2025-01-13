@@ -259,7 +259,7 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (HT
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w", err)
+			return henv, fmt.Errorf("GetEthernetInterfaceByID(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	if getIPs {
@@ -299,7 +299,6 @@ func (sc *SMDClient) GetComponentEndpoints(token string, xnames ...string) ([]HT
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully fetched component endpoint %s", xname)
 		errors = append(errors, nil)
 		henvs = append(henvs, henv)
 	}
@@ -370,7 +369,7 @@ func (sc *SMDClient) GetGroupMembers(group, token string) (HTTPEnvelope, error) 
 	headers := NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return HTTPEnvelope{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
+			return HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
@@ -438,11 +437,9 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostRedfishEndpoints(): failed to POST redfish endpoint to SMD: %w", err)
-			log.Logger.Debug().Err(err).Msg("failed to add redfish endpoint")
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added redfish endpoint %s", rfe.ID)
 		errors = append(errors, nil)
 	}
 
@@ -476,11 +473,9 @@ func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token s
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostRedfishEndpointsV2(): failed to POST redfish endpoint to SMD: %w", err)
-			log.Logger.Debug().Err(err).Msg("failed to add redfish endpoint")
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added redfish endpoint %s", rfe.ID)
 		errors = append(errors, nil)
 	}
 
@@ -516,11 +511,9 @@ func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token strin
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostEthernetInterfaces(): failed to POST ethernet interface(s) to SMD: %w", err)
-			log.Logger.Debug().Err(newErr).Msg("failed to add ethernet interface")
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added ethernet interface for component %s", ei.ComponentID)
 		errors = append(errors, nil)
 	}
 
@@ -556,11 +549,9 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, [
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostGroups(): failed to POST group to SMD: %w", err)
-			log.Logger.Debug().Err(err).Msg("failed to add group")
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added group %s", group.Label)
 		errors = append(errors, nil)
 	}
 
@@ -610,11 +601,9 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostGroupMembers(): failed to POST member %s to group %s: %w", member, group, err)
-			log.Logger.Debug().Err(err).Msgf("failed to add member %s to group %s", member, group)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully added member %s to group %s", member, group)
 		errors = append(errors, nil)
 	}
 
@@ -663,11 +652,9 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]HTTPEnvelope, 
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PatchGroups(): failed to PATCH group %s in SMD: %w", group.Label, err)
-			log.Logger.Debug().Err(err).Msgf("failed to update group %s", group.Label)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully updated group %s", group.Label)
 		errors = append(errors, nil)
 	}
 
@@ -703,11 +690,9 @@ func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]HTTPEnv
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteComponents(): failed to DELETE component %s in SMD: %w", xname, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete component %s", xname)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted component %s", xname)
 		errors = append(errors, nil)
 	}
 
@@ -759,7 +744,7 @@ func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]H
 	for _, xname := range xnames {
 		xnamePath, err := url.JoinPath(SMDRelpathRedfishEndpoints, xname)
 		if err != nil {
-			newErr := fmt.Errorf("DeleteRedfishEndpoints(): failed join component path (%s) with xname (%s): %w", SMDRelpathRedfishEndpoints, xname, err)
+			newErr := fmt.Errorf("DeleteRedfishEndpoints(): failed join redfish endpoint path (%s) with xname (%s): %w", SMDRelpathRedfishEndpoints, xname, err)
 			henvs = append(henvs, HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -767,12 +752,10 @@ func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]H
 		henv, err := sc.DeleteData(xnamePath, "", headers, nil)
 		henvs = append(henvs, henv)
 		if err != nil {
-			newErr := fmt.Errorf("DeleteRedfishEndpoints(): failed to DELETE component %s in SMD: %w", xname, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete component %s", xname)
+			newErr := fmt.Errorf("DeleteRedfishEndpoints(): failed to DELETE redfish endpoint %s in SMD: %w", xname, err)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted component %s", xname)
 		errors = append(errors, nil)
 	}
 
@@ -825,7 +808,7 @@ func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]H
 	for _, eId := range eIds {
 		eIdPath, err := url.JoinPath(SMDRelpathEthernetInterfaces, eId)
 		if err != nil {
-			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed join component path (%s) with ethernet interface %s: %w", SMDRelpathEthernetInterfaces, eId, err)
+			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed join ethernet interface path (%s) with ethernet interface %s: %w", SMDRelpathEthernetInterfaces, eId, err)
 			henvs = append(henvs, HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -834,11 +817,9 @@ func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]H
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed to DELETE ethernet interface %s in SMD: %w", eId, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete ethernet interface %s", eId)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted ethernet interface %s", eId)
 		errors = append(errors, nil)
 	}
 
@@ -891,7 +872,7 @@ func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([
 	for _, xname := range xnames {
 		finalEP, err := url.JoinPath(SMDRelpathComponentEndpoints, xname)
 		if err != nil {
-			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed join component path (%s) with xname %s: %w", SMDRelpathComponentEndpoints, xname, err)
+			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed join component endpoint path (%s) with xname %s: %w", SMDRelpathComponentEndpoints, xname, err)
 			henvs = append(henvs, HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -900,11 +881,9 @@ func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed to DELETE component endpoint %s in SMD: %w", xname, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete component endpoint %s", xname)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted component endpoint %s", xname)
 		errors = append(errors, nil)
 	}
 
@@ -966,11 +945,9 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEn
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteGroups(): failed to DELETE group %s in SMD: %w", label, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete group %s", label)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted group %s", label)
 		errors = append(errors, nil)
 	}
 
@@ -1006,11 +983,9 @@ func (sc *SMDClient) DeleteGroupMembers(token, group string, members ...string) 
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteGroupMembers(): failed to DELETE member %s from group %s in SMD: %w", member, group, err)
-			log.Logger.Debug().Err(err).Msgf("failed to delete member %s from group %s", member, group)
 			errors = append(errors, newErr)
 			continue
 		}
-		log.Logger.Debug().Msgf("successfully deleted member %s from group %s", member, group)
 		errors = append(errors, nil)
 	}
 
