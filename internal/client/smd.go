@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/openchami/schemas/schemas"
@@ -27,6 +28,8 @@ const (
 	SMDRelpathRedfishEndpoints   = "/Inventory/RedfishEndpoints"
 	SMDRelpathComponentEndpoints = "/Inventory/ComponentEndpoints"
 	SMDRelpathGroups             = "/groups"
+
+	SMDSubpathBulkNID = "BulkNID"
 )
 
 // Component is a minimal subset of SMD's Component struct that contains only
@@ -601,6 +604,265 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 		henvs = append(henvs, henv)
 		if err != nil {
 			newErr := fmt.Errorf("PostGroupMembers(): failed to POST member %s to group %s: %w", member, group, err)
+			errors = append(errors, newErr)
+			continue
+		}
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PutComponents takes a ComponentSlice and a token and iteratively calls
+// OchamiClient.PutData for each Component in the contained list. This is
+// necessary because SMD only allows sending a PUT for a single Component using
+// its ID in the endpoint path, forcing the client to send only a single
+// Component per request. A slice of HTTPEnvelopes is returned containing one
+// HTTPEnvelope per HTTP request, as well as an error slice containing errors
+// corresponding to each HTTP request. The indexes of these should correspond.
+// If an error in the function itself occurred, a separate error is returned.
+// This is to distinguish iterative HTTP request errors from control flow
+// errors.
+func (sc *SMDClient) PutComponents(compSlice ComponentSlice, token string) ([]HTTPEnvelope, []error, error) {
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PutComponents(): error setting token in HTTP headers: %w", err)
+		}
+	}
+	var errors []error
+	var henvs []HTTPEnvelope
+	for _, comp := range compSlice.Components {
+		if comp.ID == "" {
+			newErr := fmt.Errorf("PutComponents(): unable to update component with blank ID")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		xnamePath, err := url.JoinPath(SMDRelpathComponents, comp.ID)
+		if err != nil {
+			newErr := fmt.Errorf("PutComponents(): failed join component path (%s) with xname (%s): %w", SMDRelpathComponents, comp.ID, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		// SMD is weird and requires the PUT body to be a structure that
+		// _contains_ the component, so we do that here.
+		putComp := map[string]any{"Component": comp, "Force": true}
+		body, marshalErr := json.Marshal(putComp)
+		if marshalErr != nil {
+			newErr := fmt.Errorf("PutComponents(): failed to marshal component into JSON: %w", marshalErr)
+			errors = append(errors, newErr)
+		}
+		henv, err := sc.PutData(xnamePath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PutComponents(): failed to PUT component %s in SMD: %w", comp.ID, err)
+			errors = append(errors, newErr)
+			continue
+		}
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PutRedfishEndpoints is a wrapper function around OchamiClient.PutData that
+// takes a RedfishEndpointSlice and a token, puts the token in the request
+// headers as an authorization bearer, and iteratively calls
+// OchamiClient.PutData using each RedfishEndpoint in the slice.
+func (sc *SMDClient) PutRedfishEndpoints(rfes RedfishEndpointSlice, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PutRedfishEndpoints(): error setting token in HTTP headers: %w", err)
+		}
+	}
+	for _, rfe := range rfes.RedfishEndpoints {
+		var body HTTPBody
+		var err error
+		if rfe.ID == "" {
+			newErr := fmt.Errorf("PutRedfishEndpoints(): unable to update redfish endpoint with blank ID")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		xnamePath, err := url.JoinPath(SMDRelpathRedfishEndpoints, rfe.ID)
+		if err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpoints(): failed to join redfish endpoint path (%s) with xname (%s): %w", SMDRelpathRedfishEndpoints, rfe.ID, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		if body, err = json.Marshal(rfe); err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpoints(): failed to marshal RedfishEndpoint: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PutData(xnamePath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpoints(): failed to PUT redfish endpoint to SMD: %w", err)
+			errors = append(errors, newErr)
+			continue
+		}
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PutRedfishEndpointsV2 behaves like PutRedfishEndpoints except that it works
+// with a RedfishEndpointSliceV2.
+func (sc *SMDClient) PutRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PutRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
+		}
+	}
+	for _, rfe := range rfes.RedfishEndpoints {
+		var body HTTPBody
+		var err error
+		if rfe.ID == "" {
+			newErr := fmt.Errorf("PutRedfishEndpointsV2(): unable to update redfish endpoint with blank ID")
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		xnamePath, err := url.JoinPath(SMDRelpathRedfishEndpoints, rfe.ID)
+		if err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpointsV2(): failed to join redfish endpoint path (%s) with xname (%s): %w", SMDRelpathRedfishEndpoints, rfe.ID, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		if body, err = json.Marshal(rfe); err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpointsV2(): failed to marshal RedfishEndpoint: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PutData(xnamePath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PutRedfishEndpointsV2(): failed to PUT redfish endpoint to SMD: %w", err)
+			errors = append(errors, newErr)
+			continue
+		}
+		errors = append(errors, nil)
+	}
+
+	return henvs, errors, nil
+}
+
+// PatchComponentsNID is a wrapper function around OchamiClient.PatchData that
+// takes a slice of Components and a token. It doesn't read any data fields
+// within each Component except ID (xname) and NID, and for each Component, all
+// fields except these are blanked. These modified components are then passed
+// with the token to OchamiClient.PatchData to SMD's BulkNID endpoint to update
+// the NIDs of the Components.
+func (sc *SMDClient) PatchComponentsNID(comps ComponentSlice, token string) (HTTPEnvelope, error) {
+	// Set token in request headers
+	headers := NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return HTTPEnvelope{}, fmt.Errorf("PatchComponentsNID(): error setting token in HTTP headers: %w", err)
+		}
+	}
+
+	// Create base path
+	nidPath, err := url.JoinPath(SMDRelpathComponents, SMDSubpathBulkNID)
+	if err != nil {
+		return HTTPEnvelope{}, fmt.Errorf("PatchComponentsNID(): failed to join component path (%s) with BulkNID path (%s): %w", SMDRelpathComponents, SMDSubpathBulkNID, err)
+	}
+
+	// Blank out all except ID and NID fields from Components
+	compsStripped := ComponentSlice{}
+	for _, comp := range comps.Components {
+		compsStripped.Components = append(compsStripped.Components, Component{
+			ID:  comp.ID,
+			NID: comp.NID,
+		})
+	}
+
+	// Create request body
+	body, err := json.Marshal(compsStripped)
+	if err != nil {
+		return HTTPEnvelope{}, fmt.Errorf("PatchComponentsNID(): failed to marshal stripped components: %w", err)
+	}
+
+	// Send request
+	henv, err := sc.PatchData(nidPath, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("PatchComponentsNID(): failed to PATCH stripped components in SMD: %w", err)
+	}
+
+	return henv, err
+}
+
+// PatchEthernetInterfaces is a wrapper function around OchamiClient.PatchData
+// that takes a slice of EthernetInterfaces and a token, puts the token in the
+// request headers as an authorization bearer, and iteratively calls
+// OchamiClient.PatchData using each EthernetInterface in the slice.
+func (sc *SMDClient) PatchEthernetInterfaces(eis []EthernetInterface, token string) ([]HTTPEnvelope, []error, error) {
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return nil, []error{}, fmt.Errorf("PatchEthernetInterfaces(): error setting token in HTTP headers: %w", err)
+		}
+	}
+	for _, ei := range eis {
+		var body HTTPBody
+		var err error
+		if ei.ID == "" {
+			if ei.MACAddress != "" {
+				log.Logger.Warn().Msgf("PatchEthernetInterfaces(): ID for ethernet interface is blank, attempting to adapt from MAC address (%s)", ei.MACAddress)
+				newID := strings.ToLower(ei.MACAddress)
+				newID = strings.ReplaceAll(newID, ":", "")
+				newID = strings.ReplaceAll(newID, "-", "")
+				newID = strings.ReplaceAll(newID, "_", "")
+				ei.ID = newID
+			} else {
+				newErr := fmt.Errorf("PatchEthernetInterfaces(): unable to patch ethernet interface with both blank ID and blank MAC address")
+				henvs = append(henvs, HTTPEnvelope{})
+				errors = append(errors, newErr)
+				continue
+			}
+		}
+		eiPath, err := url.JoinPath(SMDRelpathEthernetInterfaces, ei.ID)
+		if err != nil {
+			newErr := fmt.Errorf("PatchEthernetInterfaces(): failed to join ethernet interface path (%s) with ethernet interface ID (%s): %w", SMDRelpathEthernetInterfaces, ei.ID, err)
+			henvs = append(henvs, HTTPEnvelope{})
+			errors = append(errors, newErr)
+			continue
+		}
+		if body, err = json.Marshal(ei); err != nil {
+			newErr := fmt.Errorf("PatchEthernetInterfaces(): failed to marshal EthernetInterface: %w", err)
+			errors = append(errors, newErr)
+			henvs = append(henvs, HTTPEnvelope{})
+			continue
+		}
+		henv, err := sc.PatchData(eiPath, "", headers, body)
+		henvs = append(henvs, henv)
+		if err != nil {
+			newErr := fmt.Errorf("PatchEthernetInterfaces(): failed to PATCH ethernet interface(s) to SMD: %w", err)
 			errors = append(errors, newErr)
 			continue
 		}

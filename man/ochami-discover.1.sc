@@ -28,6 +28,10 @@ node's BMC which corresponds to each RedfishEndpoint created.
 
 This command accepts the following options:
 
+*--overwrite*
+	Instead of failing if data already exists, overwrite it with new data
+	contained in the payload.
+
 *-f, --payload* _file_
 	This option is mandatory.
 
