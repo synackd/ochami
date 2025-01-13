@@ -446,7 +446,7 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 	return henvs, errors, nil
 }
 
-// PostRedfishEndpointsV2 behaves like RedfishEndpoints except that it works
+// PostRedfishEndpointsV2 behaves like PostRedfishEndpoints except that it works
 // with a RedfishEndpointSliceV2.
 func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token string) ([]HTTPEnvelope, []error, error) {
 	var (
