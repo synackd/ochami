@@ -275,7 +275,12 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (HT
 	} else {
 		ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id)
 	}
-	return sc.GetData(ep, "", headers)
+	henv, err = sc.GetData(ep, "", headers)
+	if err != nil {
+		err = fmt.Errorf("GetEthernetInterfacesByID(): failed to GET ethernet interfaces in SMD: %w", err)
+	}
+
+	return henv, err
 }
 
 // GetComponentEndpoints is similar to GetComponentEndpointsAll except that
@@ -424,7 +429,7 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -460,7 +465,7 @@ func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token s
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PostRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -498,7 +503,7 @@ func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token strin
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ei := range eis {
@@ -536,7 +541,7 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]HTTPEnvelope, [
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, group := range groups {
@@ -573,15 +578,15 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 		errors  []error
 	)
 	if group == "" {
-		return nil, []error{}, fmt.Errorf("PostGroupMembers(): no group label specified to add members to")
+		return henvs, errors, fmt.Errorf("PostGroupMembers(): no group label specified to add members to")
 	}
 	if len(members) == 0 {
-		return nil, []error{}, fmt.Errorf("PostGroupMembers(): no new members specified to add to group")
+		return henvs, errors, fmt.Errorf("PostGroupMembers(): no new members specified to add to group")
 	}
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, member := range members {
@@ -624,14 +629,17 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 // This is to distinguish iterative HTTP request errors from control flow
 // errors.
 func (sc *SMDClient) PutComponents(compSlice ComponentSlice, token string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		henvs   []HTTPEnvelope
+		errors  []error
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PutComponents(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PutComponents(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, comp := range compSlice.Components {
 		if comp.ID == "" {
 			newErr := fmt.Errorf("PutComponents(): unable to update component with blank ID")
@@ -680,7 +688,7 @@ func (sc *SMDClient) PutRedfishEndpoints(rfes RedfishEndpointSlice, token string
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PutRedfishEndpoints(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PutRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -729,7 +737,7 @@ func (sc *SMDClient) PutRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token st
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PutRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PutRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
@@ -825,7 +833,7 @@ func (sc *SMDClient) PatchEthernetInterfaces(eis []EthernetInterface, token stri
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PatchEthernetInterfaces(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PatchEthernetInterfaces(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, ei := range eis {
@@ -887,7 +895,7 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]HTTPEnvelope, 
 	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("PatchGroups(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("PatchGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	for _, group := range groups {
@@ -932,14 +940,17 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]HTTPEnvelope, 
 // returned. This is to distinguish HTTP request errors from control flow
 // errors.
 func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, xname := range xnames {
 		xnamePath, err := url.JoinPath(SMDRelpathComponents, xname)
 		if err != nil {
@@ -995,14 +1006,17 @@ func (sc *SMDClient) DeleteComponentsAll(token string) (HTTPEnvelope, error) {
 // returned. This is to distinguish HTTP request errors from control flow
 // errors.
 func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteRedfishEndpoints(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, xname := range xnames {
 		xnamePath, err := url.JoinPath(SMDRelpathRedfishEndpoints, xname)
 		if err != nil {
@@ -1059,14 +1073,17 @@ func (sc *SMDClient) DeleteRedfishEndpointsAll(token string) (HTTPEnvelope, erro
 // occurred, a separate error is returned. This is to distinguish HTTP request
 // errors from control flow errors.
 func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, eId := range eIds {
 		eIdPath, err := url.JoinPath(SMDRelpathEthernetInterfaces, eId)
 		if err != nil {
@@ -1123,14 +1140,17 @@ func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (HTTPEnvelope, er
 // occurred, a separate error is returned. This is to distinguish HTTP request
 // errors from control flow errors.
 func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, xname := range xnames {
 		finalEP, err := url.JoinPath(SMDRelpathComponentEndpoints, xname)
 		if err != nil {
@@ -1187,14 +1207,17 @@ func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (HTTPEnvelope, er
 // error is returned. This is to distinguish HTTP request errors from control
 // flow errors.
 func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, label := range groupLabels {
 		labelPath, err := url.JoinPath(SMDRelpathGroups, label)
 		if err != nil {
@@ -1225,14 +1248,17 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]HTTPEn
 // error is returned. This is to distinguish HTTP request errors from control
 // flow errors.
 func (sc *SMDClient) DeleteGroupMembers(token, group string, members ...string) ([]HTTPEnvelope, []error, error) {
-	headers := NewHTTPHeaders()
+	var (
+		errors  []error
+		henvs   []HTTPEnvelope
+		headers *HTTPHeaders
+	)
+	headers = NewHTTPHeaders()
 	if token != "" {
 		if err := headers.SetAuthorization(token); err != nil {
-			return nil, []error{}, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers: %w", err)
+			return henvs, errors, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers: %w", err)
 		}
 	}
-	var errors []error
-	var henvs []HTTPEnvelope
 	for _, member := range members {
 		memberPath, err := url.JoinPath(SMDRelpathGroups, group, "members", member)
 		if err != nil {

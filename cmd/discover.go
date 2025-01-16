@@ -107,7 +107,7 @@ nodes:
 		// increment up in the order added.
 		compErrorsOccurred := false
 		if cmd.Flag("overwrite").Changed {
-			// Send a PUT iv --overwrite specified to overwrite any existing components
+			// Send a PUT if --overwrite specified to overwrite any existing components
 			_, errs, err := smdClient.PutComponents(comps, token)
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to add/overwrite components in SMD")
