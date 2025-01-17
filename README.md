@@ -12,48 +12,56 @@ with the API so one need not be proficient in `curl`.
 ## Getting Started
 
 See [**Building**](#building) for instructions on how to build `ochami`. Then,
-continue with how to use it.
+continue here with how to use it.
 
-### 1. Generating a Configuration File
+### 1. Creating a Configuration File
 
-By default, `ochami` reads the config file from
-`~/.config/ochami/config.yaml`[^config-format][^config-file]. If it does not
-exist, the user will be asked to create it.
+There are two configuration files in YAML format that `ochami` reads, in order:
 
-[^config-format]: `ochami` supports all config file formats that
-    [Viper](https://github.com/spf13/viper) supports. Unless `--config-format`
-    is passed, `ochami` tries to determine the format via the file extension. By
-    default, the YAML format is used.
-[^config-file]: `-c` or `--config` can be used to change the config file path.
+1. System-Wide: `/etc/ochami/config.yaml`
+2. User: `${HOME}/.config/ochami/config.yaml`
 
-Run the following command to generate the config file and show the default
-configuration:
+If neither exist, it will use compiled defaults. Configuration in the second
+file override configuration in the first. Alternatively, the `-c`/`--config`
+flag can be used to manually specify a config file path.
+
+Let's generate a user-level configuration:
 
 ```bash
-$ ochami config show
-Config file /home/user/.config/ochami/config.yaml does not exist. Create it? [yN]: y
-log:
-    format: json
-    level: warning
-
+mkdir -p ~/.config/ochami/
+ochami config show > ~/.config/ochami/config.yaml
 ```
+
+This will generate a default configuration at `~/.config/ochami/config.yaml`.
+
+> [!NOTE]
+> The `ochami config show` command will read in any existing config files. If it
+> is desired to use only the compiled defaults, use the `--ignore-config` flag.
 
 ### 2. Adding a Cluster
 
 Next, `ochami` needs to be told how to contact the Ochami services. The
 configuration file could be edited to do this, but `ochami` provides the
-`config` command to edit configuration.
+`cluster config` command to edit cluster configuration.
 
-Run the following command to add a default cluster configuration called `foobar`
-whose base URI is `https://foobar.openchami.cluster`:
+> [!NOTE]
+> `ochami cluster config` is specific to configuring clusters in the config
+> files. If global configuration in these files need to be managed, use `ochami
+> config set/unset`.
+
+
+Run the following command to add a default cluster configuration to the user
+configuration file called `foobar` whose base URI is
+`https://foobar.openchami.cluster`:
 
 ```bash
-ochami config cluster set foobar --default --base-uri https://foobar.openchami.cluster
+ochami config cluster set --user foobar --default --base-uri https://foobar.openchami.cluster
 ```
 
-**NOTE:** Since `ochami` supports multiple cluster configurations, `--default`
-makes this cluster the default, meaning if `--cluster` is not specified on the
-command line, this cluster's configuration will be used.
+> [!NOTE]
+> Since `ochami` supports multiple cluster configurations, `--default` makes
+> this cluster the default, meaning if `--cluster` is not specified on the
+> command line, this cluster's configuration will be used.
 
 Now, when the configuration is shown, we should see the new cluster's details:
 
@@ -65,7 +73,7 @@ clusters:
       name: foobar
 default-cluster: foobar
 log:
-    format: json
+    format: rfc3339
     level: warning
 
 ```
