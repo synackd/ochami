@@ -43,7 +43,7 @@ const ProgName = "ochami"
 // configuration files don't contain values for items that need them.
 var DefaultConfig = Config{
 	Log: ConfigLog{
-		Format: "json",
+		Format: "rfc3339",
 		Level:  "warning",
 	},
 }
