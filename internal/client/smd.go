@@ -118,6 +118,13 @@ type Group struct {
 	} `json:"members,omitempty"`
 }
 
+// GroupMembers represents the payload structure for SMD group membership for
+// PUT requests. It consists of only the group label and list of group IDs.
+type GroupMembers struct {
+	Label string   `json:"label"`
+	IDs   []string `json:"ids"`
+}
+
 // NewSMDClient takes a baseURI and basePath and returns a pointer to a new
 // SMDClient. If an error occurred creating the embedded OchamiClient, it is
 // returned. If insecure is true, TLS certificates will not be verified.
@@ -773,6 +780,56 @@ func (sc *SMDClient) PutRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token st
 	}
 
 	return henvs, errors, nil
+}
+
+// PutGroupMembers is a wrapper function around OchamiClient.PutData that takes
+// a token, group name, and a list of one or more component IDs. It puts the
+// token in the request headers as an authorization bearer and calls
+// OchamiClient.PostData on the SMD group members API endpoint with the group
+// and member list.
+func (sc *SMDClient) PutGroupMembers(token, group string, members ...string) (HTTPEnvelope, error) {
+	var (
+		henv    HTTPEnvelope
+		headers *HTTPHeaders
+		body    HTTPBody
+	)
+
+	// Check that group and member list are non-empty
+	if group == "" {
+		return henv, fmt.Errorf("PutGroupMembers(): no group label specified to set members of")
+	}
+	if len(members) == 0 {
+		return henv, fmt.Errorf("PutGroupMembers(): no members specified")
+	}
+
+	// Add token to headers
+	headers = NewHTTPHeaders()
+	if token != "" {
+		if err := headers.SetAuthorization(token); err != nil {
+			return henv, fmt.Errorf("PutGroupMembers(): error setting token in HTTP headers: %w", err)
+		}
+	}
+
+	// Calculate endpoint path for group
+	groupPath, err := url.JoinPath(SMDRelpathGroups, group, "members")
+	if err != nil {
+		return henv, fmt.Errorf("PutGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group)
+	}
+
+	// Send request and return response
+	g := GroupMembers{
+		Label: group,
+		IDs:   members,
+	}
+	if body, err = json.Marshal(g); err != nil {
+		return henv, fmt.Errorf("PutGroupMembers(): failed to marshal group data: %w", err)
+	}
+	henv, err = sc.PutData(groupPath, "", headers, body)
+	if err != nil {
+		err = fmt.Errorf("PutGroupMembers(): failed to PUT members to group %s: %w", group, err)
+	}
+
+	return henv, err
 }
 
 // PatchComponentsNID is a wrapper function around OchamiClient.PatchData that

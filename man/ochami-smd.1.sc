@@ -132,6 +132,21 @@ Below is an example of a single *Group* in JSON form.
 ]
 ```
 
+If performing a PUT on group membership, e.g. with *ochami smd group member
+set*, then the form uses _label_ and _ids_ as:
+
+```
+{
+  "label": "blue",
+  "ids": [
+    "x1c0s1b0n0",
+    "x1c0s1b0n1",
+    "x1c0s2b0n0",
+    "x1c0s2b0n1"
+  ]
+}
+```
+
 ## EthernetInterface
 
 The *EthernetInterface* contains information on a network interface for a
@@ -568,6 +583,12 @@ Subcommands for this command are as follows:
 
 		- _json_ (default)
 		- _yaml_
+
+*set* _group_name_ _xname_...
+	Set the membership list of _group_name_ to _xname_.... Xnames specified that
+	are not already in the group are added to it, xnames specified that are
+	already in the group remain in the group, and xnames not specified that are
+	already in the group are removed from the group.
 
 # AUTHOR
 
