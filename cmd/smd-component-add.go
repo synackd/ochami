@@ -6,8 +6,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +54,7 @@ This command sends a POST to SMD. An access token is required.`,
 		checkToken(cmd)
 
 		// Create client to make request to SMD
-		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
 			os.Exit(1)
@@ -62,12 +63,12 @@ This command sends a POST to SMD. An access token is required.`,
 		// Check if a CA certificate was passed and load it into client if valid
 		useCACert(smdClient.OchamiClient)
 
-		var compSlice client.ComponentSlice
+		var compSlice smd.ComponentSlice
 		if cmd.Flag("payload").Changed {
 			handlePayload(cmd, &compSlice)
 		} else {
 			// ...otherwise use CLI options
-			comp := client.Component{
+			comp := smd.Component{
 				ID:    args[0],
 				State: cmd.Flag("state").Value.String(),
 				Role:  cmd.Flag("role").Value.String(),

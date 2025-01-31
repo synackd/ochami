@@ -8,8 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +59,7 @@ This command sends a POST to SMD. An access token is required.`,
 		checkToken(cmd)
 
 		// Create client to make request to SMD
-		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
 			os.Exit(1)
@@ -67,26 +68,26 @@ This command sends a POST to SMD. An access token is required.`,
 		// Check if a CA certificate was passed and load it into client if valid
 		useCACert(smdClient.OchamiClient)
 
-		var eis []client.EthernetInterface
+		var eis []smd.EthernetInterface
 		if cmd.Flag("payload").Changed {
 			// Use payload file if passed
 			handlePayload(cmd, &eis)
 		} else {
 			// ...otherwise use CLI options/args
-			var nets []client.EthernetIP
+			var nets []smd.EthernetIP
 			for i := 2; i < len(args); i++ {
 				tokens := strings.SplitN(args[i], ",", 2)
 				if ip := net.ParseIP(tokens[1]); ip.To4() == nil {
 					log.Logger.Error().Msgf("invalid IP address: %s", tokens[1])
 					os.Exit(1)
 				}
-				net := client.EthernetIP{
+				net := smd.EthernetIP{
 					Network:   tokens[0],
 					IPAddress: tokens[1],
 				}
 				nets = append(nets, net)
 			}
-			ei := client.EthernetInterface{
+			ei := smd.EthernetInterface{
 				ComponentID: args[0],
 				Description: cmd.Flag("description").Value.String(),
 				MACAddress:  args[1],

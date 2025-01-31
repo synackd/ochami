@@ -8,8 +8,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/bss"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +41,7 @@ This command sends a GET to BSS. An access token is required.`,
 		checkToken(cmd)
 
 		// Create client to make request to BSS
-		bssClient, err := client.NewBSSClient(bssBaseURI, insecure)
+		bssClient, err := bss.NewClient(bssBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new BSS client")
 			os.Exit(1)

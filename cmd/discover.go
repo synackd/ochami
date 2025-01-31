@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
-	"github.com/OpenCHAMI/ochami/internal/discover"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
+	"github.com/OpenCHAMI/ochami/pkg/discover"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +73,7 @@ nodes:
 		checkToken(cmd)
 
 		// Create client to make request to SMD
-		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
 			os.Exit(1)
@@ -163,8 +164,8 @@ nodes:
 			// then, if 409 is returned, try to PUT.
 			for _, rfe := range rfes.RedfishEndpoints {
 				// Attempt to POST the redfish endpoint
-				rfeListWrapper := client.RedfishEndpointSliceV2{
-					RedfishEndpoints: []client.RedfishEndpointV2{rfe},
+				rfeListWrapper := smd.RedfishEndpointSliceV2{
+					RedfishEndpoints: []smd.RedfishEndpointV2{rfe},
 				}
 				rfeHenvs, rfeErrs, rfeErr = smdClient.PostRedfishEndpointsV2(rfeListWrapper, token)
 
@@ -253,7 +254,7 @@ nodes:
 			// error has occurred.
 			for _, iface := range ifaces {
 				// Attempt to POST the ethernet interface
-				ifaceListWrapper := []client.EthernetInterface{iface}
+				ifaceListWrapper := []smd.EthernetInterface{iface}
 				ifaceHenvs, ifaceErrs, ifaceErr = smdClient.PostEthernetInterfaces(ifaceListWrapper, token)
 
 				if ifaceErr != nil {
@@ -322,11 +323,11 @@ nodes:
 		}
 
 		// Put together list of groups to add and which components to add to those groups
-		groupsToAdd := make(map[string]client.Group)
+		groupsToAdd := make(map[string]smd.Group)
 		for _, node := range nodes.Nodes {
 			if node.Group != "" {
 				if g, ok := groupsToAdd[node.Group]; !ok {
-					newGroup := client.Group{
+					newGroup := smd.Group{
 						Label:       node.Group,
 						Description: fmt.Sprintf("The %s group", node.Group),
 					}
@@ -338,7 +339,7 @@ nodes:
 				}
 			}
 		}
-		groupList := make([]client.Group, len(groupsToAdd))
+		groupList := make([]smd.Group, len(groupsToAdd))
 		var idx = 0
 		for _, g := range groupsToAdd {
 			groupList[idx] = g
@@ -359,7 +360,7 @@ nodes:
 			// PATCH is attempted. Otherwise, an error has occurred.
 			for _, group := range groupList {
 				// Attempt to POST the group
-				groupListWrapper := []client.Group{group}
+				groupListWrapper := []smd.Group{group}
 				groupHenvs, groupErrs, groupErr = smdClient.PostGroups(groupListWrapper, token)
 
 				if groupErr != nil {

@@ -6,8 +6,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/OpenCHAMI/smd/v2/pkg/sm"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +58,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 		checkToken(cmd)
 
 		// Create client to make request to SMD
-		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
 			os.Exit(1)

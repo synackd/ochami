@@ -6,8 +6,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +54,7 @@ This command sends a PATCH to SMD. An access token is required.`,
 		checkToken(cmd)
 
 		// Create client to make request to SMD
-		smdClient, err := client.NewSMDClient(smdBaseURI, insecure)
+		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
 			os.Exit(1)
@@ -63,14 +64,14 @@ This command sends a PATCH to SMD. An access token is required.`,
 		useCACert(smdClient.OchamiClient)
 
 		// The group list we will send
-		var groups []client.Group
+		var groups []smd.Group
 
 		// Read payload from file first, allowing overwrites from flags
 		if cmd.Flag("payload").Changed {
 			handlePayload(cmd, &groups)
 		} else {
 			// ...otherwise use CLI options/args
-			group := client.Group{Label: args[0]}
+			group := smd.Group{Label: args[0]}
 			if cmd.Flag("description").Changed {
 				if group.Description, err = cmd.Flags().GetString("description"); err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch description")

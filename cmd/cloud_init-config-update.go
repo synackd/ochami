@@ -8,8 +8,9 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/ci"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +60,7 @@ This command sends a PUT to cloud-init.`,
 		checkToken(cmd)
 
 		// Create client to make request to cloud-init
-		cloudInitClient, err := client.NewCloudInitClient(cloudInitBaseURI, insecure)
+		cloudInitClient, err := ci.NewClient(cloudInitBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
 			os.Exit(1)

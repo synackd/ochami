@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/ci"
 	"github.com/spf13/cobra"
 )
 
@@ -43,7 +44,7 @@ or vendor-data, respectively.`,
 		}
 
 		// Create client to make request to cloud-init
-		cloudInitClient, err := client.NewCloudInitClient(cloudInitbaseURI, insecure)
+		cloudInitClient, err := ci.NewClient(cloudInitbaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
 			os.Exit(1)
@@ -55,15 +56,15 @@ or vendor-data, respectively.`,
 		var (
 			henvs  []client.HTTPEnvelope
 			errs   []error
-			ciType client.CIDataType
+			ciType ci.CIDataType
 		)
 
 		if cmd.Flag("meta").Changed {
-			ciType = client.CloudInitMetaData
+			ciType = ci.CloudInitMetaData
 		} else if cmd.Flag("vendor").Changed {
-			ciType = client.CloudInitVendorData
+			ciType = ci.CloudInitVendorData
 		} else {
-			ciType = client.CloudInitUserData
+			ciType = ci.CloudInitUserData
 		}
 
 		if cloudInitCmd.Flag("secure").Changed {

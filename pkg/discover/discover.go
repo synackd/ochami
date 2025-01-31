@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/internal/xname"
+	"github.com/OpenCHAMI/ochami/pkg/client/smd"
+	"github.com/OpenCHAMI/ochami/pkg/xname"
 	"github.com/google/uuid"
 	"github.com/openchami/schemas/schemas"
 )
@@ -100,11 +100,11 @@ func (i IfaceIP) String() string {
 // [Magellan](https://github.com/OpenCHAMI/magellan) would do), except the
 // information is sourced from a file instead of dynamically reaching out to
 // BMCs.
-func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client.RedfishEndpointSliceV2, []client.EthernetInterface, error) {
+func DiscoveryInfoV2(baseURI string, nl NodeList) (smd.ComponentSlice, smd.RedfishEndpointSliceV2, []smd.EthernetInterface, error) {
 	var (
-		comps  client.ComponentSlice
-		rfes   client.RedfishEndpointSliceV2
-		ifaces []client.EthernetInterface
+		comps  smd.ComponentSlice
+		rfes   smd.RedfishEndpointSliceV2
+		ifaces []smd.EthernetInterface
 	)
 	base, err := url.Parse(baseURI)
 	if err != nil {
@@ -116,7 +116,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 	for _, node := range nl.Nodes {
 		log.Logger.Debug().Msgf("generating component structure for node with xname %s", node.Xname)
 		if _, ok := compMap[node.Xname]; !ok {
-			comp := client.Component{
+			comp := smd.Component{
 				ID:      node.Xname,
 				NID:     node.NID,
 				Type:    "Node",
@@ -131,7 +131,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 		}
 
 		log.Logger.Debug().Msgf("generating redfish structure for node with xname %s", node.Xname)
-		var rfe client.RedfishEndpointV2
+		var rfe smd.RedfishEndpointV2
 
 		// Differentiate node Xname from BMC Xname
 		bmcXname, err := xname.NodeXnameToBMCXname(node.Xname)
@@ -157,7 +157,7 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 			log.Logger.Debug().Msgf("node %s: generating fake BMC System", node.Xname)
 			base.Path = "/redfish/v1/Systems/" + node.Xname
 
-			s := client.System{
+			s := smd.System{
 				URI:  base.String(),
 				Name: node.Name,
 			}
@@ -178,14 +178,14 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 					IP:          iface.IPAddrs[0].IPAddr,
 				}
 				s.EthernetInterfaces = append(s.EthernetInterfaces, newIface)
-				SMDIface := client.EthernetInterface{
+				SMDIface := smd.EthernetInterface{
 					ComponentID: newIface.Name,
 					Type:        "Node",
 					Description: newIface.Description,
 					MACAddress:  newIface.MAC,
 				}
 				for _, ip := range iface.IPAddrs {
-					SMDIface.IPAddresses = append(SMDIface.IPAddresses, client.EthernetIP{
+					SMDIface.IPAddresses = append(SMDIface.IPAddresses, smd.EthernetIP{
 						IPAddress: ip.IPAddr,
 						Network:   ip.Network,
 					})
@@ -206,8 +206,8 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (client.ComponentSlice, client
 			log.Logger.Debug().Msgf("BMC %s: generating fake BMC Manager", bmcXname)
 			base.Path = "/redfish/v1/Managers/" + bmcXname
 
-			m := client.Manager{
-				System: client.System{
+			m := smd.Manager{
+				System: smd.System{
 					URI:  base.String(),
 					Name: bmcXname,
 				},

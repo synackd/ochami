@@ -1,4 +1,4 @@
-package client
+package bss
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
+	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
 const (
@@ -23,14 +24,14 @@ const (
 // BSSClient is an OchamiClient that has its BasePath set configured to the one
 // that BSS uses.
 type BSSClient struct {
-	*OchamiClient
+	*client.OchamiClient
 }
 
-// NewBSSClient takes a baseURI and basePath and returns a pointer to a new
+// NewClient takes a baseURI and basePath and returns a pointer to a new
 // BSSClient. If an error occurred creating the embedded OchamiClient, it is
 // returned. If insecure is true, TLS certificates will not be verified.
-func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
-	oc, err := NewOchamiClient(serviceNameBSS, baseURI, basePathBSS, insecure)
+func NewClient(baseURI string, insecure bool) (*BSSClient, error) {
+	oc, err := client.NewOchamiClient(serviceNameBSS, baseURI, basePathBSS, insecure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OchamiClient for %s: %w", serviceNameBSS, err)
 	}
@@ -45,17 +46,17 @@ func NewBSSClient(baseURI string, insecure bool) (*BSSClient, error) {
 // bssTypes.BootParams struct (bp) and a token, puts the token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
 // request body, then passes it to OchamiClient.PostData.
-func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (client.HTTPEnvelope, error) {
 	var (
-		henv    HTTPEnvelope
-		headers *HTTPHeaders
-		body    HTTPBody
+		henv    client.HTTPEnvelope
+		headers *client.HTTPHeaders
+		body    client.HTTPBody
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
 		return henv, fmt.Errorf("PostBootParams(): failed to marshal BootParams: %w", err)
 	}
-	headers = NewHTTPHeaders()
+	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
 			return henv, fmt.Errorf("PostBootParams(): error setting token in HTTP headers: %w", err)
@@ -73,17 +74,17 @@ func (bc *BSSClient) PostBootParams(bp bssTypes.BootParams, token string) (HTTPE
 // bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
 // request body, then passes it to OchamiClient.PutData.
-func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (client.HTTPEnvelope, error) {
 	var (
-		henv    HTTPEnvelope
-		headers *HTTPHeaders
-		body    HTTPBody
+		henv    client.HTTPEnvelope
+		headers *client.HTTPHeaders
+		body    client.HTTPBody
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
 		return henv, fmt.Errorf("PutBootParams(): failed to marshal BootParams: %w", err)
 	}
-	headers = NewHTTPHeaders()
+	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
 			return henv, fmt.Errorf("PutBootParams(): error setting token in HTTP headers: %w", err)
@@ -101,17 +102,17 @@ func (bc *BSSClient) PutBootParams(bp bssTypes.BootParams, token string) (HTTPEn
 // bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
 // request body, then passes it to OchamiClient.PatchData.
-func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (client.HTTPEnvelope, error) {
 	var (
-		henv    HTTPEnvelope
-		headers *HTTPHeaders
-		body    HTTPBody
+		henv    client.HTTPEnvelope
+		headers *client.HTTPHeaders
+		body    client.HTTPBody
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
 		return henv, fmt.Errorf("PatchBootParams(): failed to marshal BootParams: %w", err)
 	}
-	headers = NewHTTPHeaders()
+	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
 			return henv, fmt.Errorf("PatchBootParams(): error setting token in HTTP headers: %w", err)
@@ -129,17 +130,17 @@ func (bc *BSSClient) PatchBootParams(bp bssTypes.BootParams, token string) (HTTP
 // a bssTypes.BootParams struct (bp) and a token, puts token in the request
 // headers as an authorization bearer, marshals bp as JSON and sets it as the
 // request body, then passes it to OchamiClient.DeleteData.
-func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTTPEnvelope, error) {
+func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (client.HTTPEnvelope, error) {
 	var (
-		henv    HTTPEnvelope
-		headers *HTTPHeaders
-		body    HTTPBody
+		henv    client.HTTPEnvelope
+		headers *client.HTTPHeaders
+		body    client.HTTPBody
 		err     error
 	)
 	if body, err = json.Marshal(bp); err != nil {
 		return henv, fmt.Errorf("DeleteBootParams(): failed to marshal BootParams: %w", err)
 	}
-	headers = NewHTTPHeaders()
+	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
 			return henv, fmt.Errorf("DeleteBootParams(): error setting token in HTTP headers: %w", err)
@@ -157,13 +158,13 @@ func (bc *BSSClient) DeleteBootParams(bp bssTypes.BootParams, token string) (HTT
 // optional query string (without the "?") and a token. It sets token as the
 // authorization bearer in the headers and passes the query string and headers
 // to OchamiClient.GetData, using /bootparameters as the API endpoint.
-func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
+func (bc *BSSClient) GetBootParams(query, token string) (client.HTTPEnvelope, error) {
 	var (
-		henv    HTTPEnvelope
-		headers *HTTPHeaders
+		henv    client.HTTPEnvelope
+		headers *client.HTTPHeaders
 		err     error
 	)
-	headers = NewHTTPHeaders()
+	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
 			return henv, fmt.Errorf("GetBootParams(): error setting token in HTTP headers: %w", err)
@@ -180,7 +181,7 @@ func (bc *BSSClient) GetBootParams(query, token string) (HTTPEnvelope, error) {
 // GetBootScript is a wrapper function around OchamiClient.GetData that takes a
 // query string (without the "?") and passes it to OchamiClient.GetData, using
 // /bootscript as the API endpoint.
-func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
+func (bc *BSSClient) GetBootScript(query string) (client.HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathBootScript, query, nil)
 	if err != nil {
 		err = fmt.Errorf("GetBootScript(): error getting boot script: %w", err)
@@ -198,9 +199,9 @@ func (bc *BSSClient) GetBootScript(query string) (HTTPEnvelope, error) {
 // "storage" -> "/service/storage/status"
 // "smd"     -> "/service/hsm"
 // "version" -> "/service/version"
-func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
+func (bc *BSSClient) GetStatus(component string) (client.HTTPEnvelope, error) {
 	var (
-		henv              HTTPEnvelope
+		henv              client.HTTPEnvelope
 		err               error
 		bssStatusEndpoint string
 	)
@@ -229,7 +230,7 @@ func (bc *BSSClient) GetStatus(component string) (HTTPEnvelope, error) {
 
 // GetDumpState is a wrapper function around OchamiClient.GetData that queries the
 // /dumpstate endpoint and returns its response and an error, if one occurred.
-func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
+func (bc *BSSClient) GetDumpState() (client.HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathDumpState, "", nil)
 	if err != nil {
 		err = fmt.Errorf("GetDumpState(): error getting dump state: %w", err)
@@ -241,7 +242,7 @@ func (bc *BSSClient) GetDumpState() (HTTPEnvelope, error) {
 // GetEndpointHistory is a wrapper function around OchamiClient.GetData that
 // queries /endpoint-history and appends an optional query string (without the
 // "?").
-func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
+func (bc *BSSClient) GetEndpointHistory(query string) (client.HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathEndpointHistory, query, nil)
 	if err != nil {
 		err = fmt.Errorf("GetEndpointHistory(): error getting endpoint history: %w", err)
@@ -252,7 +253,7 @@ func (bc *BSSClient) GetEndpointHistory(query string) (HTTPEnvelope, error) {
 
 // GetHosts is a wrapper function around OchamiClient.GetData that queries /hosts
 // and appends an optional query string (without the "?").
-func (bc *BSSClient) GetHosts(query string) (HTTPEnvelope, error) {
+func (bc *BSSClient) GetHosts(query string) (client.HTTPEnvelope, error) {
 	henv, err := bc.GetData(BSSRelpathHosts, query, nil)
 	if err != nil {
 		err = fmt.Errorf("GetHosts(): error getting hosts: %w", err)

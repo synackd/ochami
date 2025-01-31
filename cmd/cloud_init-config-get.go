@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/client"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/client/ci"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,7 @@ var cloudInitConfigGetCmd = &cobra.Command{
 		}
 
 		// Create client to make request to cloud-init
-		cloudInitClient, err := client.NewCloudInitClient(cloudInitbaseURI, insecure)
+		cloudInitClient, err := ci.NewClient(cloudInitbaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
 			os.Exit(1)
