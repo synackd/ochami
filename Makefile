@@ -48,15 +48,15 @@ GITSTATE  := $(shell if output=$($(GIT) status --porcelain) && [ -n "$output" ];
 BUILDHOST := $(shell $(HOSTCMD))
 BUILDUSER := $(shell whoami)
 LDFLAGS := -s \
-	   -X=$(IMPORT)internal/version.Version=$(VERSION) \
-	   -X=$(IMPORT)internal/version.Tag=$(TAG) \
-	   -X=$(IMPORT)internal/version.Branch=$(BRANCH) \
-	   -X=$(IMPORT)internal/version.Commit=$(BUILD) \
-	   -X=$(IMPORT)internal/version.Date=$(shell date -Iseconds) \
-	   -X=$(IMPORT)internal/version.GoVersion=$(GOVER) \
-	   -X=$(IMPORT)internal/version.GitState=$(GITSTATE) \
-	   -X=$(IMPORT)internal/version.BuildHost=$(BUILDHOST) \
-	   -X=$(IMPORT)internal/version.BuildUser=$(BUILDUSER)
+	   -X '$(IMPORT)internal/version.Version=$(VERSION)' \
+	   -X '$(IMPORT)internal/version.Tag=$(TAG)' \
+	   -X '$(IMPORT)internal/version.Branch=$(BRANCH)' \
+	   -X '$(IMPORT)internal/version.Commit=$(BUILD)' \
+	   -X '$(IMPORT)internal/version.Date=$(shell date -Iseconds)' \
+	   -X '$(IMPORT)internal/version.GoVersion=$(GOVER)' \
+	   -X '$(IMPORT)internal/version.GitState=$(GITSTATE)' \
+	   -X '$(IMPORT)internal/version.BuildHost=$(BUILDHOST)' \
+	   -X '$(IMPORT)internal/version.BuildUser=$(BUILDUSER)'
 
 INTERNAL := $(wildcard internal/*)
 MANSRC   := $(wildcard man/*.sc)
