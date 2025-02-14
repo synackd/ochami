@@ -61,6 +61,7 @@ This command accepts the following options:
 	Output response data in specified _format_. Supported values are:
 
 	- _json_ (default)
+	- _json-pretty_
 	- _yaml_
 
 *--smd*
@@ -71,6 +72,97 @@ This command accepts the following options:
 
 *--vault*
 	Print out the backend vault connection status of PCS.
+
+## transitions
+
+Manages PCS transitions.
+
+Subcommands for this command are as follows:
+
+*start*  [-F _format_] [-x _xname1,xname2,..._]... _operation_
+	Starts a power transition on one or more nodes.
+
+	This command accepts the following options:
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
+
+	*-x, --xname* _xname_,...
+		Comma-separated list of xnames to transition.
+
+	*operation*
+		Operation to perform. Supported operations are:
+
+		- _on_
+		- _off_
+		- _soft-restart_
+		- _hard-restart_
+		- _init_
+		- _force-off_
+		- _soft-off_
+
+*list* [-F _format_]
+	List the active power transitions.
+
+	This command accepts the following options:
+
+		*-F, --format-output* _format_
+			Output response data in specified _format_. Supported values are:
+
+			- _json_ (default)
+			- _json-pretty_
+			- _yaml_
+
+*show* [-F _format_] _id_
+	Show the details of a power transition.
+
+	This command accepts the following options:
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
+
+	*id*
+		ID of the power transition to show.
+
+
+*monitor* _id_
+	Monitor active power transitions and provide progress information
+
+	This command accepts the following options:
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
+
+	*id*
+		ID of the power transition to monitor.
+
+*abort* [-F _format_] _id_
+	Abort or terminate an active power transition.
+
+	This command accepts the following options:
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
+
+	*id*
+		ID of the power transition to abort.
+
 
 # AUTHOR
 

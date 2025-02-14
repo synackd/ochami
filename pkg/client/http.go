@@ -3,12 +3,10 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/utils"
 	"io"
 	"net/http"
-	"strings"
-
-	"github.com/OpenCHAMI/ochami/internal/log"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -111,30 +109,12 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 // returning the resulting bytes. If an error occurs during
 // marshalling/unmarshalling or the format is unsupported, an error occurs.
 func FormatBody(body HTTPBody, format string) ([]byte, error) {
-	switch strings.ToLower(format) {
-	case "json":
-		var jmap interface{}
-		if err := json.Unmarshal(body, &jmap); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
-		}
-		if jbytes, err := json.Marshal(jmap); err != nil {
-			return nil, fmt.Errorf("failed to marshal HTTP body into JSON: %w", err)
-		} else {
-			return jbytes, nil
-		}
-	case "yaml":
-		var ymap interface{}
-		if err := json.Unmarshal(body, &ymap); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
-		}
-		if ybytes, err := yaml.Marshal(ymap); err != nil {
-			return nil, fmt.Errorf("failed to marshal HTTP body into YAML: %w", err)
-		} else {
-			return ybytes, nil
-		}
-	default:
-		return nil, fmt.Errorf("unknown output format: %s", format)
+	var jmap interface{}
+	if err := json.Unmarshal(body, &jmap); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
 	}
+
+	return utils.FormatOutput(jmap, format)
 }
 
 func (he HTTPEnvelope) CheckResponse() error {

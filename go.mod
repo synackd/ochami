@@ -1,6 +1,8 @@
 module github.com/OpenCHAMI/ochami
 
-go 1.21
+go 1.22
+
+toolchain go1.23.4
 
 require (
 	github.com/OpenCHAMI/bss v1.31.3
@@ -23,6 +25,8 @@ require (
 	github.com/Cray-HPE/hms-base v1.15.1 // indirect
 	github.com/Cray-HPE/hms-certs v1.4.0 // indirect
 	github.com/Cray-HPE/hms-securestorage v1.13.0 // indirect
+	github.com/VividCortex/ewma v1.2.0 // indirect
+	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
@@ -54,19 +58,26 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
+	github.com/schollz/progressbar/v3 v3.18.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/vbauerster/mpb/v8 v8.9.3 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20220321173239-a90fa8a75705 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
