@@ -136,7 +136,7 @@ func init() {
 	groupAddCmd.Flags().StringP("exclusive-group", "e", "", "name of group that cannot share members with this one")
 	groupAddCmd.Flags().StringSliceP("member", "m", []string{}, "one or more component IDs to add to the new group")
 	groupAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	groupAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	groupAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	groupAddCmd.MarkFlagsMutuallyExclusive("description", "payload")
 	groupAddCmd.MarkFlagsMutuallyExclusive("tag", "payload")

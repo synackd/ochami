@@ -451,7 +451,7 @@ nodes:
 
 func init() {
 	discoverCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	discoverCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	discoverCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 	discoverCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
 
 	discoverCmd.MarkFlagRequired("payload")

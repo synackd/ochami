@@ -221,8 +221,8 @@ Subcommands for this command are as follows:
 
 *delete* [--force] --all++
 *delete* [--force] _xname_...++
-*delete* [--force] -f _file_ [--payload-format _format_]++
-*delete* [--force] -f _-_ [--payload-format _format_]
+*delete* [--force] -f _file_ [-F _format_]++
+*delete* [--force] -f _-_ [-F _format_]
 	Delete one or more component endpoints. Unless *--force* is passed, the user
 	is asked to confirm deletion.
 
@@ -252,13 +252,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 *get* [--output-format _format_] [_xname_]...
 	Get all or a subset of component endpoints.
@@ -283,8 +285,8 @@ Manage components.
 Subcommands for this command are as follows:
 
 *add* [--arch _arch_] [--enabled] [--role _role_] [--state _state_] _xname_ _node_id_++
-*add* -f _file_ [--payload-format _format_]++
-*add* -f _-_ [--payload-format _format_]
+*add* -f _file_ [-F _format_]++
+*add* -f _-_ [-F _format_]
 	Add one or more new components to SMD. If a component already exists with
 	the same xname, this command will fail.
 
@@ -315,13 +317,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*--role* _role_
 		Specify the SMD role for the new component.
@@ -335,8 +339,8 @@ Subcommands for this command are as follows:
 
 *delete* --all++
 *delete* _xname_...++
-*delete* -f _file_ [--payload-format _format_]++
-*delete* -f _-_ [--payload-format _format_]
+*delete* -f _file_ [-F _format_]++
+*delete* -f _-_ [-F _format_]
 	Delete one or more components in SMD. Unless *--force* is passed, the user
 	is asked to confirm deletion.
 
@@ -364,13 +368,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 *get* [--output-format _format_] [--nid _nid_] [--xname _xname_]
 	Get all components or one identified by xname or node ID.
@@ -405,8 +411,8 @@ Manage SMD groups. For managing group membership, see *group member* below.
 Subcommands for this command are as follows:
 
 *add* [--description _desc_] [--tag _tag_,...] [--member _xname_,...] [--exclusive-group _group_] _group_name_++
-*add* -f _file_ [--payload-format _format_]++
-*add* -f _-_ [--payload-format _format_]
+*add* -f _file_ [-F _format_]++
+*add* -f _-_ [-F _format_]
 	Add a new group to SMD, optionally specifying members to add to the group.
 
 	In the first form of the command, a _group_name_ is required to create the
@@ -444,13 +450,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*--tag* _tag_,...
 		One or more tags to assign to the group. For multiple tags, either this
@@ -458,8 +466,8 @@ Subcommands for this command are as follows:
 		and multiple tags can be specified, separated by commas.
 
 *delete* [--force] _group_name_...++
-*delete* [--force] -f _file_ [--payload-format _format_]++
-*delete* [--force] -f _-_ [--payload-format _format_]
+*delete* [--force] -f _file_ [-F _format_]++
+*delete* [--force] -f _-_ [-F _format_]
 	Delete one or more groups in SMD. Unless *--force* is passed, the user is
 	asked to confirm deletion.
 
@@ -481,13 +489,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 *get* [--output-format _format_] [--name _name_,...] [--tag _tag_,...]
 	Get group information for all groups in SMD or for a subset, specified by
@@ -515,7 +525,7 @@ Subcommands for this command are as follows:
 		and multiple tags can be specified, separated by commas.
 
 *update* [--description _description_] [--tag _tag_,...] _group_name_++
-*update* -f _file_ [--payload-format _format_]
+*update* -f _file_ [-F _format_]
 	Update one or more existing groups in SMD. If the group does not already
 	exist, this command will fail.
 
@@ -537,13 +547,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to SMD. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*--tag* _tag_,...
 		One or more tags to assign to the group. For multiple tags, either this

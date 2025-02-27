@@ -139,7 +139,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 func init() {
 	componentDeleteCmd.Flags().BoolP("all", "a", false, "delete all components in SMD")
 	componentDeleteCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	componentDeleteCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	componentDeleteCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 	componentDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 
 	componentCmd.AddCommand(componentDeleteCmd)

@@ -122,7 +122,7 @@ This command sends a PUT to cloud-init.`,
 func init() {
 	cloudInitConfigUpdateCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
 	cloudInitConfigUpdateCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	cloudInitConfigUpdateCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	cloudInitConfigUpdateCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	cloudInitConfigUpdateCmd.MarkFlagsMutuallyExclusive("data", "payload")
 	cloudInitConfigUpdateCmd.MarkFlagsMutuallyExclusive("data", "payload-format")

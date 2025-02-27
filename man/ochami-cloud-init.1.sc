@@ -67,8 +67,8 @@ data to serve to which clients.
 
 Subcommands for this command are as follows:
 
-*add* --payload _payload_file_ [--payload-format _format_]++
-*add* --payload _-_ [--payload-format _format_] < _file_++
+*add* --payload _payload_file_ [-F _format_]++
+*add* --payload _-_ [-F _format_] < _file_++
 *add* --data _raw_data_
 	Add cloud-init configuration for one or more IDs. This command only accepts
 	payload data and uses the *name* field to determine which ID to add the data
@@ -95,13 +95,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to cloud-init. The format of
-		this file depends on _--payload-format_ and is _json_ by default. If *-*
-		is used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		this file depends on _-F_ and is _json_ by default. If *-* is used as
+		the argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 *delete* [--force] _id_...
 	Delete one or more cloud-init configurations, identified by _id_.
@@ -131,8 +133,8 @@ Subcommands for this command are as follows:
 		- _json_ (default)
 		- _yaml_
 
-*update* --payload _payload_file_ [--payload-format _format_]++
-*update* --payload _-_ [--payload-format _format_] < _file_++
+*update* --payload _payload_file_ [-F _format_]++
+*update* --payload _-_ [-F _format_] < _file_++
 *update* --data _raw_data_
 	Update one or more existing cloud-init configurations. This command only
 	accepts payload data and uses the *name* field to determine which ID to
@@ -159,13 +161,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to cloud-init. The format of
-		this file depends on _--payload-format_ and is _json_ by default. If *-*
-		is used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		this file depends on _-F_ and is _json_ by default. If *-* is used as
+		the argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 ## data
 

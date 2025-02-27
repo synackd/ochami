@@ -30,8 +30,8 @@ Manage boot parameters for components.
 Subcommands for this command are as follows:
 
 *add* ([--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]) ([--initrd _initrd_] [--kernel _kernel_])++
-*add* -f _file_ [--payload-format _format_]++
-*add* -f _-_ [--payload-format _format_] < _file_
+*add* -f _file_ [-F _format_]++
+*add* -f _-_ [-F _format_] < _file_
 	Add new boot parameters for one or more components. If boot parameters
 	already exist for the specified components, this command will fail.
 
@@ -55,13 +55,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to BSS. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to add boot parameters for. For multiple MAC
@@ -89,8 +91,8 @@ Subcommands for this command are as follows:
 		Command line arguments to pass to kernel for components.
 
 *delete* [--force] ([--mac, _mac_,...] [--nid, _nid_,...] [--xname _xname_,...] [--kernel _kernel_] [--initrd _initrd_])++
-*delete* [--force] -f _file_ [--payload-format _format_]++
-*delete* [--force] -f _-_ [--payload-format _format_]
+*delete* [--force] -f _file_ [-F _format_]++
+*delete* [--force] -f _-_ [-F _format_]
 	Delete boot parameters for one or more components. Which boot parameters are
 	deleted are determined by passed filters, which can be passed via CLI flag
 	or within a payload file. Unless *--force* is passed, the user is asked to
@@ -118,13 +120,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to BSS. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
-		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+	*-F, --payload-format* _format_
+		Format of the file used with _-f_. Supported formats are:
+
+		- _json_ (default)
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to delete boot parameters for. For multiple
@@ -182,8 +186,8 @@ Subcommands for this command are as follows:
 		specified once and multiple xnames, separated by commas.
 
 *set* ([--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]) ([--initrd _initrd_] [--kernel _kernel_])++
-*set* -f _file_ [--payload-format _format_]++
-*set* -f _-_ [--payload-format _format_] < _file_
+*set* -f _file_ [-F _format_]++
+*set* -f _-_ [-F _format_] < _file_
 	Set boot parameters for one or more components, even if boot parameters
 	already exist for said components. This is handy if one knows what boot
 	parameters to set for which components, but isn't sure if boot parameters
@@ -209,13 +213,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to BSS. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
+	*-F, --payload-format* _format_
 		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+		_json_ by default. Supported formats are:
+
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to set boot parameters for. For multiple MAC
@@ -243,8 +249,8 @@ Subcommands for this command are as follows:
 		Command line arguments to pass to kernel for components.
 
 *update* ([--mac _mac_,...] [--nid _nid_,...] [--xname _xname_,...]) ([--initrd _initrd_] [--kernel _kernel_])++
-*update* -f _file_ [--payload-format _format_]++
-*update* -f _-_ [--payload-format _format_] < _file_
+*update* -f _file_ [-F _format_]++
+*update* -f _-_ [-F _format_] < _file_
 	Update boot parameters for existing components.
 
 	In the first form of the command, one or more of *--mac*, *--nid*, or
@@ -267,13 +273,15 @@ Subcommands for this command are as follows:
 
 	*-f, --payload* _file_
 		Specify a file containing the data to send to BSS. The format of this
-		file depends on _--payload-format_ and is _json_ by default. If *-* is
-		used as the argument to _-f_, the command reads the payload data from
-		standard input.
+		file depends on _-F_ and is _json_ by default. If *-* is used as the
+		argument to _-f_, the command reads the payload data from standard
+		input.
 
-	*--payload-format* _format_
+	*-F, --payload-format* _format_
 		Format of the file used with _-f_. If unspecified, the payload format is
-		_json_ by default. Supported formats are: _yaml_.
+		_json_ by default. Supported formats are:
+
+		- _yaml_
 
 	*-m, --mac* _mac_addr_,...
 		One or more MAC addresses to update boot parameters for. For multiple

@@ -117,7 +117,7 @@ func init() {
 	groupUpdateCmd.Flags().StringP("description", "d", "", "short description to update group with")
 	groupUpdateCmd.Flags().StringSlice("tag", []string{}, "one or more tags to set for group")
 	groupUpdateCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	groupUpdateCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	groupUpdateCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	groupUpdateCmd.MarkFlagsOneRequired("description", "tag", "payload")
 

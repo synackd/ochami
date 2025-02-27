@@ -145,7 +145,7 @@ func init() {
 	bootParamsUpdateCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to update")
 	bootParamsUpdateCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to update")
 	bootParamsUpdateCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	bootParamsUpdateCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	bootParamsUpdateCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	bootParamsUpdateCmd.MarkFlagsOneRequired("xname", "mac", "nid", "payload")
 	bootParamsUpdateCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "payload")

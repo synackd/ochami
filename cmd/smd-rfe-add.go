@@ -134,7 +134,7 @@ func init() {
 	rfeAddCmd.Flags().String("username", "", "username to use when interrogating endpoint")
 	rfeAddCmd.Flags().String("password", "", "password to use when interrogating endpoint")
 	rfeAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	rfeAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	rfeAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	rfeAddCmd.MarkFlagsMutuallyExclusive("domain", "payload")
 	rfeAddCmd.MarkFlagsMutuallyExclusive("hostname", "payload")

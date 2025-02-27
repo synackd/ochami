@@ -6,7 +6,7 @@ ochami-discover - Populate SMD using a file
 
 # SYNOPSIS
 
-ochami discover [OPTIONS] -f _file_ [--payload-format _format_]
+ochami discover [OPTIONS] -f _file_ [-F _format_]
 
 # DESCRIPTION
 
@@ -18,7 +18,7 @@ performing the actual discovery via Redfish.
 
 A payload file is required (or the data can be read from standard input), and it
 can be passed via *-f*/*--payload*. The format of this file is JSON by default,
-but *--payload-format* can be used to specify a different format.
+but *-F* can be used to specify a different format.
 
 The file contains a list of "nodes", each with its own configuration (see
 *DATA STRUCTURE*). The *discover* command reads this data and creates the SMD
@@ -36,13 +36,14 @@ This command accepts the following options:
 	This option is mandatory.
 
 	Specify a file containing the data to send to SMD. The format of this
-	file depends on _--payload-format_ and is _json_ by default. If *-* is
-	used as the argument to _-f_, the command reads the payload data from
-	standard input.
+	file depends on _-F_ and is _json_ by default. If *-* is used as the
+	argument to _-f_, the command reads the payload data from standard input.
 
-*--payload-format* _format_
-	Format of the file used with _-f_. If unspecified, the payload format is
-	_json_ by default. Supported formats are: _yaml_.
+*-F, --payload-format* _format_
+	Format of the file used with _-f_. Supported formats are:
+
+	- _json_ (default)
+	- _yaml_
 
 # DATA STRUCTURE
 

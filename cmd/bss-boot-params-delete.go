@@ -158,7 +158,7 @@ func init() {
 	bootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
 	bootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
 	bootParamsDeleteCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	bootParamsDeleteCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	bootParamsDeleteCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 	bootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters

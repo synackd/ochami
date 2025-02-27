@@ -140,7 +140,7 @@ This command sends a DELETE to SMD. An access token is required.`,
 func init() {
 	ifaceDeleteCmd.Flags().BoolP("all", "a", false, "delete all ethernet interfaces in SMD")
 	ifaceDeleteCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	ifaceDeleteCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	ifaceDeleteCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 	ifaceDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
 	ifaceCmd.AddCommand(ifaceDeleteCmd)
 }

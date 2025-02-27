@@ -125,7 +125,7 @@ This command sends a POST to cloud-init.`,
 func init() {
 	cloudInitConfigAddCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
 	cloudInitConfigAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	cloudInitConfigAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	cloudInitConfigAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	cloudInitConfigAddCmd.MarkFlagsMutuallyExclusive("data", "payload")
 	cloudInitConfigAddCmd.MarkFlagsMutuallyExclusive("data", "payload-format")

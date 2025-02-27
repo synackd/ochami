@@ -125,7 +125,7 @@ This command sends a POST to SMD. An access token is required.`,
 func init() {
 	ifaceAddCmd.Flags().StringP("description", "d", "Undescribed Ethernet Interface", "description of interface")
 	ifaceAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	ifaceAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	ifaceAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	ifaceAddCmd.MarkFlagsMutuallyExclusive("description", "payload")
 

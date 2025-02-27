@@ -102,7 +102,7 @@ func init() {
 	componentAddCmd.Flags().String("role", "Compute", "role of new component")
 	componentAddCmd.Flags().String("arch", "X86", "CPU architecture of new component")
 	componentAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	componentAddCmd.Flags().String("payload-format", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	componentAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
 
 	componentAddCmd.MarkFlagsMutuallyExclusive("state", "payload")
 	componentAddCmd.MarkFlagsMutuallyExclusive("enabled", "payload")
