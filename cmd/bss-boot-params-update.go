@@ -47,7 +47,7 @@ This command sends a PATCH to BSS. An access token is required.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		bssBaseURI, err := getBaseURI(cmd)
+		bssBaseURI, err := getBaseURIBSS(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
 			os.Exit(1)

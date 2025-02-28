@@ -102,7 +102,7 @@ var pcsStatusCmd = &cobra.Command{
 	Short: "Get status of PCS service",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		pcsBaseURI, err := getBaseURI(cmd)
+		pcsBaseURI, err := getBaseURIPCS(cmd)
 		if err != nil {
 			log.Logger.Fatal().Err(err).Msg("failed to get base URI for PCS")
 		}

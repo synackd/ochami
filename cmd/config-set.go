@@ -39,32 +39,12 @@ This command does not handle cluster configs. For that, use the
 	Run: func(cmd *cobra.Command, args []string) {
 		// We must have a config file in order to write config
 		var fileToModify string
-		if rootCmd.PersistentFlags().Lookup("config").Changed {
-			var err error
-			if fileToModify, err = rootCmd.PersistentFlags().GetString("config"); err != nil {
-				log.Logger.Error().Err(err).Msgf("unable to get value from --config flag")
-				os.Exit(1)
-			}
+		if cmd.Flags().Changed("config") {
+			fileToModify = configFile
 		} else if configCmd.PersistentFlags().Lookup("system").Changed {
 			fileToModify = config.SystemConfigFile
 		} else {
 			fileToModify = config.UserConfigFile
-		}
-
-		// Ask to create file if it doesn't exist
-		if create, err := askToCreate(fileToModify); err != nil {
-			if err != FileExistsError {
-				log.Logger.Error().Err(err).Msg("error asking to create file")
-				os.Exit(1)
-			}
-		} else if create {
-			if err := createIfNotExists(fileToModify); err != nil {
-				log.Logger.Error().Err(err).Msg("error creating file")
-				os.Exit(1)
-			}
-		} else {
-			log.Logger.Error().Msg("user declined to create file, not modifying")
-			os.Exit(0)
 		}
 
 		// Refuse to modify config if user tries to modify cluster config

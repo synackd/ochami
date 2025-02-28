@@ -245,65 +245,99 @@ func useCACert(client *client.OchamiClient) {
 	}
 }
 
-func getBaseURI(cmd *cobra.Command) (string, error) {
-       // Precedence of getting base URI for requests:
-       //
-       // 1. If --cluster is set, search config file for matching name and read
-       //    details from there.
-       // 2. If flags corresponding to cluster info (e.g. --base-uri) are set,
-       //    read details from them.
-       // 3. If "default-cluster" is set in config file (config file must be
-       //    specified), use cluster identified by that name as source of info.
-       // 4. Data sources exhausted, err.
-       var (
-               clusterList  []config.ConfigCluster
-               clusterToUse config.ConfigCluster
-               clusterName  string
-       )
-       if cmd.Flag("cluster").Changed {
-               clusterList = config.GlobalConfig.Clusters
-               clusterName = cmd.Flag("cluster").Value.String()
-               log.Logger.Debug().Msgf("using base URI from cluster %s passed from command line", clusterName)
-               for _, c := range clusterList {
-                       if c.Name == clusterName {
-                               clusterToUse = c
-                               break
-                       }
-               }
-               if clusterToUse == (config.ConfigCluster{}) {
-                       return "", fmt.Errorf("cluster %s not found", clusterName)
-               }
-               if clusterToUse.Cluster.BaseURI == "" {
-                       return "", fmt.Errorf("base-uri not set for cluster %s specified with --cluster", clusterName)
-               }
+func getBaseURIBSS(cmd *cobra.Command) (string, error) {
+	return getBaseURI(cmd, config.ServiceBSS)
+}
 
-               log.Logger.Debug().Msgf("base URI: %s", clusterToUse.Cluster.BaseURI)
+func getBaseURICloudInit(cmd *cobra.Command) (string, error) {
+	return getBaseURI(cmd, config.ServiceCloudInit)
+}
 
-               return clusterToUse.Cluster.BaseURI, nil
-       } else if cmd.Flag("base-uri").Changed {
-               log.Logger.Debug().Msg("using base URI passed on command line")
-               log.Logger.Debug().Msgf("base URI: %s", baseURI)
-               return baseURI, nil
-       } else if config.GlobalConfig.DefaultCluster != "" {
-               clusterName = config.GlobalConfig.DefaultCluster
-               clusterList = config.GlobalConfig.Clusters
-               log.Logger.Debug().Msgf("using base URI from default cluster %s", clusterName)
-               for _, c := range clusterList {
-                       if c.Name == clusterName {
-                               clusterToUse = c
-                               break
-                       }
-               }
-               if clusterToUse == (config.ConfigCluster{}) {
-                       return "", fmt.Errorf("default cluster %s not found", clusterName)
-               }
+func getBaseURIPCS(cmd *cobra.Command) (string, error) {
+	return getBaseURI(cmd, config.ServicePCS)
+}
 
-               log.Logger.Debug().Msgf("base URI: %s", clusterToUse.Cluster.BaseURI)
+func getBaseURISMD(cmd *cobra.Command) (string, error) {
+	return getBaseURI(cmd, config.ServiceSMD)
+}
 
-               return clusterToUse.Cluster.BaseURI, nil
-       }
+func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, error) {
+	// Precedence of getting base URI for requests (higher numbers override
+	// all preceding numbers):
+	//
+	// 1. If "default-cluster" is set in config file (config file must be
+	//    specified), use cluster identified by that name as source of info.
+	// 2. If --cluster is set, search config file for matching name and read
+	//    details from there.
+	// 3. If flags corresponding to cluster info (e.g. --cluster-uri,
+	//    --uri) are set, read details from them.
+	var (
+		clusterName   string
+		clusterToUse  config.ConfigCluster
+		clusterConfig config.ConfigClusterConfig
+		clusterList   = config.GlobalConfig.Clusters
+	)
+	if config.GlobalConfig.DefaultCluster != "" {
+		// 3. Check 'default-cluster'.
+		clusterName = config.GlobalConfig.DefaultCluster
+		clusterList = config.GlobalConfig.Clusters
+		log.Logger.Debug().Msgf("using base URI from default cluster %s", clusterName)
+		for _, c := range clusterList {
+			if c.Name == clusterName {
+				clusterToUse = c
+				break
+			}
+		}
+		if clusterToUse == (config.ConfigCluster{}) {
+			return "", fmt.Errorf("default cluster %s not found", clusterName)
+		}
+		clusterConfig = clusterToUse.Cluster
+	} else if cmd.Flag("cluster").Changed {
+		// 2. Check --cluster (overrides "default-cluster").
+		clusterName = cmd.Flag("cluster").Value.String()
+		log.Logger.Debug().Msgf("reading URI from cluster %s passed from command line", clusterName)
+		for _, c := range clusterList {
+			if c.Name == clusterName {
+				clusterToUse = c
+				break
+			}
+		}
+		if clusterToUse == (config.ConfigCluster{}) {
+			return "", fmt.Errorf("cluster %s not found", clusterName)
+		}
 
-       return "", fmt.Errorf("no base-uri set bia --base-uri, --cluster, or config file")
+		clusterConfig = clusterToUse.Cluster
+	}
+	// 1. Check flags (--cluster-uri and/or --uri) and override any
+	// previously-set values while leaving unspecified ones alone.
+	if cmd.Flag("cluster-uri").Changed || (cmd.Flag("uri") != nil && cmd.Flag("uri").Changed) {
+		log.Logger.Debug().Msg("using base URI passed on command line")
+		ccc := config.ConfigClusterConfig{URI: cmd.Flag("cluster-uri").Value.String()}
+		switch serviceName {
+		case config.ServiceBSS:
+			ccc.BSS.URI = cmd.Flag("uri").Value.String()
+		case config.ServiceCloudInit:
+			ccc.CloudInit.URI = cmd.Flag("uri").Value.String()
+		case config.ServicePCS:
+			ccc.PCS.URI = cmd.Flag("uri").Value.String()
+		case config.ServiceSMD:
+			ccc.SMD.URI = cmd.Flag("uri").Value.String()
+		default:
+			return "", fmt.Errorf("unknown service %q specified when generating base URI", serviceName)
+		}
+		clusterConfig = clusterConfig.MergeURIConfig(ccc)
+	}
+
+	baseURI, err := clusterConfig.GetServiceBaseURI(serviceName)
+	if err != nil {
+		if strings.TrimSpace(clusterName) != "" {
+			err = fmt.Errorf("could not get %s base URI for cluster %s: %w", serviceName, clusterName, err)
+		} else {
+			err = fmt.Errorf("could not get %s base URI: %w", serviceName, err)
+		}
+	}
+
+	return baseURI, err
 }
 
 // setTokenFromEnvVar sets the access token for a cobra command cmd. If --token

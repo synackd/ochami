@@ -9,7 +9,6 @@ import (
 
 const (
 	serviceNamePCS = "PCS"
-	basePathPCS    = ""
 
 	PCSRelpathLiveness  = "/liveness"
 	PCSRelpathReadiness = "/readiness"
@@ -22,11 +21,11 @@ type PCSClient struct {
 	*client.OchamiClient
 }
 
-// NewClient takes a baseURI and basePath and returns a pointer to a new
-// PCSClient. If an error occurred creating the embedded OchamiClient, it is
-// returned. If insecure is true, TLS certificates will not be verified.
+// NewClient takes a baseURI and returns a pointer to a new PCSClient. If an
+// error occurred creating the embedded OchamiClient, it is returned. If
+// insecure is true, TLS certificates will not be verified.
 func NewClient(baseURI string, insecure bool) (*PCSClient, error) {
-	oc, err := client.NewOchamiClient(serviceNamePCS, baseURI, basePathPCS, insecure)
+	oc, err := client.NewOchamiClient(serviceNamePCS, baseURI, insecure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OchamiClient for %s: %w", serviceNamePCS, err)
 	}
