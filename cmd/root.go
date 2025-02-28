@@ -21,8 +21,7 @@ var (
 	logLevel   string
 	logFormat  string
 
-	// These are only used by 'bss' and 'smd' subcommands.
-	baseURI    string
+	// These are only used by subcommands.
 	cacertPath string
 	token      string
 	insecure   bool
@@ -33,7 +32,11 @@ var rootCmd = &cobra.Command{
 	Use:     config.ProgName,
 	Args:    cobra.NoArgs,
 	Short:   "Command line interface for interacting with OpenCHAMI services",
-	Long:    "",
+	Long: `Command line interface for interacting with OpenCHAMI services.
+
+See ochami(1) for more details on available commands.
+See ochami-config(1) for more details on how to configure ochami using the CLI.
+See ochami-config(5) for more details on configuring the ochami config file(s).`,
 	Version: version.Version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Ask the user in any child commands to create the config file
@@ -69,7 +72,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("log-format", "L", "", "log format (json,rfc3339,basic)")
 	rootCmd.PersistentFlags().StringP("log-level", "l", "", "set verbosity of logs (info,warning,debug)")
 	rootCmd.PersistentFlags().StringP("cluster", "C", "", "name of cluster whose config to use for this command")
-	rootCmd.PersistentFlags().StringVarP(&baseURI, "base-uri", "u", "", "base URI for OpenCHAMI services")
+	rootCmd.PersistentFlags().StringP("cluster-uri", "u", "", "base URI for OpenCHAMI services, excluding service base path (overrides cluster.uri in config file)")
 	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
 	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
@@ -77,5 +80,5 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&config.EarlyVerbose, "verbose", "v", false, "be verbose before logging is initialized")
 
 	// Either use cluster from config file or specify details on CLI
-	rootCmd.MarkFlagsMutuallyExclusive("cluster", "base-uri")
+	rootCmd.MarkFlagsMutuallyExclusive("cluster", "cluster-uri")
 }

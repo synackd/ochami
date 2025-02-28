@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
@@ -28,7 +29,7 @@ or vendor-data, respectively.`,
   ochami cloud-init data get --vendor compute`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		cloudInitbaseURI, err := getBaseURI(cmd)
+		cloudInitbaseURI, err := getBaseURI(cmd, config.ServiceCloudInit)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for cloud-init")
 			os.Exit(1)
