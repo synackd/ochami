@@ -3,7 +3,6 @@
 package cmd
 
 import (
-	"errors"
 	"os"
 	"strings"
 
@@ -15,6 +14,7 @@ import (
 // configSetCmd represents the config-set command
 var configSetCmd = &cobra.Command{
 	Use:   "set [--user | --system | --config <path>] <key> <value>",
+	Args:  cobra.ExactArgs(2),
 	Short: "Modify ochami CLI configuration",
 	Long: `Modify ochami CLI configuration. By default, this command modifies the user
 config file, which also occurs if --user is passed. If --system is passed,
@@ -27,23 +27,16 @@ This command does not handle cluster configs. For that, use the
   ochami config set --user log.format json
   ochami config set --system log.format json
   ochami --config ./test.yaml config set log.format json`,
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// To mark both persistent and regular flags mutually exclusive,
 		// this function must be run before the command is executed. It
 		// will not work in init(). This means that this needs to be
-		// presend in all child commands.
+		// present in all child commands.
 		cmd.MarkFlagsMutuallyExclusive("system", "user", "config")
+
+		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// Ensure we have 2 args
-		if len(args) == 0 {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		} else if len(args) != 2 {
-			log.Logger.Error().Msgf("expected 2 arguments (key, value) but got %s: %v", len(args), args)
-			os.Exit(1)
-		}
-
 		// We must have a config file in order to write config
 		var fileToModify string
 		if rootCmd.PersistentFlags().Lookup("config").Changed {
@@ -58,21 +51,42 @@ This command does not handle cluster configs. For that, use the
 			fileToModify = config.UserConfigFile
 		}
 
-		// Ask user to create file if it does not exist
-		if err := askToCreate(fileToModify); err != nil {
-			if errors.Is(err, UserDeclinedError) {
-				log.Logger.Info().Msgf("user declined creating config file %s, exiting")
-				os.Exit(0)
-			} else {
-				log.Logger.Error().Err(err).Msgf("failed to create %s")
+		// Ask to create file if it doesn't exist
+		if create, err := askToCreate(fileToModify); err != nil {
+			if err != FileExistsError {
+				log.Logger.Error().Err(err).Msg("error asking to create file")
 				os.Exit(1)
 			}
+		} else if create {
+			if err := createIfNotExists(fileToModify); err != nil {
+				log.Logger.Error().Err(err).Msg("error creating file")
+				os.Exit(1)
+			}
+		} else {
+			log.Logger.Error().Msg("user declined to create file, not modifying")
+			os.Exit(0)
 		}
 
 		// Refuse to modify config if user tries to modify cluster config
 		if strings.HasPrefix(args[0], "clusters") {
 			log.Logger.Error().Msg("`ochami config set` is meant for modifying general config, use `ochami config cluster set` for modifying cluster config")
 			os.Exit(1)
+		}
+
+		// Ask to create file if it doesn't exist.
+		if create, err := askToCreate(fileToModify); err != nil {
+			if err != FileExistsError {
+				log.Logger.Error().Err(err).Msg("error asking to create file")
+				os.Exit(1)
+			}
+		} else if create {
+			if err := createIfNotExists(fileToModify); err != nil {
+				log.Logger.Error().Err(err).Msg("error creating file")
+				os.Exit(1)
+			}
+		} else {
+			log.Logger.Error().Msg("user declined to create file, not modifying")
+			os.Exit(0)
 		}
 
 		// Perform modification

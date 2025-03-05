@@ -50,13 +50,16 @@ nodes:
       ip_addr: 192.168.0.1
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
 			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		smdBaseURI, err := getBaseURI(cmd)
 		if err != nil {

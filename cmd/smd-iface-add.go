@@ -33,7 +33,7 @@ This command sends a POST to SMD. An access token is required.`,
   ochami smd iface add -f payload.yaml --payload-format yaml
   echo '<json_data>' | ochami smd iface add -f -
   echo '<yaml_data>' | ochami smd iface add -f - --payload-format yaml`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
 		if len(args) == 0 && !cmd.Flag("payload").Changed {
 			printUsageHandleError(cmd)
@@ -43,6 +43,9 @@ This command sends a POST to SMD. An access token is required.`,
 			os.Exit(1)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		smdBaseURI, err := getBaseURI(cmd)
 		if err != nil {

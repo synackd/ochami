@@ -36,7 +36,7 @@ This command sends a PUT to BSS. An access token is required.`,
   ochami bss boot params set -f payload.yaml --payload-format yaml
   echo <json_data> | ochami bss boot params set -f -
   echo <yaml_data> | ochami bss boot params set -f - --payload-format yaml`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
 			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
@@ -45,6 +45,9 @@ This command sends a PUT to BSS. An access token is required.`,
 			os.Exit(0)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		bssBaseURI, err := getBaseURI(cmd)
 		if err != nil {
