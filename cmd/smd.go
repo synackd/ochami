@@ -5,7 +5,6 @@ package cmd
 import (
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
 )
 
@@ -14,18 +13,18 @@ var smdCmd = &cobra.Command{
 	Use:   "smd",
 	Args:  cobra.NoArgs,
 	Short: "Communicate with the State Management Database (SMD)",
+	Long: `Communicate with the State Management Database (SMD).
+
+See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 	},
 }
 
 func init() {
+	smdCmd.PersistentFlags().String("uri", "", "absolute base URI or relative base path of SMD")
 	rootCmd.AddCommand(smdCmd)
 }

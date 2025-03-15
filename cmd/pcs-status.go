@@ -3,17 +3,19 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
-	"github.com/spf13/cobra"
-	"net/http"
-	"strings"
-	"encoding/json"
-	"gopkg.in/yaml.v3"
 	"github.com/elliotchance/pie/v2"
+	"github.com/spf13/cobra"
 )
 
 // For now use this to map API name to names that make more sense for the CLI, in
@@ -21,10 +23,10 @@ import (
 // status for DistLocking (as the only implementation uses ETCD, so the status
 // is just duplicated) or the TaskRunner (as we only use the local implementation)
 type commandOutput struct {
-	Status         string `json:"pcs,omitempty"`
-	KvStore        string `json:"storage,omitempty"`
-	StateManager   string `json:"smd,omitempty"`
-	Vault          string `json:"vault,omitempty"`
+	Status       string `json:"pcs,omitempty"`
+	KvStore      string `json:"storage,omitempty"`
+	StateManager string `json:"smd,omitempty"`
+	Vault        string `json:"vault,omitempty"`
 }
 
 // format commandOutput as JSON or YAML
@@ -60,7 +62,7 @@ func getStatus(pcsClient *pcs.PCSClient) (string, error) {
 
 	// We are in the "ready" state
 	if httpEnv.StatusCode == http.StatusNoContent {
-		return  "ready", nil
+		return "ready", nil
 	}
 
 	// If we are not "ready" then check our "liveness"
@@ -83,11 +85,11 @@ func getStatus(pcsClient *pcs.PCSClient) (string, error) {
 
 // struct used to unmarshall /health endpoint response
 type healthOutput struct {
-	KvStore        string
-	DistLocking    string
-	StateManager   string
-	Vault          string
-	TaskRunner     string
+	KvStore      string
+	DistLocking  string
+	StateManager string
+	Vault        string
+	TaskRunner   string
 }
 
 // allowed flag for status command
@@ -99,18 +101,25 @@ func flags() []string {
 var pcsStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
-	Short: "Get status of PCS service",
+	Short: "Get status of Power Control Service (PCS)",
+	Long: `Get status of Power Control Service (PCS).
+
+See ochami-pcs(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		pcsBaseURI, err := getBaseURI(cmd)
+		pcsBaseURI, err := getBaseURIPCS(cmd)
 		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to get base URI for PCS")
+			log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		// Create client to make request to PCS
 		pcsClient, err := pcs.NewClient(pcsBaseURI, insecure)
 		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("error creating new PCS client")
+			log.Logger.Error().Err(err).Msg("error creating new PCS client")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		// Check if a CA certificate was passed and load it into client if valid
@@ -128,16 +137,20 @@ var pcsStatusCmd = &cobra.Command{
 			healthHttpEnv, err := pcsClient.GetHealth()
 			if err != nil {
 				if errors.Is(err, client.UnsuccessfulHTTPError) {
-					log.Logger.Fatal().Err(err).Msg("PCS status (health) request yielded unsuccessful HTTP response")
+					log.Logger.Error().Err(err).Msg("PCS status (health) request yielded unsuccessful HTTP response")
 				} else {
-					log.Logger.Fatal().Err(err).Msg("failed to get PCS status (health)")
+					log.Logger.Error().Err(err).Msg("failed to get PCS status (health)")
 				}
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			// Unmarshall the health
 			err = json.Unmarshal(healthHttpEnv.Body, &health)
 			if err != nil {
-				log.Logger.Fatal().Msg("failed to unmarshal health")
+				log.Logger.Error().Msg("failed to unmarshal health")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 		}
 
@@ -148,9 +161,9 @@ var pcsStatusCmd = &cobra.Command{
 		// endpoint response
 		if cmd.Flag("all").Changed {
 			output = commandOutput{
-				KvStore: health.KvStore,
+				KvStore:      health.KvStore,
 				StateManager: health.StateManager,
-				Vault: health.Vault,
+				Vault:        health.Vault,
 			}
 			reportPCSState = true
 		}
@@ -168,19 +181,25 @@ var pcsStatusCmd = &cobra.Command{
 		if reportPCSState {
 			pcsStatus, err := getStatus(pcsClient)
 			if err != nil {
-				log.Logger.Fatal().Err(err).Msg("failed to get PCS status")
+				log.Logger.Error().Err(err).Msg("failed to get PCS status")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			output.Status = pcsStatus
 		}
 
 		// Print output
-		outFmt, err := cmd.Flags().GetString("output-format")
+		outFmt, err := cmd.Flags().GetString("format-output")
 		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to get value for --output-format")
+			log.Logger.Fatal().Err(err).Msg("failed to get value for --format-output")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 		if outBytes, err := formatOutput(output, outFmt); err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to format output")
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
+			os.Exit(1)
 		} else {
 			fmt.Println(string(outBytes))
 		}
@@ -196,12 +215,12 @@ func init() {
 	// Mark "all" as mutally exusive of all the other flags
 	// First we need a list of flags without "all"
 	flags := pie.FilterNot(flags(), func(flag string) bool {
-        return flag == "all"
-    })
+		return flag == "all"
+	})
 	for i := 0; i < len(flags); i++ {
 		pcsStatusCmd.MarkFlagsMutuallyExclusive("all", flags[i])
 	}
 
-	pcsStatusCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
+	pcsStatusCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,yaml)")
 	pcsCmd.AddCommand(pcsStatusCmd)
 }

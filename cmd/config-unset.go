@@ -14,6 +14,7 @@ import (
 // configUnsetCmd represents the unset command
 var configUnsetCmd = &cobra.Command{
 	Use:   "unset [--user | --system | --config <path>] <key>",
+	Args:  cobra.ExactArgs(1),
 	Short: "Unset a key in ochami CLI configuration",
 	Long: `Unset a key in ochami CLI configuration. By default, this command modifies
 the user config file, which also occurs if --user is passed. If --system
@@ -21,33 +22,36 @@ is passed, this command edits the system configuration file. If --config
 is passed instead, this command edits the file at the path specified.
 
 This command does not handle cluster configs. For that, use the
-'ochami config cluster delete' command.`,
+'ochami config cluster delete' command.
+
+See ochami-config(1) for details on the config commands.
+See ochami-config(5) for details on the configuration options.`,
 	Example: `  ochami config unset log.format
   ochami config unset --user log.format
   ochami config unset --system log.format
   ochami --config ./test.yaml config unset log.format`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Ensure we have 1 args
-		if len(args) == 0 {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
-			os.Exit(0)
-		} else if len(args) != 1 {
-			log.Logger.Error().Msgf("expected 1 argument (key) but got %s: %v", len(args), args)
-			os.Exit(1)
-		}
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// It doesn't make sense to unset from a config file that
+		// doesn't exist, so err if the specified config file doesn't
+		// exist.
+		initConfigAndLogging(cmd, false)
 
+		return nil
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// To mark both persistent and regular flags mutually exclusive,
+		// this function must be run before the command is executed. It
+		// will not work in init(). This means that this needs to be
+		// present in all child commands.
+		cmd.MarkFlagsMutuallyExclusive("system", "user", "config")
+
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// We must have a config file in order to write config
 		var fileToModify string
-		if rootCmd.PersistentFlags().Lookup("config").Changed {
-			var err error
-			if fileToModify, err = rootCmd.PersistentFlags().GetString("config"); err != nil {
-				log.Logger.Error().Err(err).Msgf("unable to get value from --config flag")
-				os.Exit(1)
-			}
+		if rootCmd.Flags().Changed("config") {
+			fileToModify = configFile
 		} else if configCmd.PersistentFlags().Lookup("system").Changed {
 			fileToModify = config.SystemConfigFile
 		} else {
@@ -57,12 +61,14 @@ This command does not handle cluster configs. For that, use the
 		// Refuse to modify config if user tries to modify cluster config
 		if strings.HasPrefix(args[0], "clusters") {
 			log.Logger.Error().Msg("`ochami config unset` is meant for unsetting general config, use `ochami config cluster delete` for deleting cluster config")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
 		// Perform modification
 		if err := config.DeleteConfig(fileToModify, args[0]); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to modify config file")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 	},

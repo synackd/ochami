@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/citypes"
+	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
@@ -16,17 +17,16 @@ import (
 
 // cloudInitConfigAddCmd represents the cloud-init-config-add command
 var cloudInitConfigAddCmd = &cobra.Command{
-	Use:   "add (-f <payload_file> | -d <json_data>)",
+	Use:   "add (-d (<payload_data> | @<payload_file>))",
 	Args:  cobra.NoArgs,
 	Short: "Add one or more new cloud-init configs",
-	Long: `Add one or more new cloud-init configs. Either a payload file
-containing the data or the JSON data itself must be passed.
-Data is represented by a JSON array of cloud-init configs,
-even if only one is being passed. An alternative to using
--d would be to use -f and passing -, which will cause ochami
-to read the data from standard input.
+	Long: `Add one or more new cloud-init configs. Data is
+represented by a JSON array of cloud-init configs,
+even if only one is being passed.
 
-This command sends a POST to cloud-init.`,
+This command sends a POST to cloud-init.
+
+See ochami-cloud-init(1) for more details.`,
 	Example: `  ochami cloud-init config add -d \
     '[ \
        { \
@@ -46,15 +46,16 @@ This command sends a POST to cloud-init.`,
          } \
        } \
      ]'
-  ochami cloud-init config add -f payload.json
-  ochami cloud-init config add -f payload.yaml --payload-format yaml
-  echo '<json_data>' | ochami cloud-init config add -f -
-  echo '<yaml_data>' | ochami cloud-init config add -f - --payload-format yaml`,
+  ochami cloud-init config add -d @payload.json
+  ochami cloud-init config add -d @payload.yaml -f yaml
+  echo '<json_data>' | ochami cloud-init config add -d @-
+  echo '<yaml_data>' | ochami cloud-init config add -d @- -f yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		cloudInitBaseURI, err := getBaseURI(cmd)
+		cloudInitBaseURI, err := getBaseURI(cmd, config.ServiceCloudInit)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for cloud-init")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -66,6 +67,7 @@ This command sends a POST to cloud-init.`,
 		cloudInitClient, err := ci.NewClient(cloudInitBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -73,7 +75,7 @@ This command sends a POST to cloud-init.`,
 		useCACert(cloudInitClient.OchamiClient)
 
 		var ciData []citypes.CI
-		if cmd.Flag("payload").Changed {
+		if cmd.Flag("data").Changed {
 			// Use payload file if passed
 			handlePayload(cmd, &ciData)
 		} else if cmd.Flag("data").Changed {
@@ -81,11 +83,13 @@ This command sends a POST to cloud-init.`,
 			rawJSON, err := cmd.Flags().GetString("data")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to fetch json data")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 			err = json.Unmarshal([]byte(rawJSON), &ciData)
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to marshal json data")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -99,6 +103,7 @@ This command sends a POST to cloud-init.`,
 		}
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to add cloud-init configs")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		// Since cloudInitClient.Post* functions do the addition iteratively, we need to deal with
@@ -108,8 +113,10 @@ This command sends a POST to cloud-init.`,
 			if e != nil {
 				if errors.Is(err, client.UnsuccessfulHTTPError) {
 					log.Logger.Error().Err(e).Msg("cloud-init config request yielded unsuccessful HTTP response")
+					logHelpError(cmd)
 				} else {
 					log.Logger.Error().Err(e).Msg("failed to add config(s) to cloud-init")
+					logHelpError(cmd)
 				}
 				errorsOccurred = true
 			}
@@ -117,19 +124,17 @@ This command sends a POST to cloud-init.`,
 		// Warn the user if any errors occurred during addition iterations
 		if errorsOccurred {
 			log.Logger.Warn().Msg("cloud-init config addition completed with errors")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 	},
 }
 
 func init() {
-	cloudInitConfigAddCmd.Flags().StringP("data", "d", "", "raw JSON data to use as payload")
-	cloudInitConfigAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	cloudInitConfigAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	cloudInitConfigAddCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	cloudInitConfigAddCmd.Flags().StringP("format-input", "f", defaultInputFormat, "format of input payload data (json,yaml)")
 
-	cloudInitConfigAddCmd.MarkFlagsMutuallyExclusive("data", "payload")
-	cloudInitConfigAddCmd.MarkFlagsMutuallyExclusive("data", "payload-format")
-	cloudInitConfigAddCmd.MarkFlagsOneRequired("data", "payload")
+	cloudInitConfigAddCmd.MarkFlagsOneRequired("data")
 
 	cloudInitConfigCmd.AddCommand(cloudInitConfigAddCmd)
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
@@ -16,30 +17,24 @@ import (
 // cloudInitDataGetCmd represents the cloud-init-data-get command
 var cloudInitDataGetCmd = &cobra.Command{
 	Use:   "get [--user | --meta | --vendor] <id>...",
+	Args:  cobra.MinimumNArgs(1),
 	Short: "Get cloud-init data for an identifier",
 	Long: `Get cloud-init data for an identifier. By default, user-data is
 retrieved. This also occurs if --user is passed. --meta or
 --vendor can also be specified to fetch cloud-init meta-data
-or vendor-data, respectively.`,
+or vendor-data, respectively.
+
+See ochami-cloud-init(1) for more details.`,
 	Example: `  ochami cloud-init data get compute
   ochami cloud-init data get --user compute
   ochami cloud-init data get --meta compute
   ochami cloud-init data get --vendor compute`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// We need at least one ID to do anything
-		if len(args) == 0 {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
-			os.Exit(0)
-		}
-
 		// Without a base URI, we cannot do anything
-		cloudInitbaseURI, err := getBaseURI(cmd)
+		cloudInitbaseURI, err := getBaseURI(cmd, config.ServiceCloudInit)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for cloud-init")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -47,6 +42,7 @@ or vendor-data, respectively.`,
 		cloudInitClient, err := ci.NewClient(cloudInitbaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -79,6 +75,7 @@ or vendor-data, respectively.`,
 
 		if err != nil {
 			log.Logger.Error().Err(err).Msgf("failed to get %s from cloud-init", ciType)
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		// Since the cloud-init data get functions do the deletion
@@ -98,6 +95,7 @@ or vendor-data, respectively.`,
 		// Warn the user if any errors occurred during deletion iterations
 		if errorsOccurred {
 			log.Logger.Warn().Msgf("cloud-init %s get completed with errors", ciType)
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 

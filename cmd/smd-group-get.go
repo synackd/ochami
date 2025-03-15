@@ -19,6 +19,9 @@ var groupGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,
 	Short: "Get all groups or group(s) identified by name and/or tag",
+	Long: `Get all groups or group(s) identified by name and/or tag.
+
+See ochami-smd(1) for more details.`,
 	Example: `  ochami smd group get
   ochami smd group get --name group1
   ochami smd group get --tag group1_tag
@@ -28,9 +31,10 @@ var groupGetCmd = &cobra.Command{
   ochami smd group get --name group1 --name group2 --tag tag1 --tag tag2`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURI(cmd)
+		smdBaseURI, err := getBaseURISMD(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -42,6 +46,7 @@ var groupGetCmd = &cobra.Command{
 		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -56,6 +61,7 @@ var groupGetCmd = &cobra.Command{
 				s, err := cmd.Flags().GetStringSlice("name")
 				if err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch name list")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 				for _, n := range s {
@@ -66,6 +72,7 @@ var groupGetCmd = &cobra.Command{
 				s, err := cmd.Flags().GetStringSlice("tag")
 				if err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch tag list")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 				for _, t := range s {
@@ -81,17 +88,20 @@ var groupGetCmd = &cobra.Command{
 			} else {
 				log.Logger.Error().Err(err).Msg("failed to request groups from SMD")
 			}
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
 		// Print output
-		outFmt, err := cmd.Flags().GetString("output-format")
+		outFmt, err := cmd.Flags().GetString("format-output")
 		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			log.Logger.Error().Err(err).Msg("failed to get value for --format-output")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
 			os.Exit(1)
 		} else {
 			fmt.Printf(string(outBytes))
@@ -102,6 +112,6 @@ var groupGetCmd = &cobra.Command{
 func init() {
 	groupGetCmd.Flags().StringSlice("name", []string{}, "filter groups by name")
 	groupGetCmd.Flags().StringSlice("tag", []string{}, "filter groups by tag")
-	groupGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
+	groupGetCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,yaml)")
 	groupCmd.AddCommand(groupGetCmd)
 }

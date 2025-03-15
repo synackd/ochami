@@ -5,7 +5,6 @@ package cmd
 import (
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +15,12 @@ var cloudInitConfigCmd = &cobra.Command{
 	Short: "Manage cloud-init configurations for components",
 	Long: `Manage cloud-init configurations for components. This is a metacommand. Commands
 under this one interact with the cloud-init service and deal with
-cloud-init configurations.`,
+cloud-init configurations.
+
+See ochami-cloud-init(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 	},

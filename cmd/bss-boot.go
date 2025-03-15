@@ -5,7 +5,6 @@ package cmd
 import (
 	"os"
 
-	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
 )
 
@@ -15,14 +14,12 @@ var bootCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Manage boot configuration for components",
 	Long: `Manage boot configuration for components. This is a metacommand. Commands
-under this one interact with the Boot Script Service (BSS).`,
+under this one interact with the Boot Script Service (BSS).
+
+See ochami-bss(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 	},

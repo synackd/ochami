@@ -16,14 +16,14 @@ import (
 
 // discoverCmd represents the discover command
 var discoverCmd = &cobra.Command{
-	Use:   "discover -f <payload_file> [--payload-format <format>] [--overwrite]",
+	Use:   "discover (-d (<payload_data> | @<payload_file>)) [-f <format>] [--overwrite]",
 	Args:  cobra.NoArgs,
 	Short: "Populate SMD with data",
 	Long: `Populate SMD with data. Currently, this command performs "fake" discovery,
 whereby data from a payload file is used to create the SMD structures.
 In this way, the command does not perform dynamic discovery like Magellan,
-but statically populates SMD using a file. If - is used as the argument to
--f, the payload data is read from standard input.
+but statically populates SMD using a file. If @- is used as the argument to
+-d, the payload data is read from standard input.
 
 The format of the payload file is an array of node specifications. In YAML,
 each node entry would look something like:
@@ -49,22 +49,23 @@ nodes:
     - name: HSN
       ip_addr: 192.168.0.1
 
-`,
-	Run: func(cmd *cobra.Command, args []string) {
+
+See ochami-discover(1) for more details.`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
-		if len(args) == 0 && !cmd.Flag("payload").Changed {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+		if len(args) == 0 && !cmd.Flag("data").Changed {
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURI(cmd)
+		smdBaseURI, err := getBaseURISMD(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -76,6 +77,7 @@ nodes:
 		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -97,6 +99,7 @@ nodes:
 		comps, rfes, ifaces, err := discover.DiscoveryInfoV2(smdBaseURI, nodes)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to construct structures to send to SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		log.Logger.Debug().Msgf("generated redfish structures: %v", rfes.RedfishEndpoints)
@@ -429,6 +432,9 @@ nodes:
 
 		// Notify user if any request errors occurred
 		exitStatus := 0
+		if compErrorsOccurred || rfeErrorsOccurred || ifaceErrorsOccurred || groupErrorsOccurred {
+			logHelpError(cmd)
+		}
 		if compErrorsOccurred {
 			log.Logger.Warn().Msg("component requests completed with errors")
 			exitStatus = 1
@@ -450,11 +456,11 @@ nodes:
 }
 
 func init() {
-	discoverCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	discoverCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	discoverCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	discoverCmd.Flags().StringP("format-input", "f", defaultInputFormat, "format of input payload data (json,yaml)")
 	discoverCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
 
-	discoverCmd.MarkFlagRequired("payload")
+	discoverCmd.MarkFlagRequired("data")
 
 	rootCmd.AddCommand(discoverCmd)
 }

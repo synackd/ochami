@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
@@ -14,15 +15,19 @@ import (
 
 // cloudInitConfigDeleteCmd represents the cloud-init-config-delete command
 var cloudInitConfigDeleteCmd = &cobra.Command{
-	Use:     "delete <id>...",
-	Args:    cobra.MinimumNArgs(1),
-	Short:   "Delete one or more cloud-init configs",
+	Use:   "delete <id>...",
+	Args:  cobra.MinimumNArgs(1),
+	Short: "Delete one or more cloud-init configs",
+	Long: `Delete one or more cloud-init configs.
+
+See ochami-cloud-init(1) for more details.`,
 	Example: `  ochami cloud-init config delete compute`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		cloudInitBaseURI, err := getBaseURI(cmd)
+		cloudInitBaseURI, err := getBaseURI(cmd, config.ServiceCloudInit)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for cloud-init")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -34,6 +39,7 @@ var cloudInitConfigDeleteCmd = &cobra.Command{
 		cloudInitClient, err := ci.NewClient(cloudInitBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new cloud-init client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -61,6 +67,7 @@ var cloudInitConfigDeleteCmd = &cobra.Command{
 		}
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to delete cloud-init configs")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		// Since cloudInitClient.Delete* functions do the deletion iteratively, we need to deal with
@@ -79,6 +86,7 @@ var cloudInitConfigDeleteCmd = &cobra.Command{
 		// Warn the user if any errors occurred during deletion iterations
 		if errorsOccurred {
 			log.Logger.Warn().Msg("cloud-init config deletion completed with errors")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 	},

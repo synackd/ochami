@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
@@ -15,37 +16,62 @@ import (
 
 // rfeAddCmd represents the smd-rfe-add command
 var rfeAddCmd = &cobra.Command{
-	Use:   "add -f <payload_file> | (<xname> <name> <ip_addr> <mac_addr>)",
+	Use:   "add (-d (<payload_data> | @<payload_file>)) | (<xname> <name> <ip_addr> <mac_addr>)",
+	Args:  cobra.MaximumNArgs(4),
 	Short: "Add new redfish endpoint(s)",
-	Long: `Add new redfish endpoint(s). An xname, name, IP address, and MAC address are required
-unless -f is passed to read from a payload file. Specifying -f also is
-mutually exclusive with the other flags of this command and its arguments.
-If - is used as the argument to -f, the data is read from standard input.
+	Long: `Add new redfish endpoint(s). An xname, name, IP address, and MAC
+address are required. Alternatively, pass -d to pass raw
+payload data or (if flag argument starts with @) a file
+containing the payload data. -f can be specified to change
+the format of the input payload data ('json' by default),
+but the rules above still apply for the payload. If "-" is
+used as the input payload filename, the data is read from
+standard input.
 
-This command sends a POST to SMD. An access token is required.`,
-	Example: `  ochami smd rfe add x3000c1s7b56 bmc-node56 172.16.0.156 de:ca:fc:0f:fe:ee
-  ochami smd rfe add -f payload.json
-  ochami smd rfe add -f payload.yaml --payload-format yaml
-  echo '<json_data>' | ochami smd rfe add -f -
-  echo '<yaml_data>' | ochami smd rfe add -f - --payload-format yaml`,
-	Run: func(cmd *cobra.Command, args []string) {
+This command sends a POST to SMD. An access token is required.
+
+See ochami-smd(1) for more details.`,
+	Example: `  # Add redfish endpoint using CLI flags
+  ochami smd rfe add x3000c1s7b56 bmc-node56 172.16.0.156 de:ca:fc:0f:fe:ee
+
+  # Add redfish endpoints using input payload data
+  ochami smd rfe add -d '{
+    "RedfishEndpoints": [
+      {
+        "ID": "x3000c1s7b56",
+	"Type": "NodeBMC",
+	"Name": "bmc-node56",
+	"IPAddress": "172.16.0.156",
+	"MACAddr": "de:ca:fc:0f:fe:ee",
+	"Enabled": true
+      }
+    ]
+  }'
+
+  # Add redfish endpoints using input payload file
+  ochami smd rfe add -f @payload.json
+  ochami smd rfe add -f @payload.yaml -f yaml
+
+  # Add redfish endpoints using data from standard input
+  echo '<json_data>' | ochami smd rfe add -d @-
+  echo '<yaml_data>' | ochami smd rfe add -d @- -f yaml`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
-		if len(args) == 0 && !cmd.Flag("payload").Changed {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+		if len(args) == 0 && !cmd.Flag("data").Changed {
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		} else if len(args) > 4 {
-			log.Logger.Error().Msgf("expected 4 arguments (xname, name, ip_addr, mac_addr) but got %d: %v", len(args), args)
-			os.Exit(1)
+			return fmt.Errorf("expected 4 arguments (xname, name, ip_addr, mac_addr) but got %d: %v", len(args), args)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURI(cmd)
+		smdBaseURI, err := getBaseURISMD(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -57,6 +83,7 @@ This command sends a POST to SMD. An access token is required.`,
 		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -64,7 +91,7 @@ This command sends a POST to SMD. An access token is required.`,
 		useCACert(smdClient.OchamiClient)
 
 		var rfes smd.RedfishEndpointSlice
-		if cmd.Flag("payload").Changed {
+		if cmd.Flag("data").Changed {
 			// Use payload file if passed
 			handlePayload(cmd, &rfes.RedfishEndpoints)
 		} else {
@@ -78,24 +105,28 @@ This command sends a POST to SMD. An access token is required.`,
 			if cmd.Flag("domain").Changed {
 				if rfe.Domain, err = cmd.Flags().GetString("domain"); err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch domain")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 			}
 			if cmd.Flag("hostname").Changed {
 				if rfe.Hostname, err = cmd.Flags().GetString("hostname"); err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch hostname")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 			}
 			if cmd.Flag("username").Changed {
 				if rfe.User, err = cmd.Flags().GetString("username"); err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch username")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 			}
 			if cmd.Flag("password").Changed {
 				if rfe.Password, err = cmd.Flags().GetString("password"); err != nil {
 					log.Logger.Error().Err(err).Msg("unable to fetch password")
+					logHelpError(cmd)
 					os.Exit(1)
 				}
 			}
@@ -106,6 +137,7 @@ This command sends a POST to SMD. An access token is required.`,
 		_, errs, err := smdClient.PostRedfishEndpoints(rfes, token)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to add redfish endpoint in SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		// Since smdClient.PostRedfishEndpoints does the addition iteratively, we need to deal with
@@ -122,6 +154,7 @@ This command sends a POST to SMD. An access token is required.`,
 			}
 		}
 		if errorsOccurred {
+			logHelpError(cmd)
 			log.Logger.Warn().Msg("SMD redfish endpoint addition completed with errors")
 			os.Exit(1)
 		}
@@ -133,13 +166,13 @@ func init() {
 	rfeAddCmd.Flags().String("hostname", "", "hostname of redfish endpoint's FQDN")
 	rfeAddCmd.Flags().String("username", "", "username to use when interrogating endpoint")
 	rfeAddCmd.Flags().String("password", "", "password to use when interrogating endpoint")
-	rfeAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	rfeAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	rfeAddCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	rfeAddCmd.Flags().StringP("format-input", "f", defaultInputFormat, "format of input payload data (json,yaml)")
 
-	rfeAddCmd.MarkFlagsMutuallyExclusive("domain", "payload")
-	rfeAddCmd.MarkFlagsMutuallyExclusive("hostname", "payload")
-	rfeAddCmd.MarkFlagsMutuallyExclusive("username", "payload")
-	rfeAddCmd.MarkFlagsMutuallyExclusive("password", "payload")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("domain", "data")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("hostname", "data")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("username", "data")
+	rfeAddCmd.MarkFlagsMutuallyExclusive("password", "data")
 
 	rfeCmd.AddCommand(rfeAddCmd)
 }

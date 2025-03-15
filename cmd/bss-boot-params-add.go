@@ -20,39 +20,51 @@ var bootParamsAddCmd = &cobra.Command{
 	Short: "Add new boot parameters for one or more components",
 	Long: `Add new boot parameters for one or more components. At least one of --kernel,
 --initrd, or --params must be specified as well as at least one of --xname,
---mac, or --nid. Alternatively, pass -f to pass a file (optionally specifying
---payload-format, JSON by default), but the rules above still apply for the
-payload. If the specified file path is -, the data is read from standard input.
+--mac, or --nid. Alternatively, pass -d to pass raw payload data or (if
+flag argument starts with @) a file containing the payload data. -f can
+be specified to change the format of the input payload data ('json' by
+default), but the rules above still apply for the payload. If "-" is used
+as the input payload filename, the data is read from standard input.
 
-This command sends a POST to BSS. An access token is required.`,
-	Example: `  ochami bss boot params add \
+This command sends a POST to BSS. An access token is required.
+
+See ochami-bss(1) for more details.`,
+	Example: `  # Add boot parameters using CLI flags
+  ochami bss boot params add \
     --mac 00:de:ad:be:ef:00 \
     --kernel https://example.com/kernel \
     --initrd https://example.com/initrd \
     --params 'quiet nosplash'
   ochami bss boot params add --mac 00:de:ad:be:ef:00,00:c0:ff:ee:00:00 --params 'quiet nosplash'
   ochami bss boot params add --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00 --kernel https://example.com/kernel
-  ochami bss boot params add -f payload.json
-  ochami bss boot params add -f payload.yaml --payload-format yaml
-  echo '<json_data>' | ochami bss boot params add -f -
-  echo '<yaml_data>' | ochami bss boot params add -f - --payload-format yaml`,
-	Run: func(cmd *cobra.Command, args []string) {
+
+  # Add boot parameters using input payload data
+  ochami bss boot params add -d '{"macs":["00:de:ad:be:ef:00"],"kernel":"https://example.com/kernel"}'
+
+  # Add boot parameters using input payload file
+  ochami bss boot params add -d @payload.json
+  ochami bss boot params add -d @payload.yaml -f yaml
+
+  # Add boot parameters using data from standard input
+  echo '<json_data>' | ochami bss boot params add -d @-
+  echo '<yaml_data>' | ochami bss boot params add -d @- -f yaml`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
 		if len(args) == 0 &&
 			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
-			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("payload").Changed {
-			err := cmd.Usage()
-			if err != nil {
-				log.Logger.Error().Err(err).Msg("failed to print usage")
-				os.Exit(1)
-			}
+			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("data").Changed {
+			printUsageHandleError(cmd)
 			os.Exit(0)
 		}
 
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		bssBaseURI, err := getBaseURI(cmd)
+		bssBaseURI, err := getBaseURIBSS(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -64,6 +76,7 @@ This command sends a POST to BSS. An access token is required.`,
 		bssClient, err := bss.NewClient(bssBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new BSS client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -81,6 +94,7 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Hosts, err = cmd.Flags().GetStringSlice("xname")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch xname list")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -88,10 +102,12 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Macs, err = cmd.Flags().GetStringSlice("mac")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch mac list")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 			if err = bp.CheckMacs(); err != nil {
 				log.Logger.Error().Err(err).Msg("invalid mac(s)")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -99,6 +115,7 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Nids, err = cmd.Flags().GetInt32Slice("nid")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch nid list")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -108,6 +125,7 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Kernel, err = cmd.Flags().GetString("kernel")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch kernel uri")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -115,6 +133,7 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Initrd, err = cmd.Flags().GetString("initrd")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch initrd uri")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -122,6 +141,7 @@ This command sends a POST to BSS. An access token is required.`,
 			bp.Params, err = cmd.Flags().GetString("params")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("unable to fetch params")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 		}
@@ -134,6 +154,7 @@ This command sends a POST to BSS. An access token is required.`,
 			} else {
 				log.Logger.Error().Err(err).Msg("failed to add boot parameters to BSS")
 			}
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 	},
@@ -146,11 +167,11 @@ func init() {
 	bootParamsAddCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to add")
 	bootParamsAddCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to add")
 	bootParamsAddCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to add")
-	bootParamsAddCmd.Flags().StringP("payload", "f", "", "file containing the request payload; JSON format unless --payload-format specified")
-	bootParamsAddCmd.Flags().StringP("payload-format", "F", defaultPayloadFormat, "format of payload file (yaml,json) passed with --payload")
+	bootParamsAddCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	bootParamsAddCmd.Flags().StringP("format-input", "f", defaultInputFormat, "format of input payload data (json,yaml)")
 
-	bootParamsAddCmd.MarkFlagsOneRequired("xname", "mac", "nid", "payload")
-	bootParamsAddCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "payload")
+	bootParamsAddCmd.MarkFlagsOneRequired("xname", "mac", "nid", "data")
+	bootParamsAddCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "data")
 
 	bootParamsCmd.AddCommand(bootParamsAddCmd)
 }

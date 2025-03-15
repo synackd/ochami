@@ -18,11 +18,15 @@ var componentGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,
 	Short: "Get all components or component identified by an xname or node ID",
+	Long: `Get all components or component by an xname or node ID.
+
+See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURI(cmd)
+		smdBaseURI, err := getBaseURISMD(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -30,6 +34,7 @@ var componentGetCmd = &cobra.Command{
 		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -52,6 +57,7 @@ var componentGetCmd = &cobra.Command{
 			nid, err = cmd.Flags().GetInt32("nid")
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("error getting nid from flag")
+				logHelpError(cmd)
 				os.Exit(1)
 			}
 			httpEnv, err = smdClient.GetComponentsNid(nid, token)
@@ -68,13 +74,15 @@ var componentGetCmd = &cobra.Command{
 		}
 
 		// Print output
-		outFmt, err := cmd.Flags().GetString("output-format")
+		outFmt, err := cmd.Flags().GetString("format-output")
 		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			log.Logger.Error().Err(err).Msg("failed to get value for --format-output")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
 			os.Exit(1)
 		} else {
 			fmt.Printf(string(outBytes))
@@ -85,7 +93,7 @@ var componentGetCmd = &cobra.Command{
 func init() {
 	componentGetCmd.Flags().StringP("xname", "x", "", "xname whose Component to fetch")
 	componentGetCmd.Flags().Int32P("nid", "n", 0, "node ID whose Component to fetch")
-	componentGetCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
+	componentGetCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,yaml)")
 
 	componentGetCmd.MarkFlagsMutuallyExclusive("xname", "nid")
 

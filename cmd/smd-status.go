@@ -17,12 +17,16 @@ import (
 var smdStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
-	Short: "Get status of SMD service",
+	Short: "Get status of the State Management Database (SMD)",
+	Long: `Get status of the State Management Database (SMD).
+
+See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURI(cmd)
+		smdBaseURI, err := getBaseURISMD(cmd)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -30,6 +34,7 @@ var smdStatusCmd = &cobra.Command{
 		smdClient, err := smd.NewClient(smdBaseURI, insecure)
 		if err != nil {
 			log.Logger.Error().Err(err).Msg("error creating new SMD client")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
@@ -49,17 +54,20 @@ var smdStatusCmd = &cobra.Command{
 			} else {
 				log.Logger.Error().Err(err).Msg("failed to get SMD status")
 			}
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 
 		// Print output
-		outFmt, err := cmd.Flags().GetString("output-format")
+		outFmt, err := cmd.Flags().GetString("format-output")
 		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get value for --output-format")
+			log.Logger.Error().Err(err).Msg("failed to get value for --format-output")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
 		if outBytes, err := client.FormatBody(httpEnv.Body, outFmt); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
 			os.Exit(1)
 		} else {
 			fmt.Printf(string(outBytes))
@@ -70,6 +78,6 @@ var smdStatusCmd = &cobra.Command{
 func init() {
 	smdStatusCmd.Flags().Bool("all", false, "print all status data from SMD")
 
-	smdStatusCmd.Flags().StringP("output-format", "F", defaultOutputFormat, "format of output printed to standard output")
+	smdStatusCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,yaml)")
 	smdCmd.AddCommand(smdStatusCmd)
 }
