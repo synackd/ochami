@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/internal/utils"
+	"github.com/OpenCHAMI/ochami/pkg/format"
 	"io"
 	"net/http"
 )
@@ -108,13 +108,13 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 // FormatBody takes an HTTPBody and marshals it into the format specified,
 // returning the resulting bytes. If an error occurs during
 // marshalling/unmarshalling or the format is unsupported, an error occurs.
-func FormatBody(body HTTPBody, format string) ([]byte, error) {
+func FormatBody(body HTTPBody, outFormat string) ([]byte, error) {
 	var jmap interface{}
 	if err := json.Unmarshal(body, &jmap); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
 	}
 
-	return utils.FormatOutput(jmap, format)
+	return format.FormatData(jmap, outFormat)
 }
 
 func (he HTTPEnvelope) CheckResponse() error {

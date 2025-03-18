@@ -13,9 +13,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/internal/utils"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
+	"github.com/OpenCHAMI/ochami/pkg/format"
 )
 
 const (
@@ -183,7 +183,7 @@ See ochami-pcs(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		}
-		if outBytes, err := utils.FormatOutput(output, outFmt); err != nil {
+		if outBytes, err := format.FormatData(output, outFmt); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
 			logHelpError(cmd)
 			os.Exit(1)

@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/internal/utils"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
+	"github.com/OpenCHAMI/ochami/pkg/format"
 )
 
 // pcsTransitionAbortCmd represents the "pcs transition abort" command
@@ -72,7 +72,7 @@ See ochami-pcs(1) for more details.`,
 			log.Logger.Fatal().Err(err).Msg("failed to get value for --format-output")
 		}
 
-		if outBytes, err := utils.FormatOutput(output, outFmt); err != nil {
+		if outBytes, err := format.FormatData(output, outFmt); err != nil {
 			log.Logger.Fatal().Err(err).Msg("failed to format output")
 		} else {
 			fmt.Println(string(outBytes))
