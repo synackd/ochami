@@ -3,7 +3,10 @@
 package pcs
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
+
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
@@ -13,6 +16,7 @@ const (
 	PCSRelpathLiveness  = "/liveness"
 	PCSRelpathReadiness = "/readiness"
 	PCSRelpathHealth    = "/health"
+	PCSTransitions      = "/transitions"
 )
 
 // PCSClient is an OchamiClient that has its BasePath set configured to the one
@@ -79,6 +83,115 @@ func (pc *PCSClient) GetHealth() (client.HTTPEnvelope, error) {
 	henv, err = pc.GetData(PCSRelpathHealth, "", nil)
 	if err != nil {
 		err = fmt.Errorf("GetHealth(): error getting PCS health: %w", err)
+	}
+
+	return henv, err
+}
+
+type transitionBody struct {
+	Operation    string          `json:"operation"`
+	TaskDeadline *int            `json:"taskDeadlineMinutes"`
+	Location     []locationEntry `json:"location"`
+}
+
+type locationEntry struct {
+	Xname string `json:"xname"`
+}
+
+// CreateTransition is a wrapper function around OchamiClient.PostData to
+// hit the /transitions endpoint
+func (pc *PCSClient) CreateTransition(operation string, taskDeadline *int, xnames []string) (client.HTTPEnvelope, error) {
+	var henv client.HTTPEnvelope
+
+	// Create the request body
+	location := []locationEntry{}
+	for i := 0; i < len(xnames); i++ {
+		location = append(location, locationEntry{Xname: xnames[i]})
+	}
+
+	body := transitionBody{
+		Operation:    operation,
+		TaskDeadline: taskDeadline,
+		Location:     location,
+	}
+
+	// Marshal the transition body
+	bytes, err := json.Marshal(body)
+	if err != nil {
+		return henv, fmt.Errorf("CreateTransition(): failed to marshal body into JSON: %w", err)
+	}
+
+	// Now create the HTTPBody
+	httpBody, err := client.BytesToHTTPBody(bytes, "json")
+	if err != nil {
+		return henv, fmt.Errorf("CreateTransition(): failed to create HTTPBody: %w", err)
+	}
+
+	henv, err = pc.PostData(PCSTransitions, "", nil, httpBody)
+	if err != nil {
+		err = fmt.Errorf("CreateTransition(): error creating PCS health: %w", err)
+	}
+
+	return henv, err
+}
+
+// GetTransitions is a wrapper function around OchamiClient.GetData to
+// hit the /transitions endpoint
+func (pc *PCSClient) GetTransitions() (client.HTTPEnvelope, error) {
+	var (
+		henv client.HTTPEnvelope
+		err  error
+	)
+
+	henv, err = pc.GetData(PCSTransitions, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetTransitions(): error getting PCS transitions: %w", err)
+	}
+
+	return henv, err
+}
+
+// GetTransitions is a wrapper function around OchamiClient.GetData to
+// hit the /transitions/{transitionID} endpoint
+func (pc *PCSClient) GetTransition(id string) (client.HTTPEnvelope, error) {
+	var (
+		henv                   client.HTTPEnvelope
+		err                    error
+		pcsTransitionsEndpoint string
+	)
+
+	pcsTransitionsEndpoint, err = url.JoinPath(PCSTransitions, id)
+	if err != nil {
+		err = fmt.Errorf("GetTransition(): error joining PCS transitions endpoint: %w", err)
+		return henv, err
+	}
+
+	henv, err = pc.GetData(pcsTransitionsEndpoint, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetTransition(): error getting PCS transition: %w", err)
+	}
+
+	return henv, err
+}
+
+// DeleteTransitions is a wrapper function around OchamiClient.DeleteData to
+// hit the /transitions/{transitionID} endpoint
+func (pc *PCSClient) DeleteTransition(id string) (client.HTTPEnvelope, error) {
+	var (
+		henv                  client.HTTPEnvelope
+		err                   error
+		pcsTransitionEndpoint string
+	)
+
+	pcsTransitionEndpoint, err = url.JoinPath(PCSTransitions, id)
+	if err != nil {
+		err = fmt.Errorf("DeleteTransition(): error joining PCS transition endpoint: %w", err)
+		return henv, err
+	}
+
+	henv, err = pc.DeleteData(pcsTransitionEndpoint, "", nil, nil)
+	if err != nil {
+		err = fmt.Errorf("DeleteTransition(): error deleting PCS transition: %w", err)
 	}
 
 	return henv, err

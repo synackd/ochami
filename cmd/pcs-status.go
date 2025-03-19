@@ -6,16 +6,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"net/http"
 	"os"
-	"strings"
+
+	"github.com/elliotchance/pie/v2"
+	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
-	"github.com/elliotchance/pie/v2"
-	"github.com/spf13/cobra"
+	"github.com/OpenCHAMI/ochami/pkg/format"
+)
+
+const (
+	pcsReadyStatus = "ready"
+	pcsLiveStatus  = "live"
 )
 
 // For now use this to map API name to names that make more sense for the CLI, in
@@ -27,26 +32,6 @@ type commandOutput struct {
 	KvStore      string `json:"storage,omitempty"`
 	StateManager string `json:"smd,omitempty"`
 	Vault        string `json:"vault,omitempty"`
-}
-
-// format commandOutput as JSON or YAML
-func formatOutput(output commandOutput, format string) ([]byte, error) {
-	switch strings.ToLower(format) {
-	case "json":
-		if bytes, err := json.Marshal(output); err != nil {
-			return nil, fmt.Errorf("failed to marshal output into JSON: %w", err)
-		} else {
-			return bytes, nil
-		}
-	case "yaml":
-		if bytes, err := yaml.Marshal(output); err != nil {
-			return nil, fmt.Errorf("failed to marshal output into YAML: %w", err)
-		} else {
-			return bytes, nil
-		}
-	default:
-		return nil, fmt.Errorf("unknown output format: %s", format)
-	}
 }
 
 // Get the status of PCS either "live" or "ready"
@@ -62,7 +47,7 @@ func getStatus(pcsClient *pcs.PCSClient) (string, error) {
 
 	// We are in the "ready" state
 	if httpEnv.StatusCode == http.StatusNoContent {
-		return "ready", nil
+		return pcsReadyStatus, nil
 	}
 
 	// If we are not "ready" then check our "liveness"
@@ -77,7 +62,7 @@ func getStatus(pcsClient *pcs.PCSClient) (string, error) {
 
 	// We are in the "live" status
 	if httpEnv.StatusCode == http.StatusNoContent {
-		return "live", nil
+		return pcsLiveStatus, nil
 	} else {
 		return "", errors.New("unable to get PCS state")
 	}
@@ -105,6 +90,8 @@ var pcsStatusCmd = &cobra.Command{
 	Long: `Get status of Power Control Service (PCS).
 
 See ochami-pcs(1) for more details.`,
+	Example: `  # Get status of PCS
+  ochami pcs status`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Without a base URI, we cannot do anything
 		pcsBaseURI, err := getBaseURIPCS(cmd)
@@ -196,7 +183,7 @@ See ochami-pcs(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		}
-		if outBytes, err := formatOutput(output, outFmt); err != nil {
+		if outBytes, err := format.FormatData(output, outFmt); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
 			logHelpError(cmd)
 			os.Exit(1)
@@ -221,6 +208,6 @@ func init() {
 		pcsStatusCmd.MarkFlagsMutuallyExclusive("all", flags[i])
 	}
 
-	pcsStatusCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,yaml)")
+	pcsStatusCmd.Flags().StringP("format-output", "F", defaultOutputFormat, "format of output printed to standard output (json,json-pretty,yaml)")
 	pcsCmd.AddCommand(pcsStatusCmd)
 }
