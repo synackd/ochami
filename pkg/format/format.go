@@ -47,11 +47,11 @@ func (df DataFormat) Type() string {
 	return "DataFormat"
 }
 
-// FormatData marshals arbitrary data into a byte slice formatted as outFormat.
-// If a marshalling error occurrs or outFormat is unknown, an error is returned.
+// MarshalData marshals arbitrary data into a byte slice formatted as outFormat.
+// If a marshalling error occurs or outFormat is unknown, an error is returned.
 //
 // Supported values are: json, json-pretty, yaml
-func FormatData(data interface{}, outFormat DataFormat) ([]byte, error) {
+func MarshalData(data interface{}, outFormat DataFormat) ([]byte, error) {
 	switch outFormat {
 	case DataFormatJson:
 		if bytes, err := json.Marshal(data); err != nil {
@@ -74,4 +74,26 @@ func FormatData(data interface{}, outFormat DataFormat) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unknown data format: %s", outFormat)
 	}
+}
+
+// UnmarshalData unmarshals a byte slice formatted as inFormat into an interface
+// v. If an unmarshalling error occurs or inFormat is unknown, an error is
+// returned.
+//
+// Supported values are: json, json-pretty, yaml
+func UnmarshalData(data []byte, v interface{}, inFormat DataFormat) error {
+	switch inFormat {
+	case DataFormatJson, DataFormatJsonPretty:
+		if err := json.Unmarshal(data, v); err != nil {
+			return fmt.Errorf("failed to unmarshal data into JSON: %w", err)
+		}
+	case DataFormatYaml:
+		if err := yaml.Unmarshal(data, v); err != nil {
+			return fmt.Errorf("failed to unmarshal data into YAML: %w", err)
+		}
+	default:
+		return fmt.Errorf("unknown data format: %s", inFormat)
+	}
+
+	return nil
 }

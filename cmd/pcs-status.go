@@ -177,7 +177,7 @@ See ochami-pcs(1) for more details.`,
 		}
 
 		// Print output
-		if outBytes, err := format.FormatData(output, formatOutput); err != nil {
+		if outBytes, err := format.MarshalData(output, formatOutput); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to format output")
 			logHelpError(cmd)
 			os.Exit(1)
