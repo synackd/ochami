@@ -114,7 +114,7 @@ func FormatBody(body HTTPBody, outFormat format.DataFormat) ([]byte, error) {
 		return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
 	}
 
-	return format.FormatData(jmap, outFormat)
+	return format.MarshalData(jmap, outFormat)
 }
 
 func (he HTTPEnvelope) CheckResponse() error {

@@ -353,7 +353,13 @@ func BytesToHTTPBody(data []byte, inFormat format.DataFormat) (HTTPBody, error) 
 		return nil, fmt.Errorf("byte slice is empty")
 	}
 
-	b, err := format.FormatData(data, inFormat)
+	var v interface{}
+	if err := format.UnmarshalData(data, &v, inFormat); err != nil {
+		return nil, fmt.Errorf("failed for convert bytes to HTTP body: %w", err)
+	}
+
+	b, err := format.MarshalData(v, format.DataFormatJson)
+
 	return HTTPBody(b), err
 }
 
@@ -372,7 +378,7 @@ func FileToHTTPBody(path string, inFormat format.DataFormat) (HTTPBody, error) {
 		return nil, fmt.Errorf("failed to read file %q: %w", path, err)
 	}
 
-	b, err := format.FormatData(contents, inFormat)
+	b, err := format.MarshalData(contents, inFormat)
 	return HTTPBody(b), err
 }
 
