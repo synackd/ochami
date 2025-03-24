@@ -125,8 +125,9 @@ See ochami-cloud-init(1) for more details.`,
 
 func init() {
 	cloudInitConfigUpdateCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
-	cloudInitConfigUpdateCmd.Flags().StringP("format-input", "f", defaultInputFormat, "format of input payload data (json,yaml)")
+	cloudInitConfigUpdateCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,yaml)")
 
+	cloudInitConfigUpdateCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
 	cloudInitConfigUpdateCmd.MarkFlagsOneRequired("data")
 
 	cloudInitConfigCmd.AddCommand(cloudInitConfigUpdateCmd)
