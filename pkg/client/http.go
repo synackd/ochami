@@ -108,13 +108,13 @@ func NewHTTPEnvelopeFromResponse(res *http.Response) (HTTPEnvelope, error) {
 // FormatBody takes an HTTPBody and marshals it into the format specified,
 // returning the resulting bytes. If an error occurs during
 // marshalling/unmarshalling or the format is unsupported, an error occurs.
-func FormatBody(body HTTPBody, outFormat string) ([]byte, error) {
+func FormatBody(body HTTPBody, outFormat format.DataFormat) ([]byte, error) {
 	var jmap interface{}
 	if err := json.Unmarshal(body, &jmap); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal HTTP body: %w", err)
 	}
 
-	return format.FormatData(jmap, outFormat)
+	return format.MarshalData(jmap, outFormat)
 }
 
 func (he HTTPEnvelope) CheckResponse() error {

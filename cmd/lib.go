@@ -16,6 +16,7 @@ import (
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/format"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cobra"
 )
@@ -392,14 +393,12 @@ func setTokenFromEnvVar(cmd *cobra.Command) {
 	logHelpError(cmd)
 }
 
-// handlePayload unmarshals a payload file into v for command cmd if --data
-// and, optionally, --format-input, are passed.
+// handlePayload unmarshals raw data or data from a payload file into v for
+// command cmd if --data and, optionally, --format-input, are passed.
 func handlePayload(cmd *cobra.Command, v any) {
 	if cmd.Flag("data").Changed {
 		data := cmd.Flag("data").Value.String()
-		dFormat := cmd.Flag("format-input").Value.String()
-		err := client.ReadPayload(data, dFormat, v)
-		if err != nil {
+		if err := client.ReadPayload(data, formatInput, v); err != nil {
 			log.Logger.Error().Err(err).Msg("unable to read payload data or file")
 			logHelpError(cmd)
 			os.Exit(1)
@@ -430,4 +429,14 @@ func logHelpError(cmd *cobra.Command) {
 // command invocation without flags or arguments is printed in the message.
 func logHelpWarn(cmd *cobra.Command) {
 	log.Logger.Warn().Msgf("see '%s --help' for long command help", cmd.CommandPath())
+}
+
+// completionFormatData is the cobra completion function for any flag that uses
+// the format.DataFormat type.
+func completionFormatData(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var helpSlice []string
+	for k, v := range format.DataFormatHelp {
+		helpSlice = append(helpSlice, fmt.Sprintf("%s\t%s", k, v))
+	}
+	return helpSlice, cobra.ShellCompDirectiveDefault
 }
