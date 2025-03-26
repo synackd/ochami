@@ -12,13 +12,33 @@
 package cmdline
 
 import (
+	"fmt"
 	"strings"
 )
 
+type paramItem struct {
+	param Param
+	next  *paramItem
+	prev  *paramItem
+}
+
+type Param struct {
+	CanonicalKey string
+	Key          string
+	Raw          string
+	Value        string
+}
+
+func (p Param) String() string {
+	return p.Raw
+}
+
 // CmdLine provides a way to easily parse through kernel command line arguments
 type CmdLine struct {
-	raw   string
-	asMap map[string]string
+	list      *paramItem              // Linked list of all parameters
+	last      *paramItem              // Last param in linked list
+	keyMap    map[string][]*paramItem // Map to linked list items for faster reference
+	numParams int                     // Total parameter count
 }
 
 // NewCmdLine returns a pointer to a CmdLine struct parsed with line.
@@ -26,14 +46,12 @@ func NewCmdLine(line []byte) *CmdLine {
 	return parse(line)
 }
 
-// GetRaw returns the full, raw cmdline string
-func (c *CmdLine) GetRaw() string {
-	return c.raw
-}
-
-// GetMap returns the full map of the cmdline arguments
-func (c *CmdLine) GetMap() map[string]string {
-	return c.asMap
+func (c *CmdLine) String() string {
+	var s []string
+	for llTracker := c.list; llTracker != nil; llTracker = llTracker.next {
+		s = append(s, llTracker.param.String())
+	}
+	return strings.Join(s, " ")
 }
 
 // ContainsFlag verifies that the kernel cmdline has a flag set
@@ -42,11 +60,75 @@ func (c *CmdLine) ContainsFlag(flag string) bool {
 	return present
 }
 
-// GetFlag returns the value of a flag, and whether it was set
-func (c *CmdLine) GetFlag(flag string) (string, bool) {
+// GetFlag returns the values of a flag, and whether it was set
+func (c *CmdLine) GetFlag(flag string) ([]string, bool) {
 	canonicalFlag := strings.Replace(flag, "-", "_", -1)
-	value, present := c.asMap[canonicalFlag]
-	return value, present
+	piPtrs, present := c.keyMap[canonicalFlag]
+	var vals []string
+	for _, p := range piPtrs {
+		vals = append(vals, p.param.Value)
+	}
+	return vals, present
+}
+
+func (c *CmdLine) SetFlag(flag, value string) {
+	canonicalFlag := strings.Replace(flag, "-", "_", -1)
+	newParam := Param{
+		Key:          flag,
+		CanonicalKey: canonicalFlag,
+		Value:        dequote(value),
+	}
+	if value == "" {
+		newParam.Raw = flag
+	} else {
+		newParam.Raw = fmt.Sprintf("%s=%s", flag, value)
+	}
+	newParamItem := &paramItem{
+		param: newParam,
+	}
+	if ptrList, exists := c.keyMap[canonicalFlag]; exists {
+		first := true
+		for _, ptr := range ptrList {
+			if ptr == nil {
+				continue
+			}
+			if first {
+				newParamItem.prev = ptr.prev
+				newParamItem.next = ptr.next
+				if ptr.prev != nil {
+					ptr.prev.next = newParamItem
+				}
+				if ptr.next != nil {
+					ptr.next.prev = newParamItem
+				} else {
+					c.last = newParamItem
+				}
+				ptr.prev = nil
+				ptr.next = nil
+				first = false
+			} else {
+				if ptr.prev != nil {
+					ptr.prev.next = ptr.next
+				}
+				if ptr.next != nil {
+					ptr.next.prev = ptr.prev
+				}
+			}
+		}
+		c.keyMap[canonicalFlag] = []*paramItem{c.keyMap[canonicalFlag][0]}
+	} else {
+		c.last.next = newParamItem
+		newParamItem.prev = c.last
+		c.keyMap[canonicalFlag] = []*paramItem{newParamItem}
+		c.last = newParamItem
+	}
+}
+
+func (c *CmdLine) PrintLL() {
+	for llTracker := c.list; llTracker != nil; llTracker = llTracker.next {
+		fmt.Printf("%p: %s (prev=%p, next=%p)\n", llTracker, llTracker.param, llTracker.prev, llTracker.next)
+	}
+	fmt.Printf("last: %p\n", c.last)
 }
 
 // FlagsForModule gets all flags for a designated module and returns them as a
@@ -57,12 +139,12 @@ func (c *CmdLine) FlagsForModule(name string) string {
 	flagsAdded := make(map[string]bool) // Ensures duplicate flags aren't both added
 	// Module flags come as moduleName.flag in /proc/cmdline
 	prefix := strings.Replace(name, "-", "_", -1) + "."
-	for flag, val := range c.asMap {
-		canonicalFlag := strings.Replace(flag, "-", "_", -1)
+	for llTracker := c.list; llTracker != nil; llTracker = llTracker.next {
+		canonicalFlag := strings.Replace(llTracker.param.Key, "-", "_", -1)
 		if !flagsAdded[canonicalFlag] && strings.HasPrefix(canonicalFlag, prefix) {
 			flagsAdded[canonicalFlag] = true
 			// They are passed to insmod space seperated as flag=val
-			ret += strings.TrimPrefix(canonicalFlag, prefix) + "=" + val + " "
+			ret += strings.TrimPrefix(canonicalFlag, prefix) + "=" + llTracker.param.Value + " "
 		}
 	}
 	return ret

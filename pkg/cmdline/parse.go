@@ -11,12 +11,7 @@ import (
 // parse parses the raw byte slice into a CmdLine struct and returns a pointer
 // to it.
 func parse(raw []byte) *CmdLine {
-	line := &CmdLine{
-		// These work because string([]byte{}) is ""
-		raw:   strings.TrimRight(string(raw), "\n"),
-		asMap: parseToMap(string(raw)),
-	}
-	return line
+	return parseToStruct(string(raw))
 }
 
 func dequote(line string) string {
@@ -104,15 +99,44 @@ func doParse(input string, handler func(flag, key, canonicalKey, value, trimmedV
 	}
 }
 
-// parseToMap turns a space-separated kernel commandline into a map
-func parseToMap(input string) map[string]string {
-	flagMap := make(map[string]string)
+func parseToStruct(input string) *CmdLine {
+	var (
+		last      *paramItem
+		ll        *paramItem
+		llTracker     = ll
+		numParams int = 0
+	)
+	keyMap := make(map[string][]*paramItem)
 	doParse(input, func(flag, key, canonicalKey, value, trimmedValue string) {
-		// We store the value twice, once with dash, once with underscores
-		// Just in case people check with the wrong method
-		flagMap[canonicalKey] = trimmedValue
-		flagMap[key] = trimmedValue
+		newParam := Param{
+			CanonicalKey: canonicalKey,
+			Key:          key,
+			Raw:          flag,
+			Value:        trimmedValue,
+		}
+		newParamItem := &paramItem{
+			param: newParam,
+		}
+		if llTracker == nil {
+			// Linked list is empty, create first item
+			ll = newParamItem
+			llTracker = ll
+		} else {
+			// Linked list is nonempty, append item and set
+			// prev/next pointers
+			newParamItem.prev = llTracker
+			llTracker.next = newParamItem
+			llTracker = llTracker.next
+			keyMap[canonicalKey] = append(keyMap[canonicalKey], llTracker)
+		}
+		numParams++
+		keyMap[canonicalKey] = append(keyMap[canonicalKey], newParamItem)
+		last = newParamItem
 	})
-
-	return flagMap
+	return &CmdLine{
+		last:      last,
+		list:      ll,
+		keyMap:    keyMap,
+		numParams: numParams,
+	}
 }
