@@ -390,31 +390,25 @@ func ReadPayloadFile(path string, inFormat format.DataFormat, v any) error {
 	log.Logger.Debug().Msgf("payload file: %s", path)
 	log.Logger.Debug().Msgf("payload file format: %s", inFormat)
 
-	var body HTTPBody
+	var data []byte
 	var err error
 	if path == "-" {
 		log.Logger.Debug().Msg("payload file was -, reading from stdin")
-		var data []byte
 		data, err = oio.ReadStdin()
 		if err != nil {
 			return fmt.Errorf("unable to read from stdin: %w", err)
 		}
-		log.Logger.Debug().Msgf("bytes read: %q", data)
-		body, err = BytesToHTTPBody(data, inFormat)
-		if err != nil {
-			return fmt.Errorf("unable to create HTTP body from bytes: %w", err)
-		}
 	} else {
-		body, err = FileToHTTPBody(path, inFormat)
+		data, err = os.ReadFile(path)
 		if err != nil {
-			return fmt.Errorf("unable to create HTTP body from file: %w", err)
+			return fmt.Errorf("unable to read data from file: %w", err)
 		}
 	}
-	log.Logger.Debug().Msgf("body bytes: %q", body)
+	log.Logger.Debug().Msgf("bytes read: %q", data)
 
-	err = json.Unmarshal(body, v)
+	err = format.UnmarshalData(data, v, inFormat)
 	if err != nil {
-		err = fmt.Errorf("unable to unmarshal bytes into value: %w", err)
+		err = fmt.Errorf("unable to unmarshal %s bytes into value: %w", inFormat, err)
 	}
 
 	return err
