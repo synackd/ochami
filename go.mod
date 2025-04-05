@@ -20,6 +20,7 @@ require (
 	github.com/openchami/schemas v0.0.0-20240826142248-37b8af32208a
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
+	github.com/synackd/go-kargs v0.0.1-beta.1
 	github.com/vbauerster/mpb/v8 v8.9.3
 	gopkg.in/yaml.v3 v3.0.1
 )
