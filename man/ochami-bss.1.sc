@@ -6,7 +6,8 @@ ochami-bss - Communicate with the Boot Script Service (BSS)
 
 # SYNOPSIS
 
-ochami bss boot params (add | delete | get | set | update) [OPTIONS]
+ochami bss boot image set [OPTIONS]++
+ochami bss boot params (add | delete | get | set | update) [OPTIONS]++
 ochami bss boot script get [OPTIONS]
 
 # DATA STRUCTURE
@@ -40,6 +41,40 @@ The data structure for sending and receiving data with subcommands under the
 	cluster configuration options.
 
 # COMMANDS
+
+## boot image
+
+Manage how nodes boot images.
+
+Subcommands for this command are as follows:
+
+*set* (-x _xname_[,...] | -m _mac_[,...] | -n _nid_[,...]) _image_
+	Set nodes to boot _image_. Nodes are specified by either *-x*, *-m*, and/or
+	*-n*. At least one of these flags is required. This command works by
+	fetching the boot parameters of the selected nodes, setting the *root=*
+	kernel command	line argument of the selected nodes to _image_ (no checks
+	are performed on the value of _image_ before setting), and the modified
+	kernel command line arguments are updated in BSS. Boot parameters must exist
+	in BSS for the selected nodes for them to be updated. Otherwise, they are
+	skipped.
+
+	This command accepts the following options:
+
+	*-m, --mac* _mac_addr_,...
+		Change the boot image for one or more MAC addresses. For multiple MAC
+		addresses, either this flag can be specified multiple times or this flag
+		can be specified once and multiple MAC addresses can be specified,
+		separated by commas.
+
+	*-n, --nid* _nid_,...
+		Change the boot image for one or more node IDs. For multiple NIDs,
+		either this flag can be specified multiple times or this flag can be
+		specified once and multiple NIDs can be specified, separated by commas.
+
+	*-x, --xname* _xname_,...
+		Change the boot image for one or more xnames. For multiple xnames,
+		either this flag can be specified multiple times or this flag can be
+		specified once and multiple xnames, separated by commas.
 
 ## boot params
 
