@@ -236,13 +236,13 @@ Manage component endpoints.
 
 Subcommands for this command are as follows:
 
-*delete* [--force] --all++
-*delete* [--force] _xname_...++
-*delete* [--force] -d _data_ [-f _format_]++
-*delete* [--force] -d @_file_ [-f _format_]++
-*delete* [--force] -d @- [-f _format_]
-	Delete one or more component endpoints. Unless *--force* is passed, the user
-	is asked to confirm deletion.
+*delete* [--no-confirm] --all++
+*delete* [--no-confirm] _xname_...++
+*delete* [--no-confirm] -d _data_ [-f _format_]++
+*delete* [--no-confirm] -d @_file_ [-f _format_]++
+*delete* [--no-confirm] -d @- [-f _format_]
+	Delete one or more component endpoints. Unless *--no-confirm* is passed, the
+	user is asked to confirm deletion.
 
 	In the first form of the command, all component endpoints are deleted. *BE
 	CAREFUL!*
@@ -274,7 +274,7 @@ Subcommands for this command are as follows:
 		read in any of these forms is JSON by default unless *-f* is specified
 		to change it.
 
-	*--force*
+	*--no-confirm*
 		Do not ask the user to confirm deletion. Use with caution.
 
 	*-f, --format-input* _format_
@@ -369,8 +369,8 @@ Subcommands for this command are as follows:
 *delete* -d _data_ [-f _format_]++
 *delete* -d @_file_ [-f _format_]++
 *delete* -d @- [-f _format_]
-	Delete one or more components in SMD. Unless *--force* is passed, the user
-	is asked to confirm deletion.
+	Delete one or more components in SMD. Unless *--no-confirm* is passed, the
+	user is asked to confirm deletion.
 
 	In the first form of the command, all components are deleted. *BE CAREFUL!*
 
@@ -400,7 +400,7 @@ Subcommands for this command are as follows:
 		read in any of these forms is JSON by default unless *-f* is specified
 		to change it.
 
-	*--force*
+	*--no-confirm*
 		Do not ask the user to confirm deletion. Use with caution.
 
 	*-f, --format-input* _format_
@@ -502,12 +502,12 @@ Subcommands for this command are as follows:
 		flag can be specified multiple times or this flag can be specified once
 		and multiple tags can be specified, separated by commas.
 
-*delete* [--force] _group_name_...++
-*delete* [--force] -d _data_ [-f _format_]++
-*delete* [--force] -d @_file_ [-f _format_]++
-*delete* [--force] -d @- [-f _format_]
-	Delete one or more groups in SMD. Unless *--force* is passed, the user is
-	asked to confirm deletion.
+*delete* [--no-confirm] _group_name_...++
+*delete* [--no-confirm] -d _data_ [-f _format_]++
+*delete* [--no-confirm] -d @_file_ [-f _format_]++
+*delete* [--no-confirm] -d @- [-f _format_]
+	Delete one or more groups in SMD. Unless *--no-confirm* is passed, the user
+	is asked to confirm deletion.
 
 	In the first form of the command, one or more group labels can be specified
 	to delete one or more groups.
@@ -531,7 +531,7 @@ Subcommands for this command are as follows:
 		read in any of these forms is JSON by default unless *-f* is specified
 		to change it.
 
-	*--force*
+	*--no-confirm*
 		Do not ask the user to confirm deletion. Use with caution.
 
 	*-f, --format-input* _format_

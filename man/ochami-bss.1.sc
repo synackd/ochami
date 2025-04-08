@@ -113,14 +113,14 @@ Subcommands for this command are as follows:
 	*--params* _kernel_params_
 		Command line arguments to pass to kernel for components.
 
-*delete* [--force] ([--mac, _mac_,...] [--nid, _nid_,...] [--xname _xname_,...] [--kernel _kernel_] [--initrd _initrd_])++
-*delete* [--force] -d _data_ [-f _format_]++
-*delete* [--force] -d @_file_ [-f _format_]++
-*delete* [--force] -d @- [-f _format_]
+*delete* [--no-confirm] ([--mac, _mac_,...] [--nid, _nid_,...] [--xname _xname_,...] [--kernel _kernel_] [--initrd _initrd_])++
+*delete* [--no-confirm] -d _data_ [-f _format_]++
+*delete* [--no-confirm] -d @_file_ [-f _format_]++
+*delete* [--no-confirm] -d @- [-f _format_]
 	Delete boot parameters for one or more components. Which boot parameters are
 	deleted are determined by passed filters, which can be passed via CLI flag
-	or within a payload file. Unless *--force* is passed, the user is asked to
-	confirm deletion.
+	or within a payload file. Unless *--no-confirm* is passed, the user is asked
+	to confirm deletion.
 
 	In the first form of the command, one or more of *--mac*, *--nid*,
 	*--xname*, *--kernel*, or *--initrd* is required to identify which
@@ -148,7 +148,7 @@ Subcommands for this command are as follows:
 		read in any of these forms is JSON by default unless *-f* is specified
 		to change it.
 
-	*--force*
+	*--no-confirm*
 		Do not ask the user to confirm deletion. Use with caution.
 
 	*-f, --format-input* _format_

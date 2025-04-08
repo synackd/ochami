@@ -68,9 +68,9 @@ See ochami-cloud-init(1) for more details.`,
 			groupsToDel = args
 		}
 
-		// Ask before attempting deletion unless --force was passed
-		if !cmd.Flag("force").Changed {
-			log.Logger.Debug().Msg("--force not passed, prompting user to confirm deletion")
+		// Ask before attempting deletion unless --no-confirm was passed
+		if !cmd.Flag("no-confirm").Changed {
+			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 			respDelete := loopYesNo("Really delete?")
 			if !respDelete {
 				log.Logger.Info().Msg("User aborted cloud-init group deletion")
@@ -109,7 +109,7 @@ See ochami-cloud-init(1) for more details.`,
 }
 
 func init() {
-	cloudInitGroupDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
+	cloudInitGroupDeleteCmd.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
 	cloudInitGroupDeleteCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 	cloudInitGroupDeleteCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 

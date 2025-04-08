@@ -23,7 +23,7 @@ var bootParamsDeleteCmd = &cobra.Command{
 This command can delete boot parameters by config (kernel URI,
 initrd URI, or kernel command line) or by component (--xname,
 --mac, or --nid). The user will be asked for confirmation before
-deletion unless --force is passed. Alternatively, pass -d to pass
+deletion unless --no-confirm is passed. Alternatively, pass -d to pass
 raw payload data or (if flag argument starts with @) a file containing
 the payload data. -f can be specified to change the format of the
 input payload data ('json' by default), but the rules above still
@@ -146,9 +146,9 @@ See ochami-bss(1) for more details.`,
 			}
 		}
 
-		// Ask before attempting deletion unless --force was passed
-		if !cmd.Flag("force").Changed {
-			log.Logger.Debug().Msg("--force not passed, prompting user to confirm deletion")
+		// Ask before attempting deletion unless --no-confirm was passed
+		if !cmd.Flag("no-confirm").Changed {
+			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 			respDelete := loopYesNo("Really delete?")
 			if !respDelete {
 				log.Logger.Info().Msg("User aborted boot parameter deletion")
@@ -181,7 +181,7 @@ func init() {
 	bootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
 	bootParamsDeleteCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 	bootParamsDeleteCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
-	bootParamsDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
+	bootParamsDeleteCmd.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters
 	bootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params", "data")

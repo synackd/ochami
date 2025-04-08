@@ -45,9 +45,9 @@ See ochami-smd(1) for more details.`,
 		// Check if a CA certificate was passed and load it into client if valid
 		useCACert(smdClient.OchamiClient)
 
-		// Ask before attempting deletion unless --force was passed
-		if !cmd.Flag("force").Changed {
-			log.Logger.Debug().Msg("--force not passed, prompting user to confirm deletion")
+		// Ask before attempting deletion unless --no-confirm was passed
+		if !cmd.Flag("no-confirm").Changed {
+			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 			respDelete := loopYesNo("Really delete?")
 			if !respDelete {
 				log.Logger.Info().Msg("User aborted group deletion")
@@ -87,6 +87,6 @@ See ochami-smd(1) for more details.`,
 }
 
 func init() {
-	groupMemberDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
+	groupMemberDeleteCmd.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
 	groupMemberCmd.AddCommand(groupMemberDeleteCmd)
 }
