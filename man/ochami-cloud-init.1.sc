@@ -134,7 +134,10 @@ An example in JSON format is:
 
 ## NODE USER-DATA
 
-Node-specific user-data is used with the */cloud-init/impersonation/{id}/user-data* and */cloud-init/user-data* endpoints. In the OpenCHAMI cloud-init server, user-data is always empty and is not used.
+Node-specific user-data is used with the
+*/cloud-init/impersonation/{id}/user-data* and */cloud-init/user-data*
+endpoints. In the OpenCHAMI cloud-init server, user-data is always empty and is
+not used.
 
 For example, any node that requests its user-data will get the following back:
 
