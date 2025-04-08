@@ -79,9 +79,9 @@ See ochami-smd(1) for more details.`,
 		// Check if a CA certificate was passed and load it into client if valid
 		useCACert(smdClient.OchamiClient)
 
-		// Ask before attempting deletion unless --force was passed
-		if !cmd.Flag("force").Changed {
-			log.Logger.Debug().Msg("--force not passed, prompting user to confirm deletion")
+		// Ask before attempting deletion unless --no-confirm was passed
+		if !cmd.Flag("no-confirm").Changed {
+			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 			var respDelete bool
 			if cmd.Flag("all").Changed {
 				respDelete = loopYesNo("Really delete ALL ETHERNET INTERFACES?")
@@ -155,7 +155,7 @@ func init() {
 	ifaceDeleteCmd.Flags().BoolP("all", "a", false, "delete all ethernet interfaces in SMD")
 	ifaceDeleteCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 	ifaceDeleteCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
-	ifaceDeleteCmd.Flags().Bool("force", false, "do not ask before attempting deletion")
+	ifaceDeleteCmd.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
 
 	ifaceDeleteCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
 

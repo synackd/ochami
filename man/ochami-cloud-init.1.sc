@@ -134,7 +134,10 @@ An example in JSON format is:
 
 ## NODE USER-DATA
 
-Node-specific user-data is used with the */cloud-init/impersonation/{id}/user-data* and */cloud-init/user-data* endpoints. In the OpenCHAMI cloud-init server, user-data is always empty and is not used.
+Node-specific user-data is used with the
+*/cloud-init/impersonation/{id}/user-data* and */cloud-init/user-data*
+endpoints. In the OpenCHAMI cloud-init server, user-data is always empty and is
+not used.
 
 For example, any node that requests its user-data will get the following back:
 
@@ -275,10 +278,10 @@ Subcommands for this command are as follows:
 		- _json-pretty_
 		- _yaml_
 
-*delete* [--force] _group_name_...++
-*delete* [--force] [-f _format_] -d @_file_++
-*delete* [--force] [-f _format_] -d @- < _file_++
-*delete* [--force] [-f _format_] -d _data_
+*delete* [--no-confirm] _group_name_...++
+*delete* [--no-confirm] [-f _format_] -d @_file_++
+*delete* [--no-confirm] [-f _format_] -d @- < _file_++
+*delete* [--no-confirm] [-f _format_] -d _data_
 	Delete one or more cloud-init groups, identified by one or more _group_name_
 	arguments or *name* fields in payload data.
 
@@ -305,7 +308,7 @@ Subcommands for this command are as follows:
 		read in any of these forms is JSON by default unless *-f* is specified
 		to change it.
 
-	*--force*
+	*--no-confirm*
 		Do not ask the user to confirm deletion. Use with caution.
 
 	*-f, --format-input* _format_
