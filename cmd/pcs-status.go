@@ -93,24 +93,8 @@ See ochami-pcs(1) for more details.`,
 	Example: `  # Get status of PCS
   ochami pcs status`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Without a base URI, we cannot do anything
-		pcsBaseURI, err := getBaseURIPCS(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Create client to make request to PCS
-		pcsClient, err := pcs.NewClient(pcsBaseURI, insecure)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("error creating new PCS client")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(pcsClient.OchamiClient)
+		// Create client to use for requests
+		pcsClient := pcsGetClient(cmd, false)
 
 		// Figure out if we need to hit the /health endpoint (only if a flag has been provided)
 		flagsProvided := false

@@ -5,8 +5,41 @@ package cmd
 import (
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
 	"github.com/spf13/cobra"
 )
+
+// pcsGetClient sets up the PCS client with the PCS base URI and certificates
+// (if necessary) and returns it. If tokenRequired is true, it will ensure that
+// the token is set and valid and load it. This function is used by each
+// subcommand.
+func pcsGetClient(cmd *cobra.Command, tokenRequired bool) *pcs.PCSClient {
+	// Without a base URI, we cannot do anything
+	pcsBaseURI, err := getBaseURIPCS(cmd)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
+		logHelpError(cmd)
+		os.Exit(1)
+	}
+
+	// Make sure token is set/valid, if required
+	if tokenRequired {
+		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
+	}
+
+	// Create client to make request to PCS
+	pcsClient, err := pcs.NewClient(pcsBaseURI, insecure)
+	if err != nil {
+		log.Logger.Fatal().Err(err).Msg("error creating new PCS client")
+	}
+
+	// Check if a CA certificate was passed and load it into client if valid
+	useCACert(pcsClient.OchamiClient)
+
+	return pcsClient
+}
 
 // pcsCmd represents the pcs command
 var pcsCmd = &cobra.Command{

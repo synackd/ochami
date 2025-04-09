@@ -8,12 +8,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
 	"github.com/OpenCHAMI/ochami/pkg/format"
+	"github.com/spf13/cobra"
 )
 
 // pcsTransitionAbortCmd represents the "pcs transition abort" command
@@ -29,26 +27,8 @@ See ochami-pcs(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		transitionID := args[0]
 
-		// Without a base URI, we cannot do anything
-		pcsBaseURI, err := getBaseURIPCS(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
-
-		// Create client to make request to PCS
-		pcsClient, err := pcs.NewClient(pcsBaseURI, insecure)
-		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("error creating new PCS client")
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(pcsClient.OchamiClient)
+		// Create client to use for requests
+		pcsClient := pcsGetClient(cmd, true)
 
 		// Abort the transition
 		transitionHttpEnv, err := pcsClient.DeleteTransition(transitionID, token)
