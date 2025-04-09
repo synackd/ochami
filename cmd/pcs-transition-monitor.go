@@ -87,13 +87,17 @@ See ochami-pcs(1) for more details.`,
 		for {
 			transitionHttpEnv, err := pcsClient.GetTransition(transitionID, token)
 			if err != nil {
-				log.Logger.Fatal().Err(err).Msg("failed to get transition")
+				log.Logger.Error().Err(err).Msg("failed to get transition")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			// Unmarshal the progress information
 			var progress transitionProgress
 			if err := json.Unmarshal(transitionHttpEnv.Body, &progress); err != nil {
-				log.Logger.Fatal().Err(err).Msg("failed to unmarshal transition")
+				log.Logger.Error().Err(err).Msg("failed to unmarshal transition")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			// Set the totals for each bar

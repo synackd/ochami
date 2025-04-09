@@ -35,22 +35,28 @@ See ochami-pcs(1) for more details.`,
 		transitionHttpEnv, err := pcsClient.GetTransition(transitionID, token)
 		if err != nil {
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
-				log.Logger.Fatal().Err(err).Msg("PCS transitions request yielded unsuccessful HTTP response")
+				log.Logger.Error().Err(err).Msg("PCS transitions request yielded unsuccessful HTTP response")
 			} else {
-				log.Logger.Fatal().Err(err).Msg("failed to get PCS transition")
+				log.Logger.Error().Err(err).Msg("failed to get PCS transition")
 			}
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		// Unmarshal output
 		var output interface{}
 		err = json.Unmarshal(transitionHttpEnv.Body, &output)
 		if err != nil {
-			log.Logger.Fatal().Msg("failed to unmarshal transitions")
+			log.Logger.Error().Err(err).Msg("failed to unmarshal transitions")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		// Print output
 		if outBytes, err := format.MarshalData(output, formatOutput); err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to format output")
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
+			os.Exit(1)
 		} else {
 			fmt.Println(string(outBytes))
 		}

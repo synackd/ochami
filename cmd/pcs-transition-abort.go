@@ -34,25 +34,33 @@ See ochami-pcs(1) for more details.`,
 		transitionHttpEnv, err := pcsClient.DeleteTransition(transitionID, token)
 		if err != nil {
 			if errors.Is(err, client.UnsuccessfulHTTPError) {
-				log.Logger.Fatal().Err(err).Msg("PCS transition abort request yielded unsuccessful HTTP response")
+				log.Logger.Error().Err(err).Msg("PCS transition abort request yielded unsuccessful HTTP response")
 			} else {
-				log.Logger.Fatal().Err(err).Msg("failed to abort PCS transition")
+				log.Logger.Error().Err(err).Msg("failed to abort PCS transition")
 			}
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to abort transition")
+			log.Logger.Error().Err(err).Msg("failed to abort transition")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		var output interface{}
 		err = json.Unmarshal(transitionHttpEnv.Body, &output)
 		if err != nil {
-			log.Logger.Fatal().Msg("failed to unmarshal abort transitions response")
+			log.Logger.Error().Err(err).Msg("failed to unmarshal abort transitions response")
+			logHelpError(cmd)
+			os.Exit(1)
 		}
 
 		// Print output
 		if outBytes, err := format.MarshalData(output, formatOutput); err != nil {
-			log.Logger.Fatal().Err(err).Msg("failed to format output")
+			log.Logger.Error().Err(err).Msg("failed to format output")
+			logHelpError(cmd)
+			os.Exit(1)
 		} else {
 			fmt.Println(string(outBytes))
 		}
