@@ -51,7 +51,7 @@ See ochami-cloud-init(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// Get node group data
 		henvs, errs, err := cloudInitClient.GetNodeGroupData(token, args[0], args[1:]...)
@@ -127,7 +127,7 @@ See ochami-cloud-init(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// Get meta-data
 		henvs, errs, err := cloudInitClient.GetNodeData(ci.CloudInitMetaData, token, args...)
@@ -211,7 +211,7 @@ See ochami-cloud-init(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// Get user-data
 		henvs, errs, err := cloudInitClient.GetNodeData(ci.CloudInitUserData, token, args...)
@@ -282,7 +282,7 @@ See ochami-cloud-init(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// Get vendor-data
 		henvs, errs, err := cloudInitClient.GetNodeData(ci.CloudInitVendorData, token, args...)
