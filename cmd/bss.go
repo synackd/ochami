@@ -5,8 +5,43 @@ package cmd
 import (
 	"os"
 
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client/bss"
 	"github.com/spf13/cobra"
 )
+
+// bssGetClient sets up the BSS client with the BSS base URI and certificates
+// (if necessary) and returns it. If tokenRequired is true, it will ensure that
+// the token is set and valid and load it. This function is used by each
+// subcommand.
+func bssGetClient(cmd *cobra.Command, tokenRequired bool) *bss.BSSClient {
+	// Without a base URI, we cannot do anything
+	bssBaseURI, err := getBaseURIBSS(cmd)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
+		logHelpError(cmd)
+		os.Exit(1)
+	}
+
+	// Make sure token is set/valid, if required
+	if tokenRequired {
+		setTokenFromEnvVar(cmd)
+		checkToken(cmd)
+	}
+
+	// Create client to make request to BSS
+	bssClient, err := bss.NewClient(bssBaseURI, insecure)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("error creating new BSS client")
+		logHelpError(cmd)
+		os.Exit(1)
+	}
+
+	// Check if a CA certificate was passed and load it into client if valid
+	useCACert(bssClient.OchamiClient)
+
+	return bssClient
+}
 
 // bssCmd represents the bss command
 var bssCmd = &cobra.Command{

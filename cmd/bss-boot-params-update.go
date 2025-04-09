@@ -9,7 +9,6 @@ import (
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/OpenCHAMI/ochami/pkg/client/bss"
 	"github.com/spf13/cobra"
 )
 
@@ -58,28 +57,8 @@ See ochami-bss(1) for details.`,
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// Without a base URI, we cannot do anything
-		bssBaseURI, err := getBaseURIBSS(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
-
-		// Create client to make request to BSS
-		bssClient, err := bss.NewClient(bssBaseURI, insecure)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("error creating new BSS client")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(bssClient.OchamiClient)
+		// Create client to use for requests
+		bssClient := bssGetClient(cmd, true)
 
 		// The BSS BootParams struct we will send
 		bp := bssTypes.BootParams{}
@@ -88,6 +67,7 @@ See ochami-bss(1) for details.`,
 		handlePayload(cmd, &bp)
 
 		// Set the hosts the boot parameters are for
+		var err error
 		if cmd.Flag("xname").Changed {
 			bp.Hosts, err = cmd.Flags().GetStringSlice("xname")
 			if err != nil {
