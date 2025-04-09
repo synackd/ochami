@@ -10,7 +10,6 @@ import (
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/spf13/cobra"
 )
 
@@ -22,30 +21,11 @@ var compepGetCmd = &cobra.Command{
 
 See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURISMD(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
-
-		// Create client to make request to SMD
-		smdClient, err := smd.NewClient(smdBaseURI, insecure)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("error creating new SMD client")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(smdClient.OchamiClient)
+		// Create client to use for requests
+		smdClient := smdGetClient(cmd, true)
 
 		var httpEnv client.HTTPEnvelope
+		var err error
 		if len(args) == 0 {
 			// Get all ComponentEndpoints if no args passed
 			httpEnv, err = smdClient.GetComponentEndpointsAll(token)
