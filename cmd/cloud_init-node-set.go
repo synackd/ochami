@@ -55,7 +55,7 @@ See ochami-cloud-init(1) for more details.`,
   echo '<yaml_data>' | ochami cloud-init group set -d @- -f yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// The instance information list we will send
 		ciInstInfo := []cistore.OpenCHAMIInstanceInfo{}

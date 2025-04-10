@@ -12,7 +12,6 @@ import (
 	"github.com/vbauerster/mpb/v8/decor"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
 )
 
 var pollInterval int = 1
@@ -74,26 +73,8 @@ See ochami-pcs(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		transitionID := args[0]
 
-		// Without a base URI, we cannot do anything
-		pcsBaseURI, err := getBaseURIPCS(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
-
-		// Create client to make request to PCS
-		pcsClient, err := pcs.NewClient(pcsBaseURI, insecure)
-		if err != nil {
-			log.Logger.Fatal().Err(err).Msg("error creating new PCS client")
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(pcsClient.OchamiClient)
+		// Create client to use for requests
+		pcsClient := pcsGetClient(cmd, true)
 
 		p := mpb.New(mpb.WithWidth(64))
 
@@ -106,13 +87,17 @@ See ochami-pcs(1) for more details.`,
 		for {
 			transitionHttpEnv, err := pcsClient.GetTransition(transitionID, token)
 			if err != nil {
-				log.Logger.Fatal().Err(err).Msg("failed to get transition")
+				log.Logger.Error().Err(err).Msg("failed to get transition")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			// Unmarshal the progress information
 			var progress transitionProgress
 			if err := json.Unmarshal(transitionHttpEnv.Body, &progress); err != nil {
-				log.Logger.Fatal().Err(err).Msg("failed to unmarshal transition")
+				log.Logger.Error().Err(err).Msg("failed to unmarshal transition")
+				logHelpError(cmd)
+				os.Exit(1)
 			}
 
 			// Set the totals for each bar

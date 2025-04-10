@@ -51,7 +51,7 @@ See ochami-cloud-init(1) for more details.`,
   echo '<yaml_data>' | ochami cloud-init defaults set -d @- -f yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd)
+		cloudInitClient := cloudInitGetClient(cmd, true)
 
 		// The ClusterDefaults data we will send
 		ciDflts := cistore.ClusterDefaults{}

@@ -10,7 +10,6 @@ import (
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/OpenCHAMI/ochami/pkg/client/bss"
 	"github.com/spf13/cobra"
 )
 
@@ -27,24 +26,8 @@ This command sends a GET to BSS. An access token is not required.
 See ochami-bss(1) for more details.`,
 	Example: `  ochami boot script get --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Without a base URI, we cannot do anything
-		bssBaseURI, err := getBaseURIBSS(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Create client to make request to BSS
-		bssClient, err := bss.NewClient(bssBaseURI, insecure)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("error creating new BSS client")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(bssClient.OchamiClient)
+		// Create client to use for requests
+		bssClient := bssGetClient(cmd, false)
 
 		// Structure representing the boot script query string
 		values := url.Values{}

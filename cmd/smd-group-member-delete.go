@@ -8,7 +8,6 @@ import (
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/spf13/cobra"
 )
 
@@ -22,28 +21,8 @@ var groupMemberDeleteCmd = &cobra.Command{
 See ochami-smd(1) for more details.`,
 	Example: `  ochami smd group member delete compute x3000c1s7b56n0`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Without a base URI, we cannot do anything
-		smdBaseURI, err := getBaseURISMD(cmd)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("failed to get base URI for SMD")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
-
-		// Create client to make request to SMD
-		smdClient, err := smd.NewClient(smdBaseURI, insecure)
-		if err != nil {
-			log.Logger.Error().Err(err).Msg("error creating new SMD client")
-			logHelpError(cmd)
-			os.Exit(1)
-		}
-
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(smdClient.OchamiClient)
+		// Create client to use for requests
+		smdClient := smdGetClient(cmd, true)
 
 		// Ask before attempting deletion unless --no-confirm was passed
 		if !cmd.Flag("no-confirm").Changed {
