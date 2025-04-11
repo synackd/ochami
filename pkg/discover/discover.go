@@ -14,7 +14,7 @@ import (
 // NodeList is simply a list of Nodes. Data from a payload file is unmarshalled
 // into this.
 type NodeList struct {
-	Nodes []Node `json:"nodes"`
+	Nodes []Node `json:"nodes" yaml:"nodes"`
 }
 
 func (nl NodeList) String() string {
@@ -34,13 +34,13 @@ func (nl NodeList) String() string {
 // Node represents a node entry in a payload file. Multiple of these are send to
 // SMD to "discover" them.
 type Node struct {
-	Name   string  `json:"name"`
-	NID    int64   `json:"nid"`
-	Xname  string  `json:"xname"`
-	Group  string  `json:"group"`
-	BMCMac string  `json:"bmc_mac"`
-	BMCIP  string  `json:"bmc_ip"`
-	Ifaces []Iface `json:"interfaces"`
+	Name   string  `json:"name" yaml:"name"`
+	NID    int64   `json:"nid" yaml:"nid"`
+	Xname  string  `json:"xname" yaml:"xname"`
+	Group  string  `json:"group" yaml:"group"`
+	BMCMac string  `json:"bmc_mac" yaml:"bmc_mac"`
+	BMCIP  string  `json:"bmc_ip" yaml:"bmc_ip"`
+	Ifaces []Iface `json:"interfaces" yaml:"interfaces"`
 }
 
 func (n Node) String() string {
@@ -61,8 +61,8 @@ func (n Node) String() string {
 // Iface represents a single interface with multiple IP addresses. Nodes can
 // have multiple of these.
 type Iface struct {
-	MACAddr string    `json:"mac_addr"`
-	IPAddrs []IfaceIP `json:"ip_addrs"`
+	MACAddr string    `json:"mac_addr" yaml:"mac_addr"`
+	IPAddrs []IfaceIP `json:"ip_addrs" yaml:"ip_addrs"`
 }
 
 func (i Iface) String() string {
@@ -84,8 +84,8 @@ func (i Iface) String() string {
 // the IP address is on. Note that Network is NOT the subnet mask or CIDR of the
 // IPAddr.
 type IfaceIP struct {
-	Network string `json:"network"`
-	IPAddr  string `json:"ip_addr"`
+	Network string `json:"network" yaml:"network"`
+	IPAddr  string `json:"ip_addr" yaml:"ip_addr"`
 }
 
 func (i IfaceIP) String() string {

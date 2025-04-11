@@ -132,9 +132,9 @@ See ochami-cloud-init(1) for more details.`,
 
 		// Extract cloud-config for each group
 		type configGroup struct {
-			Name     string                 `json:"name"`
-			Data     map[string]interface{} `json:"meta-data"`
-			Content  []byte                 `json:"content"`
+			Name     string                 `json:"name" yaml:"name"`
+			Data     map[string]interface{} `json:"meta-data" yaml:"meta-data"`
+			Content  []byte                 `json:"content" yaml:"content"`
 			Encoding string                 `json:"encoding" enums:"base64,plain"`
 		}
 		var configSlice []configGroup
@@ -203,8 +203,8 @@ See ochami-cloud-init(1) for more details.`,
 
 		// Extract meta-data for each group
 		type mdGroup struct {
-			Name string                 `json:"name"`
-			Data map[string]interface{} `json:"meta-data"`
+			Name string                 `json:"name" yaml:"name"`
+			Data map[string]interface{} `json:"meta-data" yaml:"meta-data"`
 		}
 		var mdSlice []mdGroup
 		for _, group := range groupSlice {

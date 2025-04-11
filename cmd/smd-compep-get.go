@@ -70,7 +70,7 @@ See ochami-smd(1) for more details.`,
 
 			// Put selected ComponentEndpoints into array and marshal
 			type compEp struct {
-				ComponentEndpoints []interface{} `json:"ComponentEndpoints"`
+				ComponentEndpoints []interface{} `json:"ComponentEndpoints" yaml:"ComponentEndpoints"`
 			}
 			var ceArr []interface{}
 			for i, h := range httpEnvs {
