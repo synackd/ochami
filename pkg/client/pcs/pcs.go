@@ -89,13 +89,13 @@ func (pc *PCSClient) GetHealth() (client.HTTPEnvelope, error) {
 }
 
 type transitionBody struct {
-	Operation    string          `json:"operation"`
-	TaskDeadline *int            `json:"taskDeadlineMinutes"`
-	Location     []locationEntry `json:"location"`
+	Operation    string          `json:"operation" yaml:"operation"`
+	TaskDeadline *int            `json:"taskDeadlineMinutes" yaml:"taskDeadlineMinutes"`
+	Location     []locationEntry `json:"location" yaml:"location"`
 }
 
 type locationEntry struct {
-	Xname string `json:"xname"`
+	Xname string `json:"xname" yaml:"xname"`
 }
 
 // CreateTransition is a wrapper function around OchamiClient.PostData to

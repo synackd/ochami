@@ -35,18 +35,18 @@ const (
 
 // transitionTaskCounts represents the counts of tasks in a PCS transition
 type transitionTaskCounts struct {
-	Total       int `json:"total"`
-	New         int `json:"new"`
-	InProgress  int `json:"in-progress"`
-	Failed      int `json:"failed"`
-	Succeeded   int `json:"succeeded"`
-	Unsupported int `json:"un-supported"`
+	Total       int `json:"total" yaml:"total"`
+	New         int `json:"new" yaml:"new"`
+	InProgress  int `json:"in-progress" yaml:"in-progress"`
+	Failed      int `json:"failed" yaml:"failed"`
+	Succeeded   int `json:"succeeded" yaml:"succeeded"`
+	Unsupported int `json:"un-supported" yaml:"un-supported"`
 }
 
 // transitionProgress represents the progress of a PCS transition
 type transitionProgress struct {
-	Status     string               `json:"transitionStatus"`
-	TaskCounts transitionTaskCounts `json:"taskCounts"`
+	Status     string               `json:"transitionStatus" yaml:"transitionStatus"`
+	TaskCounts transitionTaskCounts `json:"taskCounts" yaml:"taskCounts"`
 }
 
 // Create and style a progress bar

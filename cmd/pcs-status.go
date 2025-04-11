@@ -28,10 +28,10 @@ const (
 // status for DistLocking (as the only implementation uses ETCD, so the status
 // is just duplicated) or the TaskRunner (as we only use the local implementation)
 type commandOutput struct {
-	Status       string `json:"pcs,omitempty"`
-	KvStore      string `json:"storage,omitempty"`
-	StateManager string `json:"smd,omitempty"`
-	Vault        string `json:"vault,omitempty"`
+	Status       string `json:"pcs,omitempty" yaml:"pcs,omitempty"`
+	KvStore      string `json:"storage,omitempty" yaml:"storage,omitempty"`
+	StateManager string `json:"smd,omitempty" yaml:"smd,omitempty"`
+	Vault        string `json:"vault,omitempty" yaml:"vault,omitempty"`
 }
 
 // Get the status of PCS either "live" or "ready"

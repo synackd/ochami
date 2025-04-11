@@ -34,48 +34,48 @@ const (
 // Component is a minimal subset of SMD's Component struct that contains only
 // what is necessary for sending a valid Component request to SMD.
 type Component struct {
-	ID      string `json:"ID"`
-	Type    string `json:"Type"`
-	State   string `json:"State,omitempty"`
-	Enabled bool   `json:"Enabled,omitempty"`
-	Role    string `json:"Role,omitempty"`
-	Arch    string `json:"Arch,omitempty"`
-	NID     int64  `json:"NID,omitempty"`
+	ID      string `json:"ID" yaml:"ID"`
+	Type    string `json:"Type" yaml:"Type"`
+	State   string `json:"State,omitempty" yaml:"State,omitempty"`
+	Enabled bool   `json:"Enabled,omitempty" yaml:"Enabled,omitempty"`
+	Role    string `json:"Role,omitempty" yaml:"Role,omitempty"`
+	Arch    string `json:"Arch,omitempty" yaml:"Arch,omitempty"`
+	NID     int64  `json:"NID,omitempty" yaml:"NID,omitempty"`
 }
 
 // ComponentSlice is a convenience data structure to make marshalling Component
 // requests easier.
 type ComponentSlice struct {
-	Components []Component `json:"Components"`
+	Components []Component `json:"Components" yaml:"Components"`
 }
 
 // EthernetInterface is a minimal subset of SMD's EthernetInterface struct that
 // contains only what is necessary for sending a valid EthernetInterface request
 // to SMD.
 type EthernetInterface struct {
-	ID          string       `json:"ID"`
-	ComponentID string       `json:"ComponentID"`
-	Type        string       `json:"Type"`
-	Description string       `json:"Description"`
-	MACAddress  string       `json:"MACAddress"`
-	IPAddresses []EthernetIP `json:"IPAddresses"`
+	ID          string       `json:"ID" yaml:"ID"`
+	ComponentID string       `json:"ComponentID" yaml:"ComponentID"`
+	Type        string       `json:"Type" yaml:"Type"`
+	Description string       `json:"Description" yaml:"Description"`
+	MACAddress  string       `json:"MACAddress" yaml:"MACAddress"`
+	IPAddresses []EthernetIP `json:"IPAddresses" yaml:"IPAddresses"`
 }
 
 type EthernetIP struct {
-	IPAddress string `json:"IPAddress"`
-	Network   string `json:"Network"`
+	IPAddress string `json:"IPAddress" yaml:"IPAddress"`
+	Network   string `json:"Network" yaml:"Network"`
 }
 
 // RedfishEndpointSlice is a convenience data structure to make marshalling
 // RedfishEndpoint requests easier.
 type RedfishEndpointSlice struct {
-	RedfishEndpoints []csm.RedfishEndpoint `json:"RedfishEndpoints"`
+	RedfishEndpoints []csm.RedfishEndpoint `json:"RedfishEndpoints" yaml:"RedfishEndpoints"`
 }
 
 // RedfishEndpointSliceV2 is a convenience data structure to make marshalling
 // RedfishEndpointV2 requests easier.
 type RedfishEndpointSliceV2 struct {
-	RedfishEndpoints []RedfishEndpointV2 `json:"RedfishEndpoints"`
+	RedfishEndpoints []RedfishEndpointV2 `json:"RedfishEndpoints" yaml:"RedfishEndpoints"`
 }
 
 // RedfishEndpointV2 holds the redfish endpoint data read from/into SMD using
@@ -84,44 +84,44 @@ type RedfishEndpointSliceV2 struct {
 // contained in this struct.
 type RedfishEndpointV2 struct {
 	csm.RedfishEndpoint
-	SchemaVersion int       `json:"SchemaVersion"`
-	Systems       []System  `json:"Systems"`
-	Managers      []Manager `json:"Managers"`
+	SchemaVersion int       `json:"SchemaVersion" yaml:"SchemaVersion"`
+	Systems       []System  `json:"Systems" yaml:"Systems"`
+	Managers      []Manager `json:"Managers" yaml:"Managers"`
 }
 
 // System represents data that would be retrieved from BMC System data, except
 // reduced to a minimum needed for discovery.
 type System struct {
-	URI                string                      `json:"uri"`
-	UUID               string                      `json:"uuid"`
-	Name               string                      `json:"name"`
-	EthernetInterfaces []schemas.EthernetInterface `json:"ethernet_interfaces"`
+	URI                string                      `json:"uri" yaml:"uri"`
+	UUID               string                      `json:"uuid" yaml:"uuid"`
+	Name               string                      `json:"name" yaml:"name"`
+	EthernetInterfaces []schemas.EthernetInterface `json:"ethernet_interfaces" yaml:"ethernet_interfaces"`
 }
 
 // Manager represents data that would be retrieved from BMC Manager data, except
 // reduced to a minimum needed for discovery.
 type Manager struct {
 	System
-	Description string `json:"description"`
-	Type        string `json:"type"`
+	Description string `json:"description" yaml:"description"`
+	Type        string `json:"type" yaml:"type"`
 }
 
 // Group represents the payload structure for SMD groups.
 type Group struct {
-	Label          string   `json:"label"`
-	Description    string   `json:"description"`
-	Tags           []string `json:"tags,omitempty"`
-	ExclusiveGroup string   `json:"exclusiveGroup,omitempty"`
+	Label          string   `json:"label" yaml:"label"`
+	Description    string   `json:"description" yaml:"description"`
+	Tags           []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	ExclusiveGroup string   `json:"exclusiveGroup,omitempty" yaml:"exclusiveGroup,omitempty"`
 	Members        struct {
-		IDs []string `json:"ids,omitempty"`
-	} `json:"members,omitempty"`
+		IDs []string `json:"ids,omitempty" yaml:"ids,omitempty"`
+	} `json:"members,omitempty" yaml:"members,omitempty"`
 }
 
 // GroupMembers represents the payload structure for SMD group membership for
 // PUT requests. It consists of only the group label and list of group IDs.
 type GroupMembers struct {
-	Label string   `json:"label"`
-	IDs   []string `json:"ids"`
+	Label string   `json:"label" yaml:"label"`
+	IDs   []string `json:"ids" yaml:"ids"`
 }
 
 // NewClient takes a baseURI and returns a pointer to a new SMDClient. If an
