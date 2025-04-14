@@ -70,9 +70,6 @@ See ochami-smd(1) for more details.`,
 		// Create client to use for requests
 		smdClient := smdGetClient(cmd, true)
 
-		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(smdClient.OchamiClient)
-
 		var rfes smd.RedfishEndpointSlice
 		var err error
 		if cmd.Flag("data").Changed {
