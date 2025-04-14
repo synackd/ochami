@@ -36,7 +36,7 @@ func pcsGetClient(cmd *cobra.Command, tokenRequired bool) *pcs.PCSClient {
 	}
 
 	// Check if a CA certificate was passed and load it into client if valid
-	useCACert(pcsClient.OchamiClient)
+	useCACert(cmd, pcsClient.OchamiClient)
 
 	return pcsClient
 }

@@ -43,6 +43,9 @@ log:
 #
 # The cluster block can contain the following keys:
 #
+# ca-cert - Path to certificate authority certificate to use to verify TLS
+#           certificates.
+#
 # uri - The base URI of all OpenCHAMI services. ochami will append the base path
 #       and endpoint to this URI. If uri is specified in any of the <service>
 #       configs below, this behavior changes (see '<service>' below).

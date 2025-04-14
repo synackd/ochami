@@ -235,16 +235,83 @@ func checkToken(cmd *cobra.Command) {
 	}
 }
 
-// useCACert takes a pointer to a client.OchamiClient and, if a path to a CA
-// certificate has been set via --cacert, it configures it to use it. If an
-// error occurs, a log is printed and the program exits.
-func useCACert(client *client.OchamiClient) {
-	if cacertPath != "" {
-		log.Logger.Debug().Msgf("Attempting to use CA certificate at %s", cacertPath)
-		if err := client.UseCACert(cacertPath); err != nil {
-			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s", cacertPath)
+// useCACert sets the CA certificate path of client depending on the options
+// passed to cmd. The precedence is:
+//
+// 1. --cacert
+// 2. Certificate path from --cluster
+// 3. Certificate path from default cluster
+func useCACert(cmd *cobra.Command, client *client.OchamiClient) {
+	if cmd.Flag("cacert").Changed {
+		var cacertPath string
+		cacertPath, err := cmd.Flags().GetString("cacert")
+		if err != nil {
+			log.Logger.Error().Err(err).Msg("failed to get value from --cacert")
+			logHelpError(cmd)
 			os.Exit(1)
 		}
+		// Use certificate path passed by --cacert
+		log.Logger.Debug().Msgf("attempting to use CA certificate at %s", cacertPath)
+		if err := client.UseCACert(cacertPath); err != nil {
+			log.Logger.Error().Err(err).Msgf("failed to load CA certificate %s", cacertPath)
+			logHelpError(cmd)
+			os.Exit(1)
+		}
+	} else if !cmd.Flag("ignore-config").Changed {
+		// Otherwise, use certificate path from config file, if not ignored
+		var cToUse config.ConfigCluster
+		if cmd.Flag("cluster").Changed {
+			// Use certificate path for --cluster, if configured
+			if cluster, err := cmd.Flags().GetString("cluster"); err != nil {
+				// Find cluster to use
+				for _, c := range config.GlobalConfig.Clusters {
+					if c.Name == cluster {
+						cToUse = c
+						break
+					}
+				}
+				// Specified cluster doesn't exist. Error handling for this
+				// is handled beforehand, so don't err here.
+			} else {
+				log.Logger.Error().Err(err).Msg("failed to get value for --cluster")
+				logHelpError(cmd)
+				os.Exit(1)
+			}
+		} else if config.GlobalConfig.DefaultCluster != "" {
+			// Use default cluster's certificate path, if configured
+			if config.GlobalConfig.DefaultCluster != "" {
+				// Find default cluster to use
+				for _, c := range config.GlobalConfig.Clusters {
+					if c.Name == config.GlobalConfig.DefaultCluster {
+						cToUse = c
+						break
+					}
+				}
+			} else {
+				// No default cluster set, don't try to get certificate path
+				return
+			}
+		} else {
+			log.Logger.Info().Msg("no cluster to read certificate path from, using system's")
+			return
+		}
+
+		if cToUse != (config.ConfigCluster{}) {
+			if cToUse.Cluster.CACert != "" {
+				// Only use certificate path if set
+				if err := client.UseCACert(cToUse.Cluster.CACert); err != nil {
+					log.Logger.Error().Err(err).Msgf("failed to get certificate path from config for cluster %s", cToUse.Name)
+					logHelpError(cmd)
+					os.Exit(1)
+				}
+			} else {
+				// Certificate path not set for this cluster, ignore
+			}
+		}
+	} else {
+		// Don't fail if no explicit certificate specified, since it could
+		// already be trusted by system's certificate store
+		log.Logger.Info().Msg("no explicit certificate specified and no config loaded, using system's")
 	}
 }
 

@@ -36,7 +36,7 @@ func smdGetClient(cmd *cobra.Command, tokenRequired bool) *smd.SMDClient {
 	}
 
 	// Check if a CA certificate was passed and load it into client if valid
-	useCACert(smdClient.OchamiClient)
+	useCACert(cmd, smdClient.OchamiClient)
 
 	return smdClient
 }

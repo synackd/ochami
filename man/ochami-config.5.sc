@@ -69,6 +69,14 @@ These configuration options apply only to cluster configuration, i.e. under the
 *clusters* key. The value for the *cluster* key is an array with each item in
 the array containing the below configuration options.
 
+*ca-cert:* _cert_path_
+	An optional path to a certificate authority certificate to use to verify TLS
+	certificates when communicating with OpenCHAMI APIs.
+
+	This is a convenience configuration so *--cacert* needn't be specified with
+	every *ochami* call when the OpenCHAMI CA certificate is not added to the
+	trusted certificate store of the system.
+
 *name:* _cluster_name_
 	The name of the cluster. This is what *--cluster* and the *default-cluster*
 	key use to identify the cluster.
