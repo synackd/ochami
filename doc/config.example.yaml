@@ -15,10 +15,10 @@ log:
 
   # Log format. Specify the format of log messages. Available values are:
   #
-  # json (default)
-  # rfc3339 - Follows formatting in RFC 3339
+  # json    - Log fields in JSON format
+  # rfc3339 - Follows formatting in RFC 3339 (default)
   # basic   - Specifies log level but no timestamp data
-  format: json
+  format: rfc3339
 
 # Specify the name of the cluster to use by default. If this is not specified,
 # --cluster must be used on the command line to specify the name of the cluster
