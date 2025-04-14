@@ -23,9 +23,8 @@ var (
 	formatOutput = format.DataFormatJson
 
 	// These are only used by subcommands.
-	cacertPath string
-	token      string
-	insecure   bool
+	token    string
+	insecure bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -85,7 +84,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("log-level", "l", "", "set verbosity of logs (info,warning,debug)")
 	rootCmd.PersistentFlags().StringP("cluster", "C", "", "name of cluster whose config to use for this command")
 	rootCmd.PersistentFlags().StringP("cluster-uri", "u", "", "base URI for OpenCHAMI services, excluding service base path (overrides cluster.uri in config file)")
-	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
+	rootCmd.PersistentFlags().String("cacert", "", "path to root CA certificate in PEM format")
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
 	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
 	rootCmd.PersistentFlags().Bool("ignore-config", false, "do not use any config file")

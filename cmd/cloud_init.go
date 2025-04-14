@@ -88,7 +88,7 @@ func cloudInitGetClient(cmd *cobra.Command, tokenRequired bool) *ci.CloudInitCli
 	}
 
 	// Check if a CA certificate was passed and load it into client if valid
-	useCACert(cloudInitClient.OchamiClient)
+	useCACert(cmd, cloudInitClient.OchamiClient)
 
 	return cloudInitClient
 }

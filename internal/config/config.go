@@ -94,6 +94,7 @@ type ConfigCluster struct {
 // ConfigClusterConfig is the actual structure for an individual cluster
 // configuration.
 type ConfigClusterConfig struct {
+	CACert    string                 `yaml:"ca-cert,omitempty"`
 	URI       string                 `yaml:"uri,omitempty"`
 	BSS       ConfigClusterBSS       `yaml:"bss,omitempty"`
 	CloudInit ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`

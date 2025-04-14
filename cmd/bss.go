@@ -38,7 +38,7 @@ func bssGetClient(cmd *cobra.Command, tokenRequired bool) *bss.BSSClient {
 	}
 
 	// Check if a CA certificate was passed and load it into client if valid
-	useCACert(bssClient.OchamiClient)
+	useCACert(cmd, bssClient.OchamiClient)
 
 	return bssClient
 }

@@ -73,7 +73,7 @@ See ochami-discover(1) for more details.`,
 		}
 
 		// Check if a CA certificate was passed and load it into client if valid
-		useCACert(smdClient.OchamiClient)
+		useCACert(cmd, smdClient.OchamiClient)
 
 		if cmd.Flag("overwrite").Changed {
 			log.Logger.Warn().Msg("--overwrite passed; overwriting any existing data")
