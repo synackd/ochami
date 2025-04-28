@@ -1,11 +1,11 @@
 
 # Set path to commands
-GO      ?= $(shell command -v go)
-GIT     ?= $(shell command -v git)
+GO      ?= $(shell command -v go 2>/dev/null)
+GIT     ?= $(shell command -v git 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
-HOSTCMD ?= $(shell command -v hostname)
-INSTALL ?= $(shell command -v install)
-SCDOC   ?= $(shell command -v scdoc)
+HOSTCMD ?= $(shell command -v hostname 2>/dev/null)
+INSTALL ?= $(shell command -v install 2>/dev/null)
+SCDOC   ?= $(shell command -v scdoc 2>/dev/null)
 SHELL   ?= /bin/sh
 
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
@@ -19,23 +19,14 @@ bindir      ?= $(exec_prefix)/bin
 mandir      ?= $(exec_prefix)/man
 
 # Check that commands are present
-ifeq ($(GO),)
-$(error go command not found.)
-endif
 ifeq ($(GIT),)
 $(error git command not found.)
 endif
 ifeq ($(HOSTCMD),)
 $(error hostname command not found.)
 endif
-ifeq ($(INSTALL),)
-$(error install command not found.)
-endif
-ifeq ($(SCDOC),)
-$(error scdoc command not found.)
-endif
 ifeq ($(SHELL),)
-$(error '$(SHELL)' command not found.)
+$(error '$(SHELL)' undefined.)
 endif
 
 # Recursive wildcard function, obtained from https://stackoverflow.com/a/18258352
@@ -79,6 +70,9 @@ binaries: $(NAME)
 
 .PHONY: clean
 clean:
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
 	$(GO) clean -i -x
 
 .PHONY: clean-man
@@ -100,16 +94,25 @@ install: install-prog install-completions install-man
 
 .PHONY: install-prog
 install-prog: $(NAME)
+ifeq ($(INSTALL),)
+	$(error install command not found.)
+endif
 	$(INSTALL_PROGRAM) $(NAME) $(DESTDIR)$(bindir)/$(NAME)
 
 .PHONY: install-completions
 install-completions: completions
+ifeq ($(INSTALL),)
+	$(error install command not found.)
+endif
 	$(INSTALL_DATA) ./completions/ochami.bash $(DESTDIR)/usr/share/bash-completion/completions/ochami
 	$(INSTALL_DATA) ./completions/ochami.fish $(DESTDIR)/usr/share/fish/vendor_completions.d/ochami.fish
 	$(INSTALL_DATA) ./completions/ochami.zsh $(DESTDIR)/usr/share/zsh/site-functions/_ochami
 
 .PHONY: install-man
 install-man: $(MANBIN)
+ifeq ($(INSTALL),)
+	$(error install command not found.)
+endif
 	mkdir -p $(DESTDIR)$(mandir)/man1
 	mkdir -p $(DESTDIR)$(mandir)/man5
 	$(INSTALL_DATA) $(MAN1BIN) $(DESTDIR)$(mandir)/man1/
@@ -119,6 +122,9 @@ install-man: $(MANBIN)
 man: $(MANBIN)
 
 man/%: man/%.sc
+ifeq ($(SCDOC),)
+	$(error scdoc command not found.)
+endif
 	$(SCDOC) < $< > $@
 
 .PHONY: uninstall
@@ -140,4 +146,7 @@ uninstall-man:
 	rm -f $(foreach man5page,$(subst man/,,$(MAN5BIN)),$(DESTDIR)$(mandir)/man5/$(man5page))
 
 $(NAME): *.go cmd/*.go $(INTERNAL) $(PKG)
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
 	$(GO) build -v -ldflags="$(LDFLAGS)"
