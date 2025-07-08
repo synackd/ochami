@@ -15,11 +15,6 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/discover"
 )
 
-const (
-	DISCOVER_V1 int = iota + 1 // 1
-	DISCOVER_V2                // 2
-)
-
 // discoverStaticCmd represents the discover-static command
 var discoverStaticCmd = &cobra.Command{
 	Use:   "static [--overwrite] [-d (<data> | @<path>)] [-f <format>]",
@@ -459,7 +454,7 @@ See ochami-discover(1) for more details.`,
 }
 
 func init() {
-	discoverStaticCmd.Flags().Int("discovery-version", DISCOVER_V2, "set version for discovery method to use")
+	discoverStaticCmd.Flags().Var(&discoveryVersion, "discovery-version", "set version for discovery method to use")
 	discoverStaticCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 	discoverStaticCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 	discoverStaticCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
