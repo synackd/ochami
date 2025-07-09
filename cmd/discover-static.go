@@ -456,7 +456,7 @@ func init() {
 	discoverStaticCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 	discoverStaticCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
 
-	cloudInitGroupAddCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
+	discoverStaticCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
 
 	discoverCmd.AddCommand(discoverStaticCmd)
 }
