@@ -13,8 +13,8 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bootParamsSetCmd represents the bss-boot-params-set command
-var bootParamsSetCmd = &cobra.Command{
+// bssBootParamsSetCmd represents the bss-boot-params-set command
+var bssBootParamsSetCmd = &cobra.Command{
 	Use:   "set",
 	Args:  cobra.NoArgs,
 	Short: "Set boot parameters for one or more components, overwriting any previous",
@@ -142,19 +142,19 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootParamsSetCmd.Flags().String("kernel", "", "URI of kernel")
-	bootParamsSetCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
-	bootParamsSetCmd.Flags().String("params", "", "kernel parameters")
-	bootParamsSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
-	bootParamsSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
-	bootParamsSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
-	bootParamsSetCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
-	bootParamsSetCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
+	bssBootParamsSetCmd.Flags().String("kernel", "", "URI of kernel")
+	bssBootParamsSetCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
+	bssBootParamsSetCmd.Flags().String("params", "", "kernel parameters")
+	bssBootParamsSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
+	bssBootParamsSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
+	bssBootParamsSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
+	bssBootParamsSetCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	bssBootParamsSetCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 
-	bootParamsSetCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
+	bssBootParamsSetCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
 
-	bootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid", "data")
-	bootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "data")
+	bssBootParamsSetCmd.MarkFlagsOneRequired("xname", "mac", "nid", "data")
+	bssBootParamsSetCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "data")
 
-	bootParamsCmd.AddCommand(bootParamsSetCmd)
+	bssBootParamsCmd.AddCommand(bssBootParamsSetCmd)
 }

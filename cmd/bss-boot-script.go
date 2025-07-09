@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bootScriptCmd represents the bss-boot-script command
-var bootScriptCmd = &cobra.Command{
+// bssBootScriptCmd represents the bss-boot-script command
+var bssBootScriptCmd = &cobra.Command{
 	Use:   "script",
 	Args:  cobra.NoArgs,
 	Short: "Work with boot scripts for components",
@@ -25,5 +25,5 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootCmd.AddCommand(bootScriptCmd)
+	bssBootCmd.AddCommand(bssBootScriptCmd)
 }

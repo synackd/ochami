@@ -17,8 +17,8 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/format"
 )
 
-// bootImageSetCmd represents the "bss boot image set" command
-var bootImageSetCmd = &cobra.Command{
+// bssBootImageSetCmd represents the "bss boot image set" command
+var bssBootImageSetCmd = &cobra.Command{
 	Use:   "set (-x <xname>[,...] | -m <mac>[,...] | -n <nid>[,...]) <image>",
 	Args:  cobra.ExactArgs(1),
 	Short: "Set root= kernel command line for one or more nodes, overwriting any previously set",
@@ -175,11 +175,11 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootImageSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
-	bootImageSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
-	bootImageSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
+	bssBootImageSetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to set")
+	bssBootImageSetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to set")
+	bssBootImageSetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to set")
 
-	bootImageSetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
+	bssBootImageSetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
 
-	bootImageCmd.AddCommand(bootImageSetCmd)
+	bssBootImageCmd.AddCommand(bssBootImageSetCmd)
 }

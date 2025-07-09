@@ -14,8 +14,8 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bootScriptGetCmd represents the bss-boot-script-get command
-var bootScriptGetCmd = &cobra.Command{
+// bssBootScriptGetCmd represents the bss-boot-script-get command
+var bssBootScriptGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,
 	Short: "Get iPXE boot script for a component",
@@ -113,14 +113,14 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootScriptGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot script to get")
-	bootScriptGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot script to get")
-	bootScriptGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot script to get")
-	bootScriptGetCmd.Flags().Int("retry", 0, "number of times to retry fetching boot script on failed boot")
-	bootScriptGetCmd.Flags().String("arch", "", "architecture value from iPXE variable ${buildarch}")
-	bootScriptGetCmd.Flags().Int("timestamp", 0, "timestamp in seconds since Unix epoch for when SMD state needs to be updated by")
+	bssBootScriptGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot script to get")
+	bssBootScriptGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot script to get")
+	bssBootScriptGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot script to get")
+	bssBootScriptGetCmd.Flags().Int("retry", 0, "number of times to retry fetching boot script on failed boot")
+	bssBootScriptGetCmd.Flags().String("arch", "", "architecture value from iPXE variable ${buildarch}")
+	bssBootScriptGetCmd.Flags().Int("timestamp", 0, "timestamp in seconds since Unix epoch for when SMD state needs to be updated by")
 
-	bootScriptGetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
+	bssBootScriptGetCmd.MarkFlagsOneRequired("xname", "mac", "nid")
 
-	bootScriptCmd.AddCommand(bootScriptGetCmd)
+	bssBootScriptCmd.AddCommand(bssBootScriptGetCmd)
 }
