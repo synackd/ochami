@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootParamsUpdateCmd represents the bss-boot-params-update command
+// bssBootParamsUpdateCmd represents the "bss boot params update" command
 var bssBootParamsUpdateCmd = &cobra.Command{
 	Use:   "update",
 	Args:  cobra.NoArgs,

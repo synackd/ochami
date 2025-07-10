@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bssBootParamsCmd represents the bss-boot-params command
+// bssBootParamsCmd represents the "bss boot params" command
 var bssBootParamsCmd = &cobra.Command{
 	Use:   "params",
 	Args:  cobra.NoArgs,

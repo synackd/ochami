@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootParamsGetCmd represents the bss-boot-params-get command
+// bssBootParamsGetCmd represents the "bss boot params get" command
 var bssBootParamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

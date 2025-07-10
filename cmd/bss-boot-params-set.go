@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootParamsSetCmd represents the bss-boot-params-set command
+// bssBootParamsSetCmd represents the "bss boot params set" command
 var bssBootParamsSetCmd = &cobra.Command{
 	Use:   "set",
 	Args:  cobra.NoArgs,

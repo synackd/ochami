@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootParamsDelete represents the bss-boot-params-delete command
+// bssBootParamsDelete represents the "bss boot params delete" command
 var bssBootParamsDelete = &cobra.Command{
 	Use:   "delete",
 	Args:  cobra.NoArgs,

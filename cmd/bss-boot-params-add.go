@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootParamsAddCmd represents the bss-boot-params-add command
+// bssBootParamsAddCmd represents the "bss boot params add" command
 var bssBootParamsAddCmd = &cobra.Command{
 	Use:   "add",
 	Args:  cobra.NoArgs,

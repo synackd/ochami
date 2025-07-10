@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bssBootCmd represents the bss-boot command
+// bssBootCmd represents the "bss boot" command
 var bssBootCmd = &cobra.Command{
 	Use:   "boot",
 	Args:  cobra.NoArgs,

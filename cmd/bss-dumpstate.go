@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssDumpStateCmd represents the bss-dumpstate command
+// bssDumpStateCmd represents the "bss dumpstate" command
 var bssDumpStateCmd = &cobra.Command{
 	Use:   "dumpstate",
 	Args:  cobra.NoArgs,

@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssHistoryCmd represents the bss-history command
+// bssHistoryCmd represents the "bss history" command
 var bssHistoryCmd = &cobra.Command{
 	Use:   "history",
 	Args:  cobra.NoArgs,

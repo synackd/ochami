@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssStatusCmd represents the bss-status command
+// bssStatusCmd represents the "bss status" command
 var bssStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,

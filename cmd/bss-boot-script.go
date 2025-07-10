@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bssBootScriptCmd represents the bss-boot-script command
+// bssBootScriptCmd represents the "bss boot script" command
 var bssBootScriptCmd = &cobra.Command{
 	Use:   "script",
 	Args:  cobra.NoArgs,

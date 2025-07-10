@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssBootScriptGetCmd represents the bss-boot-script-get command
+// bssBootScriptGetCmd represents the "bss boot script get" command
 var bssBootScriptGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

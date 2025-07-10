@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bssHostsCmd represents the hosts command
+// bssHostsCmd represents the "bss hosts" command
 var bssHostsCmd = &cobra.Command{
 	Use:   "hosts",
 	Args:  cobra.NoArgs,
