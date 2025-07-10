@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rfeCmd represents the smd-rfe command
+// rfeCmd represents the "smd rfe" command
 var rfeCmd = &cobra.Command{
 	Use:   "rfe",
 	Args:  cobra.NoArgs,

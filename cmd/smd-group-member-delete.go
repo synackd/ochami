@@ -12,7 +12,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// groupMemberDeleteCmd represents the smd-group-member-delete command
+// groupMemberDeleteCmd represents the "smd group member delete" command
 var groupMemberDeleteCmd = &cobra.Command{
 	Use:   "delete <group_label> <component>...",
 	Args:  cobra.MinimumNArgs(2),

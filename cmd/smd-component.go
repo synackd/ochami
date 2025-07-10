@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// componentCmd represents the smd-component command
+// componentCmd represents the "smd component" command
 var componentCmd = &cobra.Command{
 	Use:   "component",
 	Args:  cobra.NoArgs,

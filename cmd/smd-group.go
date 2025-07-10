@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// groupCmd represents the smd-group command
+// groupCmd represents the "smd group" command
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Args:  cobra.NoArgs,

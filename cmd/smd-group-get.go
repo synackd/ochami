@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// groupGetCmd represents the smd-group-get command
+// groupGetCmd represents the "smd group get" command
 var groupGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

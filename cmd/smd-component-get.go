@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// componentGetCmd represents the smd-component-get command
+// componentGetCmd represents the "smd component get" command
 var componentGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

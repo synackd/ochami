@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// ifaceGetCmd represents the smd-iface-get command
+// ifaceGetCmd represents the "smd iface get" command
 var ifaceGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

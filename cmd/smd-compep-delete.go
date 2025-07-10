@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// compepDeleteCmd represents the smd-compep-delete command
+// compepDeleteCmd represents the "smd compep delete" command
 var compepDeleteCmd = &cobra.Command{
 	Use:   "delete (-d (<payload_data> | @<payload_file>)) | --all | <xname>...",
 	Short: "Delete one or more component endpoints",

@@ -16,7 +16,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// ifaceAddCmd represents the smd-iface-add command
+// ifaceAddCmd represents the "smd iface add" command
 var ifaceAddCmd = &cobra.Command{
 	Use:   "add (-d (<payload_data> | @<payload_file>)) | (<comp_id> <mac_addr> (<net_name>,<ip_addr>)...)",
 	Short: "Add new ethernet interface(s)",

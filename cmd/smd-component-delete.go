@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// componentDeleteCmd represents the smd-component-delete command
+// componentDeleteCmd represents the "smd component delete" command
 var componentDeleteCmd = &cobra.Command{
 	Use:   "delete (-d (<payload_data> | @<payload_file>)) | --all | <xname>...",
 	Short: "Delete one or more components",

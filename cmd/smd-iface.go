@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ifaceCmd represents the smd-iface command
+// ifaceCmd represents the "smd iface" command
 var ifaceCmd = &cobra.Command{
 	Use:   "iface",
 	Args:  cobra.NoArgs,

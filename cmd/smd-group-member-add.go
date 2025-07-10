@@ -12,7 +12,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// groupMemberAddCmd represents the smd-group-member-add command
+// groupMemberAddCmd represents the "smd group member add" command
 var groupMemberAddCmd = &cobra.Command{
 	Use:   "add <group_label> <component>...",
 	Args:  cobra.MinimumNArgs(2),

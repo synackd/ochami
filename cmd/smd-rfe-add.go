@@ -15,7 +15,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// rfeAddCmd represents the smd-rfe-add command
+// rfeAddCmd represents the "smd rfe add" command
 var rfeAddCmd = &cobra.Command{
 	Use:   "add (-d (<payload_data> | @<payload_file>)) | (<xname> <name> <ip_addr> <mac_addr>)",
 	Args:  cobra.MaximumNArgs(4),
