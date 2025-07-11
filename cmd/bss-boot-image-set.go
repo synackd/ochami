@@ -9,11 +9,12 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
+	"github.com/spf13/cobra"
+	kargs "github.com/synackd/go-kargs"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
-	"github.com/spf13/cobra"
-	kargs "github.com/synackd/go-kargs"
 )
 
 // bootImageSetCmd represents the "bss boot image set" command

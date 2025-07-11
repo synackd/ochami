@@ -13,12 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/cobra"
 )
 
 var (

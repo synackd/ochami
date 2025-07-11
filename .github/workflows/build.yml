@@ -1,0 +1,38 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install scdoc for man page generation
+        run: |
+          sudo apt update
+          sudo apt install scdoc
+      - name: Set up latest stable Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: 1
+          fetch-depth: 0
+      - name: Set build environment variables
+        run: |
+          echo GOVERSION=$(go env GOVERSION) >> $GITHUB_ENV
+          echo BUILD_HOST=$(hostname) >> $GITHUB_ENV
+          echo BUILD_USER=$(whoami) >> $GITHUB_ENV
+      - name: Build with goreleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --snapshot --clean --skip publish
+        id: goreleaser

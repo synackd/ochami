@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/openchami/schemas/schemas/csm"
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
-	"github.com/openchami/schemas/schemas/csm"
-	"github.com/spf13/cobra"
 )
 
 // rfeAddCmd represents the smd-rfe-add command

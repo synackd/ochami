@@ -9,10 +9,11 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/cistore"
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
-	"github.com/spf13/cobra"
 )
 
 // cloudInitGetGroupData returns a slice of cloud-init group data for the
@@ -230,7 +231,7 @@ See ochami-cloud-init(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(outBytes))
+			fmt.Print(string(outBytes))
 		}
 	},
 }
@@ -264,7 +265,7 @@ See ochami-cloud-init(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(outBytes))
+			fmt.Print(string(outBytes))
 		}
 	},
 }

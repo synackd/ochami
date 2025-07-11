@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/spf13/cobra"
 )
 
 // configClusterShow represents the config-cluster-show command

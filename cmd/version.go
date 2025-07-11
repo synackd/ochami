@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/spf13/cobra"
+
+	"github.com/OpenCHAMI/ochami/internal/version"
 )
 
 var output string

@@ -5,9 +5,10 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/spf13/cobra"
 )
 
 // configClusterUnsetCmd represents the config-cluster-unset command

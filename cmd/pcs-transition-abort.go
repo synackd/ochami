@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
-	"github.com/spf13/cobra"
 )
 
 // pcsTransitionAbortCmd represents the "pcs transition abort" command

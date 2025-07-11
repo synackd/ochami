@@ -7,9 +7,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/spf13/cobra"
 )
 
 // configShow represents the config-show command

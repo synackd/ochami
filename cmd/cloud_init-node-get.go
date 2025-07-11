@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
+
+	"gopkg.in/yaml.v3"
+
+	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
-	"github.com/spf13/cobra"
 )
 
 // cloudInitNodeGetCmd represents the "cloud-init group get" command
@@ -188,7 +190,7 @@ See ochami-cloud-init(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(outBytes))
+			fmt.Print(string(outBytes))
 		}
 	},
 }

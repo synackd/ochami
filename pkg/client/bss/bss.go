@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
+
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 

@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/spf13/cobra"
 )
 
 // bssDumpStateCmd represents the bss-dumpstate command
@@ -42,7 +43,7 @@ See ochami-bss(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		} else {
-			fmt.Printf(string(outBytes))
+			fmt.Print(string(outBytes))
 		}
 	},
 }
