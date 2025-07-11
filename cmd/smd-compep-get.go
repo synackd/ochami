@@ -46,7 +46,7 @@ See ochami-smd(1) for more details.`,
 				logHelpError(cmd)
 				os.Exit(1)
 			} else {
-				fmt.Printf(string(outBytes))
+				fmt.Print(string(outBytes))
 			}
 		} else {
 			httpEnvs, errs, err := smdClient.GetComponentEndpoints(token, args...)
@@ -107,7 +107,7 @@ See ochami-smd(1) for more details.`,
 				logHelpError(cmd)
 				os.Exit(1)
 			} else {
-				fmt.Printf(string(outBytes))
+				fmt.Print(string(outBytes))
 			}
 		}
 	},

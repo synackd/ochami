@@ -66,7 +66,7 @@ func getFormatCaller(noColor bool) zerolog.Formatter {
 		if ok {
 			out = fmt.Sprintf("%s:%d", filepath.Base(f), l)
 		} else {
-			out = fmt.Sprintf("%s:%d", path, line)
+			out = fmt.Sprintf("%s:%s", path, line)
 		}
 
 		return colorize(out, colorBold, noColor) + colorize(" >", colorCyan, noColor)

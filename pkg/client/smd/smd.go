@@ -236,7 +236,7 @@ func (sc *SMDClient) GetRedfishEndpoints(query, token string) (client.HTTPEnvelo
 	headers = client.NewHTTPHeaders()
 	if token != "" {
 		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w")
+			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w", err)
 		}
 	}
 	henv, err = sc.GetData(SMDRelpathRedfishEndpoints, query, headers)
@@ -285,7 +285,9 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (cl
 			return henv, fmt.Errorf("GetEthernetInterfacesByID(): failed to join endpoint %s with \"IPAddresses\": %w", ep, err)
 		}
 	} else {
-		ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id)
+		if ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id); err != nil {
+			return henv, fmt.Errorf("GetEthernetInterfacesByID(): failed to join endpoint %s with id %q: %w", ep, id, err)
+		}
 	}
 	henv, err = sc.GetData(ep, "", headers)
 	if err != nil {
@@ -384,7 +386,7 @@ func (sc *SMDClient) GetGroupMembers(group, token string) (client.HTTPEnvelope, 
 	}
 	finalEP, err := url.JoinPath(SMDRelpathGroups, group, "members")
 	if err != nil {
-		return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): failed to join group path (%s) with membership path for gorup %s: %w", SMDRelpathGroups, group)
+		return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): failed to join group path (%s) with membership path for gorup %s: %w", SMDRelpathGroups, group, err)
 	}
 	headers := client.NewHTTPHeaders()
 	if token != "" {
@@ -604,7 +606,7 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 	for _, member := range members {
 		groupPath, err := url.JoinPath(SMDRelpathGroups, group, "members")
 		if err != nil {
-			newErr := fmt.Errorf("PostGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group)
+			newErr := fmt.Errorf("PostGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group, err)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -818,7 +820,7 @@ func (sc *SMDClient) PutGroupMembers(token, group string, members ...string) (cl
 	// Calculate endpoint path for group
 	groupPath, err := url.JoinPath(SMDRelpathGroups, group, "members")
 	if err != nil {
-		return henv, fmt.Errorf("PutGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group)
+		return henv, fmt.Errorf("PutGroupMembers(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group, err)
 	}
 
 	// Send request and return response
@@ -969,13 +971,13 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]client.HTTPEnv
 		}
 		groupPath, err := url.JoinPath(SMDRelpathGroups, group.Label)
 		if err != nil {
-			newErr := fmt.Errorf("PatchGroups(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group.Label)
+			newErr := fmt.Errorf("PatchGroups(): failed to join group path (%s) with group label (%s): %w", SMDRelpathGroups, group.Label, err)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
 		}
 		if body, err = json.Marshal(group); err != nil {
-			newErr := fmt.Errorf("PatchGroups(): failed to marshal Group: %w")
+			newErr := fmt.Errorf("PatchGroups(): failed to marshal Group: %w", err)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
