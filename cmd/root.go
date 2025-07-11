@@ -5,11 +5,12 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/OpenCHAMI/ochami/pkg/format"
-	"github.com/spf13/cobra"
 )
 
 var (

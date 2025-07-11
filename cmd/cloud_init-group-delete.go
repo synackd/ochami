@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/cistore"
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/spf13/cobra"
 )
 
 // cloudInitGroupDeleteCmd represents the "cloud-init group delete" command

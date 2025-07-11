@@ -5,9 +5,10 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client/pcs"
-	"github.com/spf13/cobra"
 )
 
 // pcsGetClient sets up the PCS client with the PCS base URI and certificates

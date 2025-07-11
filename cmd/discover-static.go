@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 	"github.com/OpenCHAMI/ochami/pkg/discover"
-	"github.com/spf13/cobra"
 )
 
 // discoverStaticCmd represents the discover-static command

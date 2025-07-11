@@ -9,10 +9,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
-	"github.com/spf13/cobra"
 )
 
 // ifaceAddCmd represents the smd-iface-add command

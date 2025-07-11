@@ -7,9 +7,10 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/spf13/cobra"
 )
 
 // bootParamsUpdateCmd represents the bss-boot-params-update command

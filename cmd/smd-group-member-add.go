@@ -6,9 +6,10 @@ import (
 	"errors"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/spf13/cobra"
 )
 
 // groupMemberAddCmd represents the smd-group-member-add command

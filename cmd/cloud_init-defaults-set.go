@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/cistore"
-	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/spf13/cobra"
+
+	"github.com/OpenCHAMI/ochami/internal/log"
 )
 
 // cloudInitDefaultsSetCmd represents the "cloud-init defaults set" command

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/OpenCHAMI/cloud-init/pkg/cistore"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )

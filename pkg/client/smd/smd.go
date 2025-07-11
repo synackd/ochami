@@ -6,10 +6,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/OpenCHAMI/ochami/internal/log"
-	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/openchami/schemas/schemas"
 	"github.com/openchami/schemas/schemas/csm"
+
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
 // SMDClient is an OchamiClient that has its BasePath set configured to the one

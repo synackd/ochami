@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
-	"github.com/spf13/cobra"
 )
 
 // compepGetCmd represents the smd-compep-get command

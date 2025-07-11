@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
-	"github.com/spf13/cobra"
 )
 
 type CIFlagHeaderWhen string

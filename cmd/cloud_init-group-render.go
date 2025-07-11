@@ -5,14 +5,16 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
+
+	"gopkg.in/yaml.v3"
+
+	"github.com/nikolalohinski/gonja"
+	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/client/ci"
-	"github.com/nikolalohinski/gonja"
-	"github.com/spf13/cobra"
 )
 
 // cloudInitGroupRenderCmd represents the "cloud-init group render" command
