@@ -330,8 +330,8 @@ func LoadConfig(path string) error {
 		Cfg  Config
 	}
 	cfgsToCheck := []FileCfgMap{
-		FileCfgMap{File: SystemConfigFile},
-		FileCfgMap{File: UserConfigFile},
+		{File: SystemConfigFile},
+		{File: UserConfigFile},
 	}
 	var cfgsLoaded []FileCfgMap
 	for _, cfg := range cfgsToCheck {
