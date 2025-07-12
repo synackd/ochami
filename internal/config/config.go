@@ -146,7 +146,7 @@ func (ccc *ConfigClusterConfig) MergeURIConfig(c ConfigClusterConfig) ConfigClus
 	if ccc.CloudInit == (ConfigClusterCloudInit{}) {
 		newCCC.CloudInit = ConfigClusterCloudInit{URI: c.CloudInit.URI}
 	} else {
-		newCCC.BSS.URI = compare(ccc.CloudInit.URI, c.CloudInit.URI)
+		newCCC.CloudInit.URI = compare(ccc.CloudInit.URI, c.CloudInit.URI)
 	}
 	if ccc.PCS == (ConfigClusterPCS{}) {
 		newCCC.PCS = ConfigClusterPCS{URI: c.PCS.URI}
@@ -154,7 +154,7 @@ func (ccc *ConfigClusterConfig) MergeURIConfig(c ConfigClusterConfig) ConfigClus
 		newCCC.PCS.URI = compare(ccc.PCS.URI, c.PCS.URI)
 	}
 	if ccc.SMD == (ConfigClusterSMD{}) {
-		newCCC.SMD = ConfigClusterSMD{URI: c.PCS.URI}
+		newCCC.SMD = ConfigClusterSMD{URI: c.SMD.URI}
 	} else {
 		newCCC.SMD.URI = compare(ccc.SMD.URI, c.SMD.URI)
 	}
