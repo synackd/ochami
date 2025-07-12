@@ -7,7 +7,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
 	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/OpenCHAMI/ochami/pkg/format"
@@ -31,7 +30,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   config.ProgName,
+	Use:   version.ProgName,
 	Args:  cobra.NoArgs,
 	Short: "Command line interface for interacting with OpenCHAMI services",
 	Long: `Command line interface for interacting with OpenCHAMI services.
@@ -90,7 +89,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
 	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
 	rootCmd.PersistentFlags().Bool("ignore-config", false, "do not use any config file")
-	rootCmd.PersistentFlags().BoolVarP(&config.EarlyVerbose, "verbose", "v", false, "be verbose before logging is initialized")
+	rootCmd.PersistentFlags().BoolVarP(&log.EarlyLogger.EarlyVerbose, "verbose", "v", false, "be verbose before logging is initialized")
 
 	// Either use cluster from config file or specify details on CLI
 	rootCmd.MarkFlagsMutuallyExclusive("cluster", "cluster-uri")

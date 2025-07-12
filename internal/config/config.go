@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"os/user"
@@ -22,8 +23,6 @@ import (
 
 type ServiceName string
 
-const ProgName = "ochami"
-
 const (
 	ServiceBSS       ServiceName = "bss"
 	ServiceCloudInit ServiceName = "cloud-init"
@@ -36,6 +35,8 @@ const (
 	DefaultBasePathCloudInit = "/cloud-init"
 	DefaultBasePathPCS       = "/"
 	DefaultBasePathSMD       = "/hsm/v2"
+
+	SystemConfigFile = "/etc/ochami/config.yaml"
 )
 
 // Default configuration values if either no configuration files exist or the
@@ -51,7 +52,6 @@ var (
 	GlobalConfig     = DefaultConfig // Global config struct
 	GlobalKoanf      *koanf.Koanf    // Koanf instance for gobal config struct
 	UserConfigFile   string
-	SystemConfigFile = "/etc/ochami/config.yaml"
 
 	// Since logging isn't set up until after config is read, this variable
 	// allows more verbose printing if true for more verbose logging
@@ -261,24 +261,6 @@ func (ccc *ConfigClusterConfig) GetServiceBaseURI(svcName ServiceName) (string, 
 	}
 
 	return serviceBaseURI, nil
-}
-
-// earlyLog is a primitive log function that works like fmt.Fprintln, printing
-// to standard error only if EarlyVerbose is true.
-func earlyLog(arg ...interface{}) {
-	if EarlyVerbose {
-		fmt.Fprintf(os.Stderr, "%s: ", ProgName)
-		fmt.Fprintln(os.Stderr, arg...)
-	}
-}
-
-// earlyLogf is like earlyLog, except it accepts a format string. It works like
-// fmt.Fprintf.
-func earlyLogf(fstr string, arg ...interface{}) {
-	if EarlyVerbose {
-		fmt.Fprintf(os.Stderr, "%s: ", ProgName)
-		fmt.Fprintf(os.Stderr, fstr+"\n", arg...)
-	}
 }
 
 // RemoveFromSlice removes an element from a slice and returns the resulting

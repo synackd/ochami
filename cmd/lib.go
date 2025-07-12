@@ -18,6 +18,7 @@ import (
 
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
 )
@@ -26,21 +27,12 @@ var (
 	// Errors
 	FileExistsError   = fmt.Errorf("file exists")
 	NoConfigFileError = fmt.Errorf("no config file to read")
+
+	// el is an early logger that has verbosity turned on automatically.
+	// It is for printing log messages before logging has been initialized,
+	// regardless of --verbose.
+	el = log.NewBasicLogger(os.Stderr, true, version.ProgName)
 )
-
-// earlyMsg is a primitive log function that works like fmt.Fprintln, printing
-// to standard error using the program prefix.
-func earlyMsg(arg ...interface{}) {
-	fmt.Fprintf(os.Stderr, "%s: ", config.ProgName)
-	fmt.Fprintln(os.Stderr, arg...)
-}
-
-// earlyMsgf is like earlyMsg, except it accepts a format string. It works like
-// fmt.Fprintf.
-func earlyMsgf(fstr string, arg ...interface{}) {
-	fmt.Fprintf(os.Stderr, "%s: ", config.ProgName)
-	fmt.Fprintf(os.Stderr, fstr+"\n", arg...)
-}
 
 // initConfig initializes the global configuration for a command, creating the
 // config file if create is true, if it does not already exist.
@@ -111,13 +103,13 @@ func initLogging(cmd *cobra.Command) error {
 // specified on the command line and not the merged config.
 func initConfigAndLogging(cmd *cobra.Command, createCfg bool) {
 	if err := initConfig(cmd, createCfg); err != nil {
-		earlyMsgf("failed to initialize config: %v", err)
-		earlyMsgf("see '%s --help' for long command help", cmd.CommandPath())
+		el.BasicLogf("failed to initialize config: %v", err)
+		el.BasicLogf("see '%s --help' for long command help", cmd.CommandPath())
 		os.Exit(1)
 	}
 	if err := initLogging(cmd); err != nil {
-		earlyMsgf("failed to initialized logging: %v", err)
-		earlyMsgf("see '%s --help' for long command help", cmd.CommandPath())
+		el.BasicLogf("failed to initialized logging: %v", err)
+		el.BasicLogf("see '%s --help' for long command help", cmd.CommandPath())
 		os.Exit(1)
 	}
 }
