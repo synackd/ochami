@@ -62,7 +62,12 @@ func initConfig(cmd *cobra.Command, create bool) error {
 
 	// Read configuration from file, if passed or merge config from system
 	// config file and user config file if not passed.
-	err := config.LoadConfig(configFile)
+	var err error
+	if configFile != "" {
+		err = config.LoadGlobalConfigFromFile(configFile)
+	} else {
+		err = config.LoadGlobalConfigMerged()
+	}
 	if err != nil {
 		err = fmt.Errorf("failed to load configuration: %w", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"os/user"
@@ -14,6 +13,7 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 	kyaml "github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
 	"gopkg.in/yaml.v3"
@@ -49,16 +49,12 @@ var DefaultConfig = Config{
 }
 
 var (
-	GlobalConfig     = DefaultConfig // Global config struct
-	GlobalKoanf      *koanf.Koanf    // Koanf instance for gobal config struct
-	UserConfigFile   string
+	GlobalConfig   = DefaultConfig // Global config struct
+	GlobalKoanf    *koanf.Koanf    // Koanf instance for gobal config struct
+	UserConfigFile string
 
-	// Since logging isn't set up until after config is read, this variable
-	// allows more verbose printing if true for more verbose logging
-	// pre-config parsing.
-	EarlyVerbose bool
-
-	configParser = kyaml.Parser() // Koanf YAML parser provider
+	// Koanf YAML parser provider
+	configParser = kyaml.Parser()
 
 	// Global koanf struct configuration
 	kConfig = koanf.Conf{Delim: ".", StrictMerge: true}
@@ -270,39 +266,23 @@ func RemoveFromSlice[T any](slice []T, index int) []T {
 	return slice[:len(slice)-1]
 }
 
-// LoadConfig takes a path to a config file and reads the contents of the file,
-// using koanf to load and unmarshal it into the global config struct. If there
-// is an error in this process or there is a config error (e.g. there is a key
-// specified that doesn't exist in the config struct), an error is returned.
-// Otherwise, nil is returned.
-func LoadConfig(path string) error {
-	earlyLog("early verbose log messages activated")
-
-	// Initialize global koanf structure
-	GlobalKoanf = koanf.NewWithConf(kConfig)
-
-	// If a config file was specified, load it alone. Do not try to merge
-	// its config with any other configuration.
-	if path != "" {
-		earlyLogf("using passed config file %s", path)
-		earlyLogf("parsing %s", path)
-		if err := GlobalKoanf.Load(file.Provider(path), configParser); err != nil {
-			return fmt.Errorf("failed to load specified config file %s: %w", path, err)
-		}
-		earlyLog("unmarshalling config into config struct")
-		if err := GlobalKoanf.UnmarshalWithConf("", nil, kUnmarshalConf); err != nil {
-			return fmt.Errorf("failed to unmarshal config from file %s: %w", path, err)
-		}
-		return nil
-	}
-	// Otherwise, we merge the config from the system and user config files.
-	earlyLog("no config file specified on command line, attempting to merge configs")
+// LoadGlobalConfigMerged populates the GlobalConfig Config structure and
+// GlobalKoanf structure with a configuration that is a merge of, in ascending
+// order of priority (higher is more priority:
+//
+// 1. DefaultConfig
+// 2. System config file (/etc/ochami/config.yaml)
+// 3. User config file (~/.config/ochami/config.yaml)
+//
+// If any of the system or user config file fails to load, it is skipped in the
+// merging.
+func LoadGlobalConfigMerged() error {
+	log.EarlyLogger.BasicLog("early verbose log messages activated")
 
 	// Generate user config path: ~/.config/ochami/config.yaml
 	user, err := user.Current()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: unable to fetch current user: %v\n", ProgName, err)
-		os.Exit(1)
+		return fmt.Errorf("unable to fetch current user: %w", err)
 	}
 	UserConfigFile = filepath.Join(user.HomeDir, ".config", "ochami", "config.yaml")
 
@@ -315,33 +295,25 @@ func LoadConfig(path string) error {
 		{File: SystemConfigFile},
 		{File: UserConfigFile},
 	}
-	var cfgsLoaded []FileCfgMap
+	// Default config is first in list so it is loaded first (so that when
+	// other configs get merged, unset values are set to the default).
+	cfgsLoaded := []FileCfgMap{{File: "default", Cfg: DefaultConfig}}
 	for _, cfg := range cfgsToCheck {
-		// Create koanf struct to load config from this file into
-		ko := koanf.NewWithConf(kConfig)
-
-		// Create config struct to unmarshal config from this file into
-		var c Config
-
-		// Copy global koanf unmarshal config, but unmarshal into config
-		// struct we made above
-		umc := kUnmarshalConf
-		umc.DecoderConfig.Result = &c
-
-		// Load config file into koanf struct
-		earlyLogf("attempting to load config file: %s", cfg.File)
-		err := ko.Load(file.Provider(cfg.File), configParser)
+		// Read bytes of config file
+		cfgBytes, err := os.ReadFile(cfg.File)
 		if errors.Is(err, os.ErrNotExist) {
-			earlyLogf("config file %s not found, skipping", cfg.File)
+			log.EarlyLogger.BasicLogf("config file %s not found, skipping", cfg.File)
 			continue
 		} else if err != nil {
-			return fmt.Errorf("failed to load config file %s: %w", cfg.File, err)
+			log.EarlyLogger.BasicLogf("failed to load config file %s: %v", cfg.File, err)
+			log.EarlyLogger.BasicLogf("skipping config file %s", cfg.File)
+			continue
 		}
 
-		// Unmarshal loaded config into local config struct to lint
-		// (i.e. check for unknown keys, etc).
-		if err := ko.UnmarshalWithConf("", nil, umc); err != nil {
-			return fmt.Errorf("failed to unmarshal config from %s: %w", cfg.File, err)
+		// Generate config struct from bytes via parser
+		_, c, err := GenerateConfigFromBytes(cfgBytes)
+		if err != nil {
+			return fmt.Errorf("failed to parse config bytes: %w", err)
 		}
 
 		// Add local config struct to slice of loaded configs
@@ -349,18 +321,33 @@ func LoadConfig(path string) error {
 		cfgsLoaded = append(cfgsLoaded, cfg)
 	}
 
-	// Merge loaded configs into global config. If none loaded, use default
-	// config (set above).
+	// Create a parser and merge configs into it:
+	//
+	//   1. Default config
+	//   2. System config
+	//   3. User config
+	//
+	ko := koanf.NewWithConf(kConfig)
 	for _, cfgLoaded := range cfgsLoaded {
-		earlyLogf("merging in config from %s", cfgLoaded.File)
-		if err := GlobalKoanf.Load(structs.Provider(cfgLoaded.Cfg, "yaml"), nil, koanf.WithMergeFunc(mergeConfig)); err != nil {
-			return fmt.Errorf("failed to merge configs into global config: %w", err)
+		if cfgLoaded.File == "default" {
+			log.EarlyLogger.BasicLogf("starting with default config")
+			if err := MergeConfigIntoParser(ko, cfgLoaded.Cfg); err != nil {
+				return fmt.Errorf("failed to load default config: %w", err)
+			}
+		} else {
+			log.EarlyLogger.BasicLogf("merging in config from %s", cfgLoaded.File)
+			if err := MergeConfigIntoParser(ko, cfgLoaded.Cfg); err != nil {
+				return fmt.Errorf("failed to merge config: %w", err)
+			}
 		}
 	}
 
-	// Unmarshal merged config from Koanf into global config struct.
+	// Set the merged parser as the global parser
+	GlobalKoanf = ko
+
+	// Unmarshal merged config from global parser into global config struct.
 	// koanf.UnMarshalWithConf won't unmarshal into the global config struct
-	// so we copy it, unmarhsl into the copy, then set the copy as the
+	// so we copy it, unmarshal into the copy, then set the copy as the
 	// global config.
 	c := GlobalConfig
 	kuc := kUnmarshalConf
@@ -370,9 +357,76 @@ func LoadConfig(path string) error {
 	}
 	GlobalConfig = c
 
-	earlyLog("config files, if any, have been merged")
+	log.EarlyLogger.BasicLog("config files, if any, have been merged")
 
 	return nil
+}
+
+// MergeConfigIntoParser take a Config and merges it into the parser k. This can
+// be done iteratively to incorporate multiple Configs into one parser.
+func MergeConfigIntoParser(k *koanf.Koanf, cfg Config) error {
+	if k == nil {
+		return fmt.Errorf("koanf object cannot be nil")
+	}
+	return k.Load(structs.Provider(cfg, "yaml"), nil, koanf.WithMergeFunc(mergeConfig))
+}
+
+// LoadGlobalConfigFromFile reads a YAML configuration at path and loads it into
+// the GlobalConfig Config structure.
+func LoadGlobalConfigFromFile(path string) error {
+	log.EarlyLogger.BasicLog("early verbose log messages activated")
+
+	// Read bytes of config file
+	log.EarlyLogger.BasicLogf("reading config bytes from config file %q", path)
+	cfgBytes, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("failed to read config bytes from file %q: %w", path, err)
+	}
+	log.EarlyLogger.BasicLog("successfully read config bytes")
+
+	// Generate parser struct and config struct from bytes
+	log.EarlyLogger.BasicLogf("parsing config bytes")
+	k, cfg, err := GenerateConfigFromBytes(cfgBytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse config bytes: %w", err)
+	}
+	log.EarlyLogger.BasicLog("successfully parsed config bytes")
+
+	// Set results as global for later reference/modification
+	GlobalKoanf = k
+	GlobalConfig = cfg
+
+	// No error occurred
+	return nil
+}
+
+// GenerateConfigFromBytes takes a byte slice and parses it into a koanf
+// structure as YAML (returning an error if this fails), then unmarshals it into
+// a Config structure. Both the *koanf.Koanf and Config are returned.
+func GenerateConfigFromBytes(b []byte) (*koanf.Koanf, Config, error) {
+	// Initialize global parser structure
+	k := koanf.NewWithConf(kConfig)
+
+	// Initialize config to default config
+	cfg := DefaultConfig
+
+	// Load bytes into parser structure
+	if err := k.Load(rawbytes.Provider(b), configParser); err != nil {
+		return k, cfg, fmt.Errorf("failed to load config bytes: %w", err)
+	}
+
+	// User global unmarshal config but unmarshal into cfg struct we created
+	// above
+	kuc := kUnmarshalConf
+	kuc.DecoderConfig.Result = &cfg
+
+	// Unmarshal bytes in parser structure
+	if err := k.UnmarshalWithConf("", nil, kuc); err != nil {
+		return k, cfg, fmt.Errorf("failed to unmarshal config bytes: %w", err)
+	}
+
+	// Return parser structure and config structure
+	return k, cfg, nil
 }
 
 // ModifyConfig modifies a single key in a config file. It does this by opening
