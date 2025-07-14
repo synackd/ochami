@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,8 +47,12 @@ func initConfig(cmd *cobra.Command, create bool) error {
 		if create {
 			// Try to create config file with default values if it doesn't exist
 			if cr, err := askToCreate(configFile); err != nil {
-				// Error occurred during prompt
-				return fmt.Errorf("error occurred asking to create config file: %w", err)
+				// Only return error if error is not one that the file
+				// already exists.
+				if !errors.Is(err, FileExistsError) {
+					// Error occurred during prompt
+					return fmt.Errorf("error occurred asking to create config file: %w", err)
+				}
 			} else if cr {
 				// User answered yes
 				if err := createIfNotExists(configFile); err != nil {
