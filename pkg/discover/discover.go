@@ -67,7 +67,7 @@ type Iface struct {
 }
 
 func (i Iface) String() string {
-	ipStr := "ip_addrs=["
+	ipStr := fmt.Sprintf("mac_addr=%s ip_addrs=[", i.MACAddr)
 	for idx, ip := range i.IPAddrs {
 		if idx == 0 {
 			ipStr += fmt.Sprintf("ip%d={%s}", idx, ip)
