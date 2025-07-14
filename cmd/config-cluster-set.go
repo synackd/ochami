@@ -62,7 +62,7 @@ See ochami-config(5) for details on the configuration options.`,
 		}
 
 		// Ask to create file if it doesn't exist
-		if create, err := askToCreate(fileToModify); err != nil {
+		if create, err := ios.askToCreate(fileToModify); err != nil {
 			if err != FileExistsError {
 				log.Logger.Error().Err(err).Msg("error asking to create file")
 				logHelpError(cmd)
