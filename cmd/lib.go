@@ -15,6 +15,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/OpenCHAMI/ochami/internal/config"
+	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/pkg/client"
+	"github.com/OpenCHAMI/ochami/pkg/discover"
+	"github.com/OpenCHAMI/ochami/pkg/format"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cobra"
 
