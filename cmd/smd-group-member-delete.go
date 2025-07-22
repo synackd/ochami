@@ -28,8 +28,11 @@ See ochami-smd(1) for more details.`,
 		// Ask before attempting deletion unless --no-confirm was passed
 		if !cmd.Flag("no-confirm").Changed {
 			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
-			respDelete := loopYesNo("Really delete?")
-			if !respDelete {
+			respDelete, err := ios.loopYesNo("Really delete?")
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("Error fetching user input")
+				os.Exit(1)
+			} else if !respDelete {
 				log.Logger.Info().Msg("User aborted group deletion")
 				os.Exit(0)
 			} else {

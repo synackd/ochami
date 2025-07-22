@@ -64,12 +64,16 @@ See ochami-smd(1) for more details.`,
 		if !cmd.Flag("no-confirm").Changed {
 			log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 			var respDelete bool
+			var err error
 			if cmd.Flag("all").Changed {
-				respDelete = loopYesNo("Really delete ALL ETHERNET INTERFACES?")
+				respDelete, err = ios.loopYesNo("Really delete ALL ETHERNET INTERFACES?")
 			} else {
-				respDelete = loopYesNo("Really delete?")
+				respDelete, err = ios.loopYesNo("Really delete?")
 			}
-			if !respDelete {
+			if err != nil {
+				log.Logger.Error().Err(err).Msg("Error fetching user input")
+				os.Exit(1)
+			} else if !respDelete {
 				log.Logger.Info().Msg("User aborted ethernet interface deletion")
 				os.Exit(0)
 			} else {

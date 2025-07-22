@@ -7,7 +7,9 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/OpenCHAMI/ochami/internal/config"
 	"github.com/OpenCHAMI/ochami/internal/log"
+	"github.com/OpenCHAMI/ochami/internal/version"
 	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
 )
@@ -26,20 +29,80 @@ var (
 	// Errors
 	FileExistsError   = fmt.Errorf("file exists")
 	NoConfigFileError = fmt.Errorf("no config file to read")
+
+	// el is an early logger that has verbosity turned on automatically.
+	// It is for printing log messages before logging has been initialized,
+	// regardless of --verbose.
+	el = log.NewBasicLogger(os.Stderr, true, version.ProgName)
+
+	// Standard ioStream that writes to the regular OS's input/output
+	// streams.
+	ios = newIOStream(os.Stdin, os.Stdout, os.Stderr)
 )
 
-// earlyMsg is a primitive log function that works like fmt.Fprintln, printing
-// to standard error using the program prefix.
-func earlyMsg(arg ...interface{}) {
-	fmt.Fprintf(os.Stderr, "%s: ", config.ProgName)
-	fmt.Fprintln(os.Stderr, arg...)
+// ioStream provides a way to change the input and/or output stream for
+// functions that read from os.Stdin and/or write to os.Stdout/os.Stderr. This
+// is so that they can be more easily unit tested without having to modify
+// os.Std*.
+type ioStream struct {
+	stdin  io.Reader
+	stdout io.Writer
+	stderr io.Writer
 }
 
-// earlyMsgf is like earlyMsg, except it accepts a format string. It works like
-// fmt.Fprintf.
-func earlyMsgf(fstr string, arg ...interface{}) {
-	fmt.Fprintf(os.Stderr, "%s: ", config.ProgName)
-	fmt.Fprintf(os.Stderr, fstr+"\n", arg...)
+func newIOStream(stdin io.Reader, stdout, stderr io.Writer) ioStream {
+	return ioStream{
+		stdin:  stdin,
+		stdout: stdout,
+		stderr: stderr,
+	}
+}
+
+// askToCreate prompts the user to, if path does not exist, to create a blank
+// file at path. If it exists, nil is returned. If the user declines, a
+// UserDeclinedError is returned. If an error occurs during creation, an error
+// is returned.
+func (i ioStream) askToCreate(path string) (bool, error) {
+	if path == "" {
+		return false, fmt.Errorf("path cannot be empty")
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		respConfigCreate, err2 := i.loopYesNo(fmt.Sprintf("%s does not exist. Create it?", path))
+		if err2 != nil {
+			return false, fmt.Errorf("error fetching user input: %w", err2)
+		} else if respConfigCreate {
+			return true, nil
+		}
+	} else {
+		return false, FileExistsError
+	}
+
+	return false, nil
+}
+
+// loopYesNo takes prompt p and appends " [yN]: " to it and prompts the user for
+// input. As long as the user's input is not "y" or "n" (case insensitive), the
+// function redisplays the prompt. If the user's response is "y", true is
+// returned. If the user's response is "n", false is returned.
+func (i ioStream) loopYesNo(p string) (bool, error) {
+	s := bufio.NewScanner(i.stdin)
+
+	for {
+		fmt.Fprint(i.stderr, fmt.Sprintf("%s [yn]:", p))
+		if !s.Scan() {
+			break
+		}
+		resp := strings.TrimSpace(s.Text())
+		switch strings.ToLower(resp) {
+		case "y":
+			return true, nil
+		case "n":
+			return false, nil
+		default:
+			continue
+		}
+	}
+	return false, s.Err()
 }
 
 // initConfig initializes the global configuration for a command, creating the
@@ -53,9 +116,13 @@ func initConfig(cmd *cobra.Command, create bool) error {
 	if configFile != "" {
 		if create {
 			// Try to create config file with default values if it doesn't exist
-			if cr, err := askToCreate(configFile); err != nil {
-				// Error occurred during prompt
-				return fmt.Errorf("error occurred asking to create config file: %w", err)
+			if cr, err := ios.askToCreate(configFile); err != nil {
+				// Only return error if error is not one that the file
+				// already exists.
+				if !errors.Is(err, FileExistsError) {
+					// Error occurred during prompt
+					return fmt.Errorf("error occurred asking to create config file: %w", err)
+				}
 			} else if cr {
 				// User answered yes
 				if err := createIfNotExists(configFile); err != nil {
@@ -70,7 +137,12 @@ func initConfig(cmd *cobra.Command, create bool) error {
 
 	// Read configuration from file, if passed or merge config from system
 	// config file and user config file if not passed.
-	err := config.LoadConfig(configFile)
+	var err error
+	if configFile != "" {
+		err = config.LoadGlobalConfigFromFile(configFile)
+	} else {
+		err = config.LoadGlobalConfigMerged()
+	}
 	if err != nil {
 		err = fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -111,35 +183,15 @@ func initLogging(cmd *cobra.Command) error {
 // specified on the command line and not the merged config.
 func initConfigAndLogging(cmd *cobra.Command, createCfg bool) {
 	if err := initConfig(cmd, createCfg); err != nil {
-		earlyMsgf("failed to initialize config: %v", err)
-		earlyMsgf("see '%s --help' for long command help", cmd.CommandPath())
+		el.BasicLogf("failed to initialize config: %v", err)
+		el.BasicLogf("see '%s --help' for long command help", cmd.CommandPath())
 		os.Exit(1)
 	}
 	if err := initLogging(cmd); err != nil {
-		earlyMsgf("failed to initialized logging: %v", err)
-		earlyMsgf("see '%s --help' for long command help", cmd.CommandPath())
+		el.BasicLogf("failed to initialized logging: %v", err)
+		el.BasicLogf("see '%s --help' for long command help", cmd.CommandPath())
 		os.Exit(1)
 	}
-}
-
-// askToCreate prompts the user to, if path does not exist, to create a blank
-// file at path. If it exists, nil is returned. If the user declines, a
-// UserDeclinedError is returned. If an error occurs during creation, an error
-// is returned.
-func askToCreate(path string) (bool, error) {
-	if path == "" {
-		return false, fmt.Errorf("path cannot be empty")
-	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		respConfigCreate := loopYesNo(fmt.Sprintf("%s does not exist. Create it?", path))
-		if respConfigCreate {
-			return true, nil
-		}
-	} else {
-		return false, FileExistsError
-	}
-
-	return false, nil
 }
 
 // createIfNotExists creates path (a file with optional leading directories) if
@@ -162,39 +214,6 @@ func createIfNotExists(path string) error {
 	}
 
 	return nil
-}
-
-// prompt displays a text prompt and returns what the user entered. It continues
-// to repeat the prompt as long as the user input is empty.
-func prompt(prompt string) string {
-	var s string
-	resp := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Fprint(os.Stderr, prompt+" ")
-		s, _ = resp.ReadString('\n')
-		if s != "" {
-			break
-		}
-	}
-	return strings.TrimSpace(s)
-}
-
-// loopYesNo takes prompt p and appends " [yN]: " to it and prompts the user for
-// input. As long as the user's input is not "y" or "n" (case insensitive), the
-// function redisplays the prompt. If the user's response is "y", true is
-// returned. If the user's response is "n", false is returned.
-func loopYesNo(p string) bool {
-	for {
-		resp := prompt(fmt.Sprintf("%s [yN]:", p))
-		switch strings.ToLower(resp) {
-		case "y":
-			return true
-		case "n":
-			return false
-		default:
-			continue
-		}
-	}
 }
 
 // checkToken takes a pointer to a Cobra command and checks to see if --token

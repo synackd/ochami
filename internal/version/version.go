@@ -1,5 +1,7 @@
 package version
 
+const ProgName = "ochami"
+
 var (
 	// Basic values
 	Version = "unknown"

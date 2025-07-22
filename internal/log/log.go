@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,10 +11,16 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+
+	"github.com/OpenCHAMI/ochami/internal/version"
 )
 
 var (
 	Logger zerolog.Logger
+
+	// A BasicLogger that is turned off until turned on by the
+	// --verbose flag.
+	EarlyLogger = NewBasicLogger(os.Stderr, false, version.ProgName)
 )
 
 // Init() initializes the global logging object so it can be used for logging by
@@ -70,5 +77,50 @@ func getFormatCaller(noColor bool) zerolog.Formatter {
 		}
 
 		return colorize(out, colorBold, noColor) + colorize(" >", colorCyan, noColor)
+	}
+}
+
+// BasicLogger stores an io.Writer and a prefix for early logging. The io.Writer
+// is where the earlyLog functions will write to and prefix is an optional
+// prefix to use in log messages. This abstraction exists to make unit testing
+// earlyLog functions easier.
+type BasicLogger struct {
+	// Since logging isn't set up until after config is read, this variable
+	// allows more verbose printing if true for more verbose logging
+	// pre-config parsing.
+	EarlyVerbose bool
+	out          io.Writer
+	prefix       string
+}
+
+// NewBasicLogger creates a new BasicLogger with the specified io.Writer and
+// prefix string (which can ge left blank to disable the prefix).
+func NewBasicLogger(out io.Writer, on bool, prefix string) BasicLogger {
+	return BasicLogger{
+		EarlyVerbose: on,
+		out:          out,
+		prefix:       prefix,
+	}
+}
+
+// BasicLog writes a string to the BasicLogger's io.Writer, prepending its
+// prefix (e.g. "prefix: <msg>") if it is not empty.
+func (el BasicLogger) BasicLog(arg ...interface{}) {
+	if el.EarlyVerbose {
+		if strings.Trim(el.prefix, " ") != "" {
+			fmt.Fprintf(el.out, "%s: ", el.prefix)
+		}
+		fmt.Fprintln(el.out, arg...)
+	}
+}
+
+// BasicLogf is like BasicLogger.earlyLof except that it behaves like Printf in
+// that it accepts a format string.
+func (el BasicLogger) BasicLogf(fstr string, arg ...interface{}) {
+	if el.EarlyVerbose {
+		if strings.Trim(el.prefix, " ") != "" {
+			fmt.Fprintf(el.out, "%s: ", el.prefix)
+		}
+		fmt.Fprintf(el.out, fstr+"\n", arg...)
 	}
 }
