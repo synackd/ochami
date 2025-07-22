@@ -9,7 +9,7 @@ require (
 	github.com/OpenCHAMI/cloud-init v1.2.3
 	github.com/OpenCHAMI/smd/v2 v2.18.0
 	github.com/elliotchance/pie/v2 v2.9.1
-	github.com/go-viper/mapstructure/v2 v2.2.1
+	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/file v1.1.2
