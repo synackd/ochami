@@ -81,7 +81,7 @@ func TestIOStream_askToCreate(t *testing.T) {
 		if err != nil {
 			t.Errorf("askToCreate(%q) decline error = %v, want nil", path, err)
 		}
-		wantPrompt := fmt.Sprintf("%s does not exist. Create it? [yN]:", path)
+		wantPrompt := fmt.Sprintf("%s does not exist. Create it? [yn]:", path)
 		if errBuf.String() != wantPrompt {
 			t.Errorf("stderr = %q, want %q", errBuf.String(), wantPrompt)
 		}
@@ -107,7 +107,7 @@ func TestIOStream_askToCreate(t *testing.T) {
 		if err != nil {
 			t.Errorf("askToCreate(%q) accept error = %v, want nil", path, err)
 		}
-		wantPrompt := fmt.Sprintf("%s does not exist. Create it? [yN]:", path)
+		wantPrompt := fmt.Sprintf("%s does not exist. Create it? [yn]:", path)
 		if errBuf.String() != wantPrompt {
 			t.Errorf("stderr = %q, want %q", errBuf.String(), wantPrompt)
 		}
@@ -163,7 +163,7 @@ func TestIOStream_loopYesNo(t *testing.T) {
 				t.Errorf("loopYesNo() = %v, want %v", got, tc.want)
 			}
 
-			prompt := "Proceed? [yN]:"
+			prompt := "Proceed? [yn]:"
 			if count := strings.Count(errBuf.String(), prompt); count != tc.wantCount {
 				t.Errorf("prompt count = %d, want %d", count, tc.wantCount)
 			}

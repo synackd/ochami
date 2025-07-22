@@ -88,7 +88,7 @@ func (i ioStream) loopYesNo(p string) (bool, error) {
 	s := bufio.NewScanner(i.stdin)
 
 	for {
-		fmt.Fprint(i.stderr, fmt.Sprintf("%s [yN]:", p))
+		fmt.Fprint(i.stderr, fmt.Sprintf("%s [yn]:", p))
 		if !s.Scan() {
 			break
 		}
