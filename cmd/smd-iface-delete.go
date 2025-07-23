@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// ifaceDeleteCmd represents the smd-iface-delete command
+// ifaceDeleteCmd represents the "smd iface delete" command
 var ifaceDeleteCmd = &cobra.Command{
 	Use:   "delete (-d (<payload_data> | @<payload_file>)) | --all | <iface_id>...",
 	Short: "Delete one or more ethernet interfaces",

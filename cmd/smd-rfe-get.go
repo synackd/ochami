@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// rfeGetCmd represents the smd-rfe-get command
+// rfeGetCmd represents the "smd rfe get" command
 var rfeGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

@@ -12,7 +12,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// groupMemberSetCmd represents the smd-group-member-set command
+// groupMemberSetCmd represents the "smd group member set" command
 var groupMemberSetCmd = &cobra.Command{
 	Use:   "set <group_label> <component>...",
 	Args:  cobra.MinimumNArgs(2),

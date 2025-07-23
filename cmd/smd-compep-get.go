@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// compepGetCmd represents the smd-compep-get command
+// compepGetCmd represents the "smd compep get" command
 var compepGetCmd = &cobra.Command{
 	Use:   "get [<xname>...]",
 	Short: "Get all component endpoints or a subset, identified by xname",

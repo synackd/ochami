@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bootImageCmd represents the "bss boot image" command
-var bootImageCmd = &cobra.Command{
+// bssBootImageCmd represents the "bss boot image" command
+var bssBootImageCmd = &cobra.Command{
 	Use:   "image",
 	Args:  cobra.NoArgs,
 	Short: "Get and set boot image for nodes",
@@ -25,5 +25,5 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootCmd.AddCommand(bootImageCmd)
+	bssBootCmd.AddCommand(bssBootImageCmd)
 }

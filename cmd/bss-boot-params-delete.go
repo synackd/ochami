@@ -13,8 +13,8 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bootParamsDeleteCmd represents the bss-boot-params-delete command
-var bootParamsDeleteCmd = &cobra.Command{
+// bssBootParamsDelete represents the "bss boot params delete" command
+var bssBootParamsDelete = &cobra.Command{
 	Use:   "delete",
 	Args:  cobra.NoArgs,
 	Short: "Delete boot parameters for one or more components",
@@ -157,18 +157,18 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootParamsDeleteCmd.Flags().String("kernel", "", "URI of kernel")
-	bootParamsDeleteCmd.Flags().String("initrd", "", "URI of initrd/initramfs")
-	bootParamsDeleteCmd.Flags().String("params", "", "kernel parameters")
-	bootParamsDeleteCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
-	bootParamsDeleteCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
-	bootParamsDeleteCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
-	bootParamsDeleteCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
-	bootParamsDeleteCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
-	bootParamsDeleteCmd.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
+	bssBootParamsDelete.Flags().String("kernel", "", "URI of kernel")
+	bssBootParamsDelete.Flags().String("initrd", "", "URI of initrd/initramfs")
+	bssBootParamsDelete.Flags().String("params", "", "kernel parameters")
+	bssBootParamsDelete.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to delete")
+	bssBootParamsDelete.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to delete")
+	bssBootParamsDelete.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to delete")
+	bssBootParamsDelete.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
+	bssBootParamsDelete.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
+	bssBootParamsDelete.Flags().Bool("no-confirm", false, "do not ask before attempting deletion")
 
 	// We can delete either by component or by boot parameters
-	bootParamsDeleteCmd.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params", "data")
+	bssBootParamsDelete.MarkFlagsOneRequired("xname", "mac", "nid", "kernel", "initrd", "params", "data")
 
-	bootParamsCmd.AddCommand(bootParamsDeleteCmd)
+	bssBootParamsCmd.AddCommand(bssBootParamsDelete)
 }

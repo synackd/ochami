@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// componentAddCmd represents the smd-component-add command
+// componentAddCmd represents the "smd component add" command
 var componentAddCmd = &cobra.Command{
 	Use:   "add (-d (<payload_data> | @<payload_file>)) | (<xname> <node_id>)",
 	Short: "Add new component(s)",

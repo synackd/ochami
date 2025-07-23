@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// compepCmd represents the smd-compep command
+// compepCmd represents the "smd compep" command
 var compepCmd = &cobra.Command{
 	Use:   "compep",
 	Args:  cobra.NoArgs,

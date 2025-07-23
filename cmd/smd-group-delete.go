@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// groupDeleteCmd represents the smd-group-delete command
+// groupDeleteCmd represents the "smd group delete" command
 var groupDeleteCmd = &cobra.Command{
 	Use:   "delete (-d (<payload_data> | @<payload_file>)) | <group_label>...",
 	Short: "Delete one or more groups",

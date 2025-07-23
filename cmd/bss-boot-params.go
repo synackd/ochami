@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// bootParamsCmd represents the bss-boot-params command
-var bootParamsCmd = &cobra.Command{
+// bssBootParamsCmd represents the "bss boot params" command
+var bssBootParamsCmd = &cobra.Command{
 	Use:   "params",
 	Args:  cobra.NoArgs,
 	Short: "Work with boot parameters for components",
@@ -26,5 +26,5 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootCmd.AddCommand(bootParamsCmd)
+	bssBootCmd.AddCommand(bssBootParamsCmd)
 }

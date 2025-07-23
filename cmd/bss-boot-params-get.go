@@ -14,8 +14,8 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bootParamsGetCmd represents the bss-boot-params-get command
-var bootParamsGetCmd = &cobra.Command{
+// bssBootParamsGetCmd represents the "bss boot params get" command
+var bssBootParamsGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,
 	Short: "Get boot parameters for one or all nodes",
@@ -97,12 +97,12 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
-	bootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
-	bootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
-	bootParamsGetCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
+	bssBootParamsGetCmd.Flags().StringSliceP("xname", "x", []string{}, "one or more xnames whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().StringSliceP("mac", "m", []string{}, "one or more MAC addresses whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().Int32SliceP("nid", "n", []int32{}, "one or more node IDs whose boot parameters to get")
+	bssBootParamsGetCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
 
-	bootParamsGetCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
+	bssBootParamsGetCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
 
-	bootParamsCmd.AddCommand(bootParamsGetCmd)
+	bssBootParamsCmd.AddCommand(bssBootParamsGetCmd)
 }

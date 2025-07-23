@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// groupUpdateCmd represents the smd-group-update command
+// groupUpdateCmd represents the "smd group update" command
 var groupUpdateCmd = &cobra.Command{
 	Use:   "update (-d (<payload_data> | @<payload_file>)) | ([--description <description>] [--tag <tag>]... <group_label>)",
 	Args:  cobra.MaximumNArgs(1),

@@ -14,7 +14,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssHostsGetCmd represents the bss-hosts-get command
+// bssHostsGetCmd represents the "bss hosts get" command
 var bssHostsGetCmd = &cobra.Command{
 	Use:   "get",
 	Args:  cobra.NoArgs,

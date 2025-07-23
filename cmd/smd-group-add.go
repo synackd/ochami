@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// groupAddCmd represents the smd-group-add command
+// groupAddCmd represents the "smd group add" command
 var groupAddCmd = &cobra.Command{
 	Use:   "add (-d (<payload_data> | @<payload_file>)) | <group_label>",
 	Args:  cobra.MaximumNArgs(1),

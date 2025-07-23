@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client/smd"
 )
 
-// rfeDeleteCmd represents the smd-rfe-delete command
+// rfeDeleteCmd represents the "smd rfe delete" command
 var rfeDeleteCmd = &cobra.Command{
 	Use:   "delete (-d (<payload_data> | @<payload_file>)) | --all | <xname>...",
 	Short: "Delete one or more redfish endpoints",

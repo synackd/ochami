@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// groupMemberGetCmd represents the smd-group-member-get command
+// groupMemberGetCmd represents the "smd group member get" command
 var groupMemberGetCmd = &cobra.Command{
 	Use:   "get <group_label>",
 	Args:  cobra.ExactArgs(1),

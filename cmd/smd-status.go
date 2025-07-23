@@ -13,7 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// smdStatusCmd represents the smd-status command
+// smdStatusCmd represents the "smd status" command
 var smdStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
