@@ -76,7 +76,7 @@ func cloudInitGetClient(cmd *cobra.Command, tokenRequired bool) *ci.CloudInitCli
 
 	// Make sure token is set/valid, if required
 	if tokenRequired {
-		setTokenFromEnvVar(cmd)
+		setToken(cmd)
 		checkToken(cmd)
 	}
 

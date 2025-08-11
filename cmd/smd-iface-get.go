@@ -31,7 +31,7 @@ See ochami-smd(1) for more details.`,
 		// Deal with --id
 		if cmd.Flag("id").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			id, err := cmd.Flags().GetString("id")

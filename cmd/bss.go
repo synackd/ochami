@@ -26,7 +26,7 @@ func bssGetClient(cmd *cobra.Command, tokenRequired bool) *bss.BSSClient {
 
 	// Make sure token is set/valid, if required
 	if tokenRequired {
-		setTokenFromEnvVar(cmd)
+		setToken(cmd)
 		checkToken(cmd)
 	}
 

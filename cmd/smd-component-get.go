@@ -29,13 +29,13 @@ See ochami-smd(1) for more details.`,
 		var err error
 		if cmd.Flag("xname").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			httpEnv, err = smdClient.GetComponentsXname(cmd.Flag("xname").Value.String(), token)
 		} else if cmd.Flag("nid").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			var nid int32

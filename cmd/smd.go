@@ -25,7 +25,7 @@ func smdGetClient(cmd *cobra.Command, tokenRequired bool) *smd.SMDClient {
 	}
 
 	// This endpoint requires authentication, so a token is needed
-	setTokenFromEnvVar(cmd)
+	setToken(cmd)
 	checkToken(cmd)
 
 	// Create client to make request to SMD

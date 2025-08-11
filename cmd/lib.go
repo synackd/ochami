@@ -365,7 +365,7 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	return baseURI, err
 }
 
-// setTokenFromEnvVar sets the access token for a cobra command cmd. If --token
+// setToken sets the access token for a cobra command cmd. If --token
 // was passed, that value is set as the access token. Otherwise, the token is
 // read from an environment variable whose format is <CLUSTER>_ACCESS_TOKEN
 // where <CLUSTER> is the name of the cluster, in upper case, being contacted.
@@ -375,7 +375,7 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 // underscores, and making the letters uppercase. If no config file is set or
 // the environment variable is not set, an error is logged and the program
 // exits.
-func setTokenFromEnvVar(cmd *cobra.Command) {
+func setToken(cmd *cobra.Command) {
 	var (
 		clusterName string
 		varPrefix   string
