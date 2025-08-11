@@ -369,8 +369,16 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 // performs any other setup tasks for tokens. It is called by all commands that
 // require a token.
 func handleToken(cmd *cobra.Command) {
-	setToken(cmd)
-	checkToken(cmd)
+	if noToken, err := cmd.Flags().GetBool("no-token"); err != nil {
+		log.Logger.Error().Err(err).Msg("unable to set --no-token")
+		logHelpError(cmd)
+		os.Exit(1)
+	} else if !noToken {
+		setToken(cmd)
+		checkToken(cmd)
+	} else {
+		log.Logger.Debug().Msg("skipping token setup since --no-token passed")
+	}
 }
 
 // setToken sets the access token for a cobra command cmd. If --token
