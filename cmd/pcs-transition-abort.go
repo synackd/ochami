@@ -29,7 +29,10 @@ See ochami-pcs(1) for more details.`,
 		transitionID := args[0]
 
 		// Create client to use for requests
-		pcsClient := pcsGetClient(cmd, true)
+		pcsClient := pcsGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Abort the transition
 		transitionHttpEnv, err := pcsClient.DeleteTransition(transitionID, token)

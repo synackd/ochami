@@ -61,7 +61,10 @@ See ochami-bss(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		bssClient := bssGetClient(cmd, true)
+		bssClient := bssGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// The BSS BootParams struct we will send
 		bp := bssTypes.BootParams{}

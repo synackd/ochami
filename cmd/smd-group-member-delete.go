@@ -23,7 +23,10 @@ See ochami-smd(1) for more details.`,
 	Example: `  ochami smd group member delete compute x3000c1s7b56n0`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, true)
+		smdClient := smdGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Ask before attempting deletion unless --no-confirm was passed
 		if !cmd.Flag("no-confirm").Changed {

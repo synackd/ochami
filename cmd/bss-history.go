@@ -24,7 +24,7 @@ var bssHistoryCmd = &cobra.Command{
 See ochami-bss(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		bssClient := bssGetClient(cmd, false)
+		bssClient := bssGetClient(cmd)
 
 		// If no ID flags are specified, get all boot parameters
 		qstr := ""

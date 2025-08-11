@@ -12,22 +12,14 @@ import (
 )
 
 // bssGetClient sets up the BSS client with the BSS base URI and certificates
-// (if necessary) and returns it. If tokenRequired is true, it will ensure that
-// the token is set and valid and load it. This function is used by each
-// subcommand.
-func bssGetClient(cmd *cobra.Command, tokenRequired bool) *bss.BSSClient {
+// (if necessary) and returns it. This function is used by each subcommand.
+func bssGetClient(cmd *cobra.Command) *bss.BSSClient {
 	// Without a base URI, we cannot do anything
 	bssBaseURI, err := getBaseURIBSS(cmd)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("failed to get base URI for BSS")
 		logHelpError(cmd)
 		os.Exit(1)
-	}
-
-	// Make sure token is set/valid, if required
-	if tokenRequired {
-		setToken(cmd)
-		checkToken(cmd)
 	}
 
 	// Create client to make request to BSS

@@ -32,7 +32,10 @@ See ochami-bss(1) for more details.`,
   ochami bss boot params get --mac 00:de:ad:be:ef:00 --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		bssClient := bssGetClient(cmd, true)
+		bssClient := bssGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// If no ID flags are specified, get all boot parameters
 		qstr := ""

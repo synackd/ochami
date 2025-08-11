@@ -57,7 +57,10 @@ See ochami-smd(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, true)
+		smdClient := smdGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		var eis []smd.EthernetInterface
 		if cmd.Flag("data").Changed {

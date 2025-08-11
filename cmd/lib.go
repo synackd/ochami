@@ -365,6 +365,14 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	return baseURI, err
 }
 
+// handleToken is a wrapper function around code that reads, checks, and
+// performs any other setup tasks for tokens. It is called by all commands that
+// require a token.
+func handleToken(cmd *cobra.Command) {
+	setToken(cmd)
+	checkToken(cmd)
+}
+
 // setToken sets the access token for a cobra command cmd. If --token
 // was passed, that value is set as the access token. Otherwise, the token is
 // read from an environment variable whose format is <CLUSTER>_ACCESS_TOKEN

@@ -61,7 +61,10 @@ See ochami-pcs(1) for more details.`,
 		}
 
 		// Create client to use for requests
-		pcsClient := pcsGetClient(cmd, true)
+		pcsClient := pcsGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Get the list of target components
 		var err error

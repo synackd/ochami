@@ -27,7 +27,10 @@ See ochami-pcs(1) for more details.`,
   ochami pcs transition list`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		pcsClient := pcsGetClient(cmd, true)
+		pcsClient := pcsGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Get transitions
 		transitionsHttpEnv, err := pcsClient.GetTransitions(token)

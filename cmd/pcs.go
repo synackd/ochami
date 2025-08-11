@@ -12,22 +12,14 @@ import (
 )
 
 // pcsGetClient sets up the PCS client with the PCS base URI and certificates
-// (if necessary) and returns it. If tokenRequired is true, it will ensure that
-// the token is set and valid and load it. This function is used by each
-// subcommand.
-func pcsGetClient(cmd *cobra.Command, tokenRequired bool) *pcs.PCSClient {
+// (if necessary) and returns it. This function is used by each subcommand.
+func pcsGetClient(cmd *cobra.Command) *pcs.PCSClient {
 	// Without a base URI, we cannot do anything
 	pcsBaseURI, err := getBaseURIPCS(cmd)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("failed to get base URI for PCS")
 		logHelpError(cmd)
 		os.Exit(1)
-	}
-
-	// Make sure token is set/valid, if required
-	if tokenRequired {
-		setToken(cmd)
-		checkToken(cmd)
 	}
 
 	// Create client to make request to PCS

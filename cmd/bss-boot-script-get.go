@@ -28,7 +28,7 @@ See ochami-bss(1) for more details.`,
 	Example: `  ochami boot script get --mac 00:c0:ff:ee:00:00`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		bssClient := bssGetClient(cmd, false)
+		bssClient := bssGetClient(cmd)
 
 		// Structure representing the boot script query string
 		values := url.Values{}

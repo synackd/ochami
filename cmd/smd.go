@@ -12,10 +12,8 @@ import (
 )
 
 // smdGetClient sets up the SMD client with the SMD base URI and certificates
-// (if necessary) and returns it. If tokenRequired is true, it will ensure that
-// the token is set and valid and load it. This function is used by each
-// subcommand.
-func smdGetClient(cmd *cobra.Command, tokenRequired bool) *smd.SMDClient {
+// (if necessary) and returns it. This function is used by each subcommand.
+func smdGetClient(cmd *cobra.Command) *smd.SMDClient {
 	// Without a base URI, we cannot do anything
 	smdBaseURI, err := getBaseURISMD(cmd)
 	if err != nil {
@@ -23,10 +21,6 @@ func smdGetClient(cmd *cobra.Command, tokenRequired bool) *smd.SMDClient {
 		logHelpError(cmd)
 		os.Exit(1)
 	}
-
-	// This endpoint requires authentication, so a token is needed
-	setToken(cmd)
-	checkToken(cmd)
 
 	// Create client to make request to SMD
 	smdClient, err := smd.NewClient(smdBaseURI, insecure)

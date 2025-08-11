@@ -23,7 +23,7 @@ var componentGetCmd = &cobra.Command{
 See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, false)
+		smdClient := smdGetClient(cmd)
 
 		var httpEnv client.HTTPEnvelope
 		var err error

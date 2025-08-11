@@ -97,4 +97,7 @@ func init() {
 
 	// Either use cluster from config file or specify details on CLI
 	rootCmd.MarkFlagsMutuallyExclusive("cluster", "cluster-uri")
+
+	// Do not allow simultaneously passing a token and ignoring it
+	rootCmd.MarkFlagsMutuallyExclusive("token", "no-token")
 }
