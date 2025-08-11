@@ -22,24 +22,24 @@ format is as follows:
 ```
 nodes:
 - name: node01
-	nid: 1
-	xname: x1000c1s7b0n0
-	bmc_mac: de:ca:fc:0f:ee:ee
-	bmc_ip: 172.16.0.101
-	group: compute
-	interfaces:
-	- mac_addr: de:ad:be:ee:ee:f1
-		ip_addrs:
-		- name: internal
-			ip_addr: 172.16.0.1
-	- mac_addr: de:ad:be:ee:ee:f2
-		ip_addrs:
-		- name: external
-			ip_addr: 10.15.3.100
-	- mac_addr: 02:00:00:91:31:b3
-		ip_addrs:
-		- name: HSN
-			ip_addr: 192.168.0.1
+  nid: 1
+  xname: x1000c1s7b0n0
+  bmc_mac: de:ca:fc:0f:ee:ee
+  bmc_ip: 172.16.0.101
+  group: compute
+  interfaces:
+  - mac_addr: de:ad:be:ee:ee:f1
+    ip_addrs:
+    - name: internal
+      ip_addr: 172.16.0.1
+  - mac_addr: de:ad:be:ee:ee:f2
+    ip_addrs:
+    - name: external
+      ip_addr: 10.15.3.100
+  - mac_addr: 02:00:00:91:31:b3
+    ip_addrs:
+    - name: HSN
+      ip_addr: 192.168.0.1
 ```
 
 A description of each key in the above is as follows:
@@ -59,10 +59,10 @@ created for node.
 - *group* - Optional group to add node to. This will get created during
 discovery if it does not exist.
 - *interfaces* - A list of network interfaces for the node.
-	- *mac_addr* - MAC address of network interface.
-	- *ip_addrs* - List of IP addresses assigned to interface.
-		- *name* - Short name identifying the network for the IP address.
-		- *ip_addr* - IP address for interface.
+    - *mac_addr* - MAC address of network interface.
+    - *ip_addrs* - List of IP addresses assigned to interface.
+        - *name* - Short name identifying the network for the IP address.
+        - *ip_addr* - IP address for interface.
 
 # COMMANDS
 
@@ -100,36 +100,36 @@ may be deprecated in a later version of ochami.
 This command accepts the following options:
 
 *-d, --data* (_data_ | @_path_ | @-)
-	Specify raw _data_ to send, the _path_ to a file to read payload data from,
-	or to read the data from standard input (@-). The format of data read in any
-	of these forms is JSON by default unless *-f* is specified to change it.
+    Specify raw _data_ to send, the _path_ to a file to read payload data from,
+    or to read the data from standard input (@-). The format of data read in any
+    of these forms is JSON by default unless *-f* is specified to change it.
 
 *--discovery-version*
-	Set the version of the discovery method to use for static discovery.
+    Set the version of the discovery method to use for static discovery.
 
-	Possible values are:
-	- _1_
-	- _2_ (default)
+    Possible values are:
+    - _1_
+    - _2_ (default)
 
 *-f, --format-input* _format_
-	Format of the input data. If unspecified, the payload format is _json_ by
-	default. Supported formats are:
+    Format of the input data. If unspecified, the payload format is _json_ by
+    default. Supported formats are:
 
-	- _json_ (default)
-	- _json-pretty_
-	- _yaml_
+    - _json_ (default)
+    - _json-pretty_
+    - _yaml_
 
 *--overwrite*
-	Instead of failing if data already exists, overwrite it with new data
-	contained in the payload.
+    Instead of failing if data already exists, overwrite it with new data
+    contained in the payload.
 
 *--discovery-version*
-	Set the version of the discovery method to use for static discovery.
-	Set the version of the discovery method to use for static discovery.
-	 
-				Possible values are:
-				- _1_
-				- _2_ (default)
+    Set the version of the discovery method to use for static discovery.
+    Set the version of the discovery method to use for static discovery.
+     
+                Possible values are:
+                - _1_
+                - _2_ (default)
 
 # XNAMES
 
