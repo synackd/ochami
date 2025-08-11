@@ -476,7 +476,7 @@ func completionFormatData(cmd *cobra.Command, args []string, toComplete string) 
 func completionDiscoveryVersion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var helpSlice []string
 	for k, v := range discover.DiscoveryVersionHelp {
-		helpSlice = append(helpSlice, fmt.Sprintf("%s\t%s", k, v))
+		helpSlice = append(helpSlice, fmt.Sprintf("%d\t%s", k, v))
 	}
 	return helpSlice, cobra.ShellCompDirectiveDefault
 }
