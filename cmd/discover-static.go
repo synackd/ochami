@@ -460,6 +460,7 @@ func init() {
 	discoverStaticCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
 
 	discoverStaticCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
+	discoverStaticCmd.RegisterFlagCompletionFunc("discovery-version", completionDiscoveryVersion)
 
 	discoverCmd.AddCommand(discoverStaticCmd)
 }
