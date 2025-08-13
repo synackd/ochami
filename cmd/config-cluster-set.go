@@ -86,7 +86,7 @@ See ochami-config(5) for details on the configuration options.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		}
-		if err := config.ModifyConfigCluster(fileToModify, args[0], args[1], dflt, args[2]); err != nil {
+		if err := config.ModifyConfigCluster(fileToModify, args[0], args[1], dflt, config.StringToType(args[2])); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to modify config file")
 			logHelpError(cmd)
 			os.Exit(1)
