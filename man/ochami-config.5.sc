@@ -104,6 +104,21 @@ the array containing the below configuration options.
 		of these need to be set.  Otherwise, the base URI is not able to be
 		determined for that service.
 
+*enable-auth:* true|false
+	Enable authentication for this cluster.
+
+	Setting this to _true_ causes *ochami* to read and verify an access token of
+	the cluster using the cluster-specific access token environment variable and
+	include that token in the request headers.
+
+	Setting this to _false_ disables all token reading and checking behavior,
+	and does not include a token in the request headers for requests made to the
+	API for this cluster.
+
+	The default value is _true_ if left unset.
+
+	*enable-auth* can be overridden by the *--no-token* flag.
+
 *uri:* _absolute_uri_
 	The base URI for the OpenCHAMI services for the cluster. This is
 	normally used when most or all of the OpenCHAMI services are behind a

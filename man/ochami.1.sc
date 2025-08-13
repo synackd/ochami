@@ -135,6 +135,14 @@ _foobar_.
 	- _warning_
 	- _debug_
 
+*--no-token*
+	Disable reading of and checking for access token and do not include any
+	token in the request headers. This overrides the value of *enable-auth* set
+	for the cluster.
+
+	This flag is useful for testing access to API endpoints that don't have JWT
+	authentication enabled, e.g. in a test environment.
+
 *-t, --token* _token_
 	Access token to include in request headers for authentication to protected
 	service endpoints. Overrides token set in environment variable.
