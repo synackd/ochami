@@ -173,6 +173,88 @@ func TestConfig_GetCluster(t *testing.T) {
 	}
 }
 
+func TestConfigClusterConfig_UnmarshalYAML(t *testing.T) {
+	t.Parallel()
+
+	type want struct {
+		enableAuth bool
+		err        bool
+		errType    error
+	}
+
+	tests := []struct {
+		name string
+		yaml string
+		want want
+	}{
+		{
+			name: "absent enable auth defaults true",
+			yaml: "uri: http://cluster1\n",
+			want: want{enableAuth: true},
+		},
+		{
+			name: "explicit true kept",
+			yaml: "uri: http://cluster2\nenable-auth: true\n",
+			want: want{enableAuth: true},
+		},
+		{
+			name: "explicit false kept",
+			yaml: "uri: http://cluster3\nenable-auth: false\n",
+			want: want{enableAuth: false},
+		},
+		{
+			name: "empty value is error",
+			yaml: "uri: http://cluster4\nenable-auth:\n",
+			want: want{
+				err:     true,
+				errType: ErrInvalidConfigVal{},
+			},
+		},
+		{
+			name: "document node absent defaults true",
+			yaml: "---\nuri: http://cluster5\n",
+			want: want{enableAuth: true},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var got ConfigClusterConfig
+			err := yaml.Unmarshal([]byte(tc.yaml), &got)
+
+			if tc.want.err {
+				if err == nil {
+					t.Fatalf("yaml.Unmarshal() error = nil, want error")
+				}
+				// Error should be an ErrInvalidConfigVal
+				if tc.want.errType != nil {
+					var inv ErrInvalidConfigVal
+					if !errors.As(err, &inv) {
+						t.Fatalf("yaml.Unmarshal() error = %v, want type %T", err, tc.want.errType)
+					}
+					// Optional: ensure error contains
+					// expected key
+					if !strings.Contains(inv.Key, "enable-auth") {
+						t.Errorf("error key = %q, want to mention enable-auth", inv.Key)
+					}
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("yaml.Unmarshal() unexpected error = %v", err)
+			}
+
+			if got.EnableAuth != tc.want.enableAuth {
+				t.Errorf("EnableAuth = %v, want %v", got.EnableAuth, tc.want.enableAuth)
+			}
+		})
+	}
+}
+
 func TestConfigClusterConfig_MergeURIConfig(t *testing.T) {
 	type fields struct {
 		URI       string

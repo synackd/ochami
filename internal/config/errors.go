@@ -6,6 +6,19 @@ import (
 	"fmt"
 )
 
+// ErrInvalidConfigVal represents an error that occurs when a value for a key in
+// the configuration is invalid.
+type ErrInvalidConfigVal struct {
+	Key      string
+	Value    string
+	Expected string
+	Line     int
+}
+
+func (eicv ErrInvalidConfigVal) Error() string {
+	return fmt.Sprintf("line %d: invalid value for key %q: got %s but expected %s", eicv.Line, eicv.Key, eicv.Value, eicv.Expected)
+}
+
 // ErrUnknownCluster represents an error that occurs when a requested cluster
 // name is not found in the config.
 type ErrUnknownCluster struct {

@@ -102,11 +102,66 @@ type ConfigCluster struct {
 // ConfigClusterConfig is the actual structure for an individual cluster
 // configuration.
 type ConfigClusterConfig struct {
-	URI       string                 `yaml:"uri,omitempty"`
-	BSS       ConfigClusterBSS       `yaml:"bss,omitempty"`
-	CloudInit ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`
-	PCS       ConfigClusterPCS       `yaml:"pcs,omitempty"`
-	SMD       ConfigClusterSMD       `yaml:"smd,omitempty"`
+	URI        string                 `yaml:"uri,omitempty"`
+	BSS        ConfigClusterBSS       `yaml:"bss,omitempty"`
+	CloudInit  ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`
+	PCS        ConfigClusterPCS       `yaml:"pcs,omitempty"`
+	SMD        ConfigClusterSMD       `yaml:"smd,omitempty"`
+	EnableAuth bool                   `yaml:"enable-auth,omitempty"`
+}
+
+// UnmarshalYAML unmarshals YAML into a ConfigClusterConfig, handling default
+// values. For instance, it detects if 'enable-auth' is present in the YAML and,
+// if not, assigns a default value of true.
+func (c *ConfigClusterConfig) UnmarshalYAML(value *yaml.Node) error {
+	type alias ConfigClusterConfig
+
+	// If node is top-level document (DocumentNode), work with MappingNode contained within
+	n := value
+	if n.Kind == yaml.DocumentNode && len(n.Content) == 1 {
+		n = n.Content[0]
+	}
+
+	// Detect whether "enable-auth" was explicitly set
+	hasEnableAuth := false
+	if n.Kind == yaml.MappingNode {
+		// Iterate over keys to find desired one
+		//
+		// Order of nodes in MappingNode are key, val, key, val, ...
+		for i := 0; i+1 < len(n.Content); i += 2 {
+			if n.Content[i].Value == "enable-auth" {
+				// Make sure a value was passed
+				if len(n.Content[i+1].Value) == 0 {
+					return ErrInvalidConfigVal{
+						Key:      "enable-auth",
+						Value:    "empty value",
+						Expected: "true or false",
+						Line:     n.Content[i].Line,
+					}
+				}
+				// If key was found and is not empty, set our sentinel
+				hasEnableAuth = true
+				break
+			}
+		}
+	}
+
+	// Decode once into a alias type to avoid infinite recursion when unmarshalling
+	var tmp alias
+	if err := n.Decode(&tmp); err != nil {
+		return err
+	}
+
+	// Set default value only if the key was not present
+	if !hasEnableAuth {
+		tmp.EnableAuth = true
+	}
+
+	// Assign temporarily-aliased struct back to receiver
+	*c = ConfigClusterConfig(tmp)
+
+	// No errors occurred
+	return nil
 }
 
 // ConfigClusterBSS represents configuration specifically for the Boot Script
