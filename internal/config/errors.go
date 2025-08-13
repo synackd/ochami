@@ -6,6 +6,16 @@ import (
 	"fmt"
 )
 
+// ErrUnknownCluster represents an error that occurs when a requested cluster
+// name is not found in the config.
+type ErrUnknownCluster struct {
+	ClusterName string
+}
+
+func (euc ErrUnknownCluster) Error() string {
+	return fmt.Sprintf("cluster %s not found", euc.ClusterName)
+}
+
 // ErrMissingURI represents an error that occurs when neither the cluster.uri
 // nor the <service>.uri config values are set for a service. Service is the
 // name of the service whose config value is being checked.

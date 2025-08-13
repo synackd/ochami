@@ -4,8 +4,38 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
+
+func TestErrUnknownCluster_Error(t *testing.T) {
+	type fields struct {
+		ClusterName string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "cluster name contained in error",
+			fields: fields{
+				ClusterName: "test_cluster",
+			},
+			want: "test_cluster",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			euc := ErrUnknownCluster{
+				ClusterName: tt.fields.ClusterName,
+			}
+			if got := euc.Error(); !strings.Contains(got, tt.want) {
+				t.Errorf("ErrUnknownCluster.Error() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestErrMissingURI_Error(t *testing.T) {
 	type fields struct {

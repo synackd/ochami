@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -10,6 +11,167 @@ import (
 	"github.com/knadh/koanf/v2"
 	"gopkg.in/yaml.v3"
 )
+
+func TestConfig_GetCluster(t *testing.T) {
+	type args struct {
+		name string
+	}
+
+	tests := []struct {
+		name        string
+		cfg         Config
+		args        args
+		want        ConfigCluster
+		wantErr     bool
+		wantErrName string // expected cluster name referenced in the not-found error
+	}{
+		{
+			name: "Cluster exists in config",
+			cfg: Config{
+				Clusters: []ConfigCluster{
+					{
+						Name: "cluster-a",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/a",
+						},
+					},
+					{
+						Name: "cluster-b",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/b",
+						},
+					},
+				},
+			},
+			args: args{name: "cluster-a"},
+			want: ConfigCluster{
+				Name: "cluster-a",
+				Cluster: ConfigClusterConfig{
+					URI: "http://example.com/a",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Cluster does not exist in config",
+			cfg: Config{
+				Clusters: []ConfigCluster{
+					{
+						Name: "cluster-a",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/a",
+						},
+					},
+				},
+			},
+			args:        args{name: "cluster-x"},
+			want:        (ConfigCluster{}),
+			wantErr:     true,
+			wantErrName: "cluster-x",
+		},
+		{
+			name:        "Empty cluster list",
+			cfg:         Config{Clusters: []ConfigCluster{}},
+			args:        args{name: "any-cluster"},
+			want:        (ConfigCluster{}),
+			wantErr:     true,
+			wantErrName: "any-cluster",
+		},
+		{
+			name: "Multiple clusters with similar names",
+			cfg: Config{
+				Clusters: []ConfigCluster{
+					{
+						Name: "cluster1",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/1",
+						},
+					},
+					{
+						Name: "cluster-1",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/1-dash",
+						},
+					},
+					{
+						Name: "cluster_1",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/1-underscore",
+						},
+					},
+				},
+			},
+			args: args{name: "cluster-1"},
+			want: ConfigCluster{
+				Name: "cluster-1",
+				Cluster: ConfigClusterConfig{
+					URI: "http://example.com/1-dash",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Exact match required, case sensitivity test",
+			cfg: Config{
+				Clusters: []ConfigCluster{
+					{
+						Name: "ClusterA",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/case",
+						},
+					},
+					{
+						Name: "clustera",
+						Cluster: ConfigClusterConfig{
+							URI: "http://example.com/lower",
+						},
+					},
+				},
+			},
+			args: args{name: "ClusterA"},
+			want: ConfigCluster{
+				Name: "ClusterA",
+				Cluster: ConfigClusterConfig{
+					URI: "http://example.com/case",
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // capture loop variable
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.cfg.GetCluster(tt.args.name)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("GetCluster(%q) error = nil, want non-nil", tt.args.name)
+				}
+				// Make sure error is an ErrUnknownCluster and
+				// make sure cluster name is contained in it
+				var ue ErrUnknownCluster
+				if !errors.As(err, &ue) {
+					t.Fatalf("GetCluster(%q) error type = %T, want ErrUnknownCluster", tt.args.name, err)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrName) {
+					t.Fatalf("GetCluster(%q) error = %q, want it to mention %q", tt.args.name, err.Error(), tt.wantErrName)
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Fatalf("GetCluster(%q) got = %#v, want %#v", tt.args.name, got, tt.want)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("GetCluster(%q) unexpected error: %v", tt.args.name, err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("GetCluster(%q) got = %#v, want %#v", tt.args.name, got, tt.want)
+			}
+		})
+	}
+}
 
 func TestConfigClusterConfig_MergeURIConfig(t *testing.T) {
 	type fields struct {

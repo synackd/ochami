@@ -76,6 +76,17 @@ type Config struct {
 	Clusters       []ConfigCluster `yaml:"clusters,omitempty"`
 }
 
+// GetCluster searches for a cluster by name and returns it if it exists in the
+// config. If not, an ErrUnknownCluster is returned.
+func (c Config) GetCluster(name string) (ConfigCluster, error) {
+	for _, cl := range c.Clusters {
+		if cl.Name == name {
+			return cl, nil
+		}
+	}
+	return ConfigCluster{}, ErrUnknownCluster{ClusterName: name}
+}
+
 type ConfigLog struct {
 	Format string `yaml:"format,omitempty"`
 	Level  string `yaml:"level,omitempty"`
