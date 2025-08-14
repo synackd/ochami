@@ -59,10 +59,10 @@ created for node.
 - *group* - Optional group to add node to. This will get created during
 discovery if it does not exist.
 - *interfaces* - A list of network interfaces for the node.
-	- *mac_addr* - MAC address of network interface.
-	- *ip_addrs* - List of IP addresses assigned to interface.
-		- *name* - Short name identifying the network for the IP address.
-		- *ip_addr* - IP address for interface.
+    - *mac_addr* - MAC address of network interface.
+    - *ip_addrs* - List of IP addresses assigned to interface.
+        - *name* - Short name identifying the network for the IP address.
+        - *ip_addr* - IP address for interface.
 
 # COMMANDS
 
@@ -91,24 +91,45 @@ RedfishEndpoints, EthernetInterfaces, Components, and groups data in SMD
 corresponding to each node. It also creates Components corresponding to each
 node's BMC which corresponds to each RedfishEndpoint created.
 
+The *--discovery-version* sets which discovery method to use when running the
+*static* subcommand. If the version is set to 1, an additional request is made
+to create the EthernetInterfaces separately in SMD. If set to 2 (the default),
+the EthernetInterfaces are created with the first discovery request.
+This flag is only for backward compatibility with earlier versions of SMD and
+may be deprecated in a later version of ochami.
 This command accepts the following options:
 
 *-d, --data* (_data_ | @_path_ | @-)
-	Specify raw _data_ to send, the _path_ to a file to read payload data from,
-	or to read the data from standard input (@-). The format of data read in any
-	of these forms is JSON by default unless *-f* is specified to change it.
+    Specify raw _data_ to send, the _path_ to a file to read payload data from,
+    or to read the data from standard input (@-). The format of data read in any
+    of these forms is JSON by default unless *-f* is specified to change it.
+
+*--discovery-version*
+    Set the version of the discovery method to use for static discovery.
+
+    Possible values are:
+    - _1_
+    - _2_ (default)
 
 *-f, --format-input* _format_
-	Format of the input data. If unspecified, the payload format is _json_ by
-	default. Supported formats are:
+    Format of the input data. If unspecified, the payload format is _json_ by
+    default. Supported formats are:
 
-	- _json_ (default)
-	- _json-pretty_
-	- _yaml_
+    - _json_ (default)
+    - _json-pretty_
+    - _yaml_
 
 *--overwrite*
-	Instead of failing if data already exists, overwrite it with new data
-	contained in the payload.
+    Instead of failing if data already exists, overwrite it with new data
+    contained in the payload.
+
+*--discovery-version*
+    Set the version of the discovery method to use for static discovery.
+    Set the version of the discovery method to use for static discovery.
+     
+                Possible values are:
+                - _1_
+                - _2_ (default)
 
 # XNAMES
 
