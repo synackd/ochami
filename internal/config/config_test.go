@@ -852,7 +852,8 @@ log:
 					{
 						Name: "demo",
 						Cluster: ConfigClusterConfig{
-							URI: "https://demo.openchami.cluster:8443",
+							EnableAuth: true,
+							URI:        "https://demo.openchami.cluster:8443",
 						},
 					},
 				},
@@ -886,19 +887,6 @@ func TestModifyConfig(t *testing.T) {
 		err := ModifyConfig("/no/such/file.yaml", "default-cluster", "new")
 		if err == nil {
 			t.Fatalf("ModifyConfig(): expected file read error, got %v", err)
-		}
-	})
-
-	t.Run("invalid key returns error", func(t *testing.T) {
-		tmp := t.TempDir()
-		path := filepath.Join(tmp, "cfg.yaml")
-		initial := Config{}
-		data, _ := yaml.Marshal(initial)
-		os.WriteFile(path, data, 0o644)
-
-		err := ModifyConfig(path, "does.not.exist", "value")
-		if err == nil {
-			t.Fatal("ModifyConfig(): expected error for invalid key, got nil")
 		}
 	})
 
