@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-viper/mapstructure/v2"
 	kyaml "github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/rawbytes"
@@ -58,15 +57,6 @@ var (
 
 	// Global koanf struct configuration
 	kConfig = koanf.Conf{Delim: ".", StrictMerge: true}
-
-	// koanf unmarshal config used in unmarshalling function
-	kUnmarshalConf = koanf.UnmarshalConf{
-		Tag: "yaml", // Tag for determining mapping to struct members
-		DecoderConfig: &mapstructure.DecoderConfig{
-			ErrorUnused: true,          // Err if unknown keys found
-			Result:      &GlobalConfig, // Unmarshal to global config
-		},
-	}
 )
 
 // Config represents the structure of a configuration file.
@@ -74,6 +64,17 @@ type Config struct {
 	Log            ConfigLog       `yaml:"log,omitempty"`
 	DefaultCluster string          `yaml:"default-cluster,omitempty"`
 	Clusters       []ConfigCluster `yaml:"clusters,omitempty"`
+}
+
+// GetCluster searches for a cluster by name and returns it if it exists in the
+// config. If not, an ErrUnknownCluster is returned.
+func (c Config) GetCluster(name string) (ConfigCluster, error) {
+	for _, cl := range c.Clusters {
+		if cl.Name == name {
+			return cl, nil
+		}
+	}
+	return ConfigCluster{}, ErrUnknownCluster{ClusterName: name}
 }
 
 type ConfigLog struct {
@@ -91,11 +92,66 @@ type ConfigCluster struct {
 // ConfigClusterConfig is the actual structure for an individual cluster
 // configuration.
 type ConfigClusterConfig struct {
-	URI       string                 `yaml:"uri,omitempty"`
-	BSS       ConfigClusterBSS       `yaml:"bss,omitempty"`
-	CloudInit ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`
-	PCS       ConfigClusterPCS       `yaml:"pcs,omitempty"`
-	SMD       ConfigClusterSMD       `yaml:"smd,omitempty"`
+	URI        string                 `yaml:"uri,omitempty"`
+	BSS        ConfigClusterBSS       `yaml:"bss,omitempty"`
+	CloudInit  ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`
+	PCS        ConfigClusterPCS       `yaml:"pcs,omitempty"`
+	SMD        ConfigClusterSMD       `yaml:"smd,omitempty"`
+	EnableAuth bool                   `yaml:"enable-auth"`
+}
+
+// UnmarshalYAML unmarshals YAML into a ConfigClusterConfig, handling default
+// values. For instance, it detects if 'enable-auth' is present in the YAML and,
+// if not, assigns a default value of true.
+func (c *ConfigClusterConfig) UnmarshalYAML(value *yaml.Node) error {
+	type alias ConfigClusterConfig
+
+	// If node is top-level document (DocumentNode), work with MappingNode contained within
+	n := value
+	if n.Kind == yaml.DocumentNode && len(n.Content) == 1 {
+		n = n.Content[0]
+	}
+
+	// Detect whether "enable-auth" was explicitly set
+	hasEnableAuth := false
+	if n.Kind == yaml.MappingNode {
+		// Iterate over keys to find desired one
+		//
+		// Order of nodes in MappingNode are key, val, key, val, ...
+		for i := 0; i+1 < len(n.Content); i += 2 {
+			if n.Content[i].Value == "enable-auth" {
+				// Make sure a value was passed
+				if len(n.Content[i+1].Value) == 0 {
+					return ErrInvalidConfigVal{
+						Key:      "enable-auth",
+						Value:    "empty value",
+						Expected: "true or false",
+						Line:     n.Content[i].Line,
+					}
+				}
+				// If key was found and is not empty, set our sentinel
+				hasEnableAuth = true
+				break
+			}
+		}
+	}
+
+	// Decode once into a alias type to avoid infinite recursion when unmarshalling
+	var tmp alias
+	if err := n.Decode(&tmp); err != nil {
+		return err
+	}
+
+	// Set default value only if the key was not present
+	if !hasEnableAuth {
+		tmp.EnableAuth = true
+	}
+
+	// Assign temporarily-aliased struct back to receiver
+	*c = ConfigClusterConfig(tmp)
+
+	// No errors occurred
+	return nil
 }
 
 // ConfigClusterBSS represents configuration specifically for the Boot Script
@@ -259,6 +315,23 @@ func (ccc *ConfigClusterConfig) GetServiceBaseURI(svcName ServiceName) (string, 
 	return serviceBaseURI, nil
 }
 
+// unmarshalKoanfYAML is a helper function that unmarshals data in ko into out
+// using parser p. The reason this function exists is because koanf.Unmarshal
+// and koanf.MarshalWithConf use mapstructure for their unmarshalling, which
+// means that custom unmarshal functions defined for out do not get run.
+// unmarshalKoanfYAML ensures this happens by first marshalling the data in ko
+// into YAML, then using the YAML unmarshaller to unmarshal into out.
+func unmarshalKoanfYAML(ko *koanf.Koanf, out interface{}) error {
+	yamlBytes, err := ko.Marshal(kyaml.Parser())
+	if err != nil {
+		return fmt.Errorf("failed to marshal config data into YAML: %w", err)
+	}
+	if err := yaml.Unmarshal(yamlBytes, out); err != nil {
+		return fmt.Errorf("failed to unmarshal YAML bytes into config: %w", err)
+	}
+	return nil
+}
+
 // RemoveFromSlice removes an element from a slice and returns the resulting
 // slice. The element to be removed is identified by its index in the slice.
 func RemoveFromSlice[T any](slice []T, index int) []T {
@@ -350,10 +423,8 @@ func LoadGlobalConfigMerged() error {
 	// so we copy it, unmarshal into the copy, then set the copy as the
 	// global config.
 	c := GlobalConfig
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &c
-	if err := GlobalKoanf.UnmarshalWithConf("", nil, kuc); err != nil {
-		return fmt.Errorf("failed to unmarshal global config into struct: %w", err)
+	if err := unmarshalKoanfYAML(ko, &c); err != nil {
+		return fmt.Errorf("failed to read merged config: %w", err)
 	}
 	GlobalConfig = c
 
@@ -415,14 +486,12 @@ func GenerateConfigFromBytes(b []byte) (*koanf.Koanf, Config, error) {
 		return k, cfg, fmt.Errorf("failed to load config bytes: %w", err)
 	}
 
-	// User global unmarshal config but unmarshal into cfg struct we created
-	// above
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &cfg
-
-	// Unmarshal bytes in parser structure
-	if err := k.UnmarshalWithConf("", nil, kuc); err != nil {
-		return k, cfg, fmt.Errorf("failed to unmarshal config bytes: %w", err)
+	// Unmarshal the YAML directly from the input bytes into config struct,
+	// using the custom YAML unmarshaller. The koanf unmarshaller does not
+	// call the custom UnmarshalYAML since it uses mapstructure under the
+	// hood.
+	if err := yaml.Unmarshal(b, &cfg); err != nil {
+		return k, cfg, fmt.Errorf("failed to unmarshal YAML bytes into config: %w", err)
 	}
 
 	// Return parser structure and config structure
@@ -452,10 +521,8 @@ func ModifyConfig(path, key string, value interface{}) error {
 		return fmt.Errorf("failed to set key %s to value %v: %w", key, value, err)
 	}
 	var modCfg Config
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &modCfg
-	if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-		return fmt.Errorf("failed to modify config for %s: %w", path, err)
+	if err := unmarshalKoanfYAML(ko, &modCfg); err != nil {
+		return fmt.Errorf("failed to read modified config: %w", err)
 	}
 
 	// Write file back to file
@@ -506,7 +573,6 @@ func ModifyConfigCluster(path, cluster, key string, dflt bool, value interface{}
 		}
 	}
 	ko := koanf.NewWithConf(kConfig)
-	kuc := kUnmarshalConf
 	if newCluster {
 		// Adding a new cluster; create it and append to list
 		nCl := ConfigCluster{Name: cluster}
@@ -518,9 +584,8 @@ func ModifyConfigCluster(path, cluster, key string, dflt bool, value interface{}
 		if err := ko.Set(key, value); err != nil {
 			return fmt.Errorf("failed to set key %s to value %v for new cluster %s: %w", key, value, cluster, err)
 		}
-		kuc.DecoderConfig.Result = &nCl
-		if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-			return fmt.Errorf("failed to modify config for new cluster %s: %w", cluster, err)
+		if err := unmarshalKoanfYAML(ko, &nCl); err != nil {
+			return fmt.Errorf("failed to read modified config for new cluster %s: %w", cluster, err)
 		}
 
 		// Add new cluster to cluster list
@@ -539,9 +604,8 @@ func ModifyConfigCluster(path, cluster, key string, dflt bool, value interface{}
 		if err := ko.Set(key, value); err != nil {
 			return fmt.Errorf("failed to set key %s to value %v for existing cluster %s: %w", key, value, cluster, err)
 		}
-		kuc.DecoderConfig.Result = clusterToMod
-		if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-			return fmt.Errorf("failed to modify config for existing cluster %s: %w", cluster, err)
+		if err := unmarshalKoanfYAML(ko, &clusterToMod); err != nil {
+			return fmt.Errorf("failed to read modified config for existing cluster %s: %w", cluster, err)
 		}
 	}
 
@@ -594,9 +658,7 @@ func DeleteConfig(path, key string) error {
 	ko.Delete(key)
 
 	var modCfg Config
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &modCfg
-	if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
+	if err := unmarshalKoanfYAML(ko, &modCfg); err != nil {
 		return fmt.Errorf("failed to unset key %s from config for %s: %w", key, path, err)
 	}
 
@@ -642,11 +704,11 @@ func DeleteConfigCluster(path, cluster, key string) error {
 		return fmt.Errorf("failed to load config for cluster %s: %w", cluster, err)
 	}
 	ko.Delete(key)
+
+	// Write modified config back out to struct
 	var tmpCluster ConfigCluster
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &tmpCluster
-	if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-		return fmt.Errorf("failed to unset key %s from config for cluster %s: %w", key, cluster, err)
+	if err := unmarshalKoanfYAML(ko, &tmpCluster); err != nil {
+		return fmt.Errorf("failed to read modified cluster data: %w", err)
 	}
 	*clusterToMod = tmpCluster
 
@@ -681,10 +743,8 @@ func GetConfig(cfg Config, key string) (interface{}, error) {
 		val = ko.Get(key)
 	} else {
 		// No key specified, return whole config
-		kuc := kUnmarshalConf
-		kuc.DecoderConfig.Result = &val
-		if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal config from struct: %w", err)
+		if err := unmarshalKoanfYAML(ko, &val); err != nil {
+			return nil, fmt.Errorf("failed to read config data: %w", err)
 		}
 	}
 	return val, nil
@@ -763,10 +823,8 @@ func GetConfigCluster(cluster ConfigCluster, key string) (interface{}, error) {
 		val = ko.Get(key)
 	} else {
 		// No key specified, return whole config
-		kuc := kUnmarshalConf
-		kuc.DecoderConfig.Result = &val
-		if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal cluster config from struct: %w", err)
+		if err := unmarshalKoanfYAML(ko, &val); err != nil {
+			return nil, fmt.Errorf("failed to read cluster config: %w", err)
 		}
 	}
 	return val, nil
@@ -834,14 +892,15 @@ func ReadConfig(path string) (Config, error) {
 	}
 	log.Logger.Debug().Msgf("reading config file: %s", path)
 
+	// Load config file into koanf to check for errors
 	ko := koanf.NewWithConf(kConfig)
 	if err := ko.Load(file.Provider(path), configParser); err != nil {
 		return cfg, fmt.Errorf("failed to load config file %s: %w", path, err)
 	}
-	kuc := kUnmarshalConf
-	kuc.DecoderConfig.Result = &cfg
-	if err := ko.UnmarshalWithConf("", nil, kuc); err != nil {
-		return cfg, fmt.Errorf("failed to unmarshal config from %s: %w", path, err)
+
+	// Unmarshal koanf data into config struct
+	if err := unmarshalKoanfYAML(ko, &cfg); err != nil {
+		return cfg, fmt.Errorf("failed to read config data: %w", err)
 	}
 
 	return cfg, nil

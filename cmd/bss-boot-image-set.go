@@ -33,7 +33,10 @@ See ochami-bss(1) for more details.`,
   ochami bss boot image set --mac 00:de:ad:be:ef:00,de:ca:fc:0f:fe:ee live:https://172.16.0.254/image.squashfs`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		bssClient := bssGetClient(cmd, true)
+		bssClient := bssGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Get current kernel command line args
 		values := url.Values{}

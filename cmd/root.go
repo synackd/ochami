@@ -91,10 +91,14 @@ func init() {
 	rootCmd.PersistentFlags().StringP("cluster-uri", "u", "", "base URI for OpenCHAMI services, excluding service base path (overrides cluster.uri in config file)")
 	rootCmd.PersistentFlags().StringVar(&cacertPath, "cacert", "", "path to root CA certificate in PEM format")
 	rootCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "access token to present for authentication")
+	rootCmd.PersistentFlags().Bool("no-token", false, "do not check for or use an access token")
 	rootCmd.PersistentFlags().BoolVarP(&insecure, "insecure", "k", false, "do not verify TLS certificates")
 	rootCmd.PersistentFlags().Bool("ignore-config", false, "do not use any config file")
 	rootCmd.PersistentFlags().BoolVarP(&log.EarlyLogger.EarlyVerbose, "verbose", "v", false, "be verbose before logging is initialized")
 
 	// Either use cluster from config file or specify details on CLI
 	rootCmd.MarkFlagsMutuallyExclusive("cluster", "cluster-uri")
+
+	// Do not allow simultaneously passing a token and ignoring it
+	rootCmd.MarkFlagsMutuallyExclusive("token", "no-token")
 }

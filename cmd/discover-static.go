@@ -61,7 +61,7 @@ See ochami-discover(1) for more details.`,
 		}
 
 		// This endpoint requires authentication, so a token is needed
-		setTokenFromEnvVar(cmd)
+		setToken(cmd)
 		checkToken(cmd)
 
 		// Create client to make request to SMD

@@ -62,22 +62,15 @@ func cloudInitCompletionHeaderWhen(cmd *cobra.Command, args []string, toComplete
 }
 
 // cloudInitGetClient sets up the cloud-init client with the cloud-init base URI
-// and certificates (if necessary) and returns it. If tokenRequired is true,
-// it will ensure that the token is set and valid and load it. This function is
-// used by each subcommand.
-func cloudInitGetClient(cmd *cobra.Command, tokenRequired bool) *ci.CloudInitClient {
+// and certificates (if necessary) and returns it. This function is used by
+// each subcommand.
+func cloudInitGetClient(cmd *cobra.Command) *ci.CloudInitClient {
 	// Without a base URI, we cannot do anything
 	cloudInitbaseURI, err := getBaseURICloudInit(cmd)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("failed to get base URI for cloud-init")
 		logHelpError(cmd)
 		os.Exit(1)
-	}
-
-	// Make sure token is set/valid, if required
-	if tokenRequired {
-		setTokenFromEnvVar(cmd)
-		checkToken(cmd)
 	}
 
 	// Create client to make request to cloud-init

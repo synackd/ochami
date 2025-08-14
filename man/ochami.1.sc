@@ -135,9 +135,38 @@ _foobar_.
 	- _warning_
 	- _debug_
 
+*--no-token*
+	Disable reading of and checking for access token and do not include any
+	token in the request headers. This overrides the value of *enable-auth* set
+	for the cluster.
+
+	This flag is useful for testing access to API endpoints that don't have JWT
+	authentication enabled, e.g. in a test environment.
+
 *-t, --token* _token_
 	Access token to include in request headers for authentication to protected
 	service endpoints. Overrides token set in environment variable.
+
+*-v*
+	Enable early debug logging.
+
+	Since the regular log message format is configurable, regular logs only get
+	printed after the configuration is merged (see *CONFIGURATION*). This can
+	make it tough to debug early configuration merge issues. This flag prints
+	early debug messages to help this purpose.
+
+# CONFIGURATION
+
+When running *ochami* without passing *--config*, it will read the system
+configuration file and the user's configuration file, in that order, and attempt
+to merge them. Configuration options in the user configuration file overwrite
+those in the system configuration file.
+
+The *-v* flag turns on debug messages to help troubleshoot this merge process.
+
+See *ochami-config*(5) for more information on configuring these files, as well
+as *ochami-config*(1) for how to use *ochami* commands to manage configuration
+options.
 
 # FILES
 

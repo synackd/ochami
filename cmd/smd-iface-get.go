@@ -26,12 +26,12 @@ ethernet interfaces returned.
 See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, false)
+		smdClient := smdGetClient(cmd)
 
 		// Deal with --id
 		if cmd.Flag("id").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			id, err := cmd.Flags().GetString("id")

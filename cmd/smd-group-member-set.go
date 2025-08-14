@@ -28,7 +28,10 @@ See ochami-smd(1) for more details.`,
 	Example: `  ochami smd group member set compute x1000c1s7b1n0 x1000c1s7b2n0`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, true)
+		smdClient := smdGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Send off request
 		_, err := smdClient.PutGroupMembers(token, args[0], args[1:]...)

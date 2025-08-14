@@ -94,7 +94,7 @@ See ochami-pcs(1) for more details.`,
   ochami pcs status`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		pcsClient := pcsGetClient(cmd, false)
+		pcsClient := pcsGetClient(cmd)
 
 		// Figure out if we need to hit the /health endpoint (only if a flag has been provided)
 		flagsProvided := false

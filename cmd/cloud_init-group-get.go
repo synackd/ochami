@@ -20,7 +20,10 @@ import (
 // requested groups. If an error occurs, the program exits.
 func cloudInitGetGroupData(cmd *cobra.Command, args []string) (groupSlice []cistore.GroupData) {
 	// Create client to use for requests
-	cloudInitClient := cloudInitGetClient(cmd, true)
+	cloudInitClient := cloudInitGetClient(cmd)
+
+	// Handle token for this command
+	handleToken(cmd)
 
 	// Get data
 	if len(args) == 0 {

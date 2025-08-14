@@ -23,7 +23,10 @@ See ochami-cloud-init(1) for more details.`,
 	Example: `  ochami cloud-init defaults get`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd, true)
+		cloudInitClient := cloudInitGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Get data
 		henv, err := cloudInitClient.GetDefaults(token)

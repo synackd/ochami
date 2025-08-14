@@ -53,7 +53,10 @@ See ochami-cloud-init(1) for more details.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		cloudInitClient := cloudInitGetClient(cmd, true)
+		cloudInitClient := cloudInitGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// The group data we will send
 		ciGroups := []cistore.GroupData{}

@@ -23,19 +23,19 @@ var componentGetCmd = &cobra.Command{
 See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, false)
+		smdClient := smdGetClient(cmd)
 
 		var httpEnv client.HTTPEnvelope
 		var err error
 		if cmd.Flag("xname").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			httpEnv, err = smdClient.GetComponentsXname(cmd.Flag("xname").Value.String(), token)
 		} else if cmd.Flag("nid").Changed {
 			// This endpoint requires authentication, so a token is needed
-			setTokenFromEnvVar(cmd)
+			setToken(cmd)
 			checkToken(cmd)
 
 			var nid int32

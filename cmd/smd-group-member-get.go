@@ -24,7 +24,10 @@ See ochami-smd(1) for more details.`,
 	Example: `  ochami smd group member get compute`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
-		smdClient := smdGetClient(cmd, true)
+		smdClient := smdGetClient(cmd)
+
+		// Handle token for this command
+		handleToken(cmd)
 
 		// Send request
 		httpEnv, err := smdClient.GetGroupMembers(args[0], token)

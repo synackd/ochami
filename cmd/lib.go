@@ -365,7 +365,55 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	return baseURI, err
 }
 
-// setTokenFromEnvVar sets the access token for a cobra command cmd. If --token
+// handleToken is a wrapper function around code that reads, checks, and
+// performs any other setup tasks for tokens. It is called by all commands that
+// require a token.
+func handleToken(cmd *cobra.Command) {
+	if cmd.Flag("no-token").Changed {
+		// --no-token overrides any cluster settings
+		log.Logger.Debug().Msg("--no-token passed, not reading or checking for token")
+	} else {
+		// Check if enable-auth is set for cluster and only read/check
+		// token if true
+		var clusterName string
+		if cmd.Flag("cluster").Changed {
+			// Use cluster passed via --cluster
+			clusterName = cmd.Flag("cluster").Value.String()
+		} else if config.GlobalConfig.DefaultCluster != "" {
+			// Use default cluster
+			clusterName = config.GlobalConfig.DefaultCluster
+		}
+
+		if clusterName != "" {
+			if cl, err := config.GlobalConfig.GetCluster(clusterName); err != nil {
+				if errors.Is(err, config.ErrUnknownCluster{}) {
+					// Cluster was not found (this error
+					// should be caught before this function, but
+					// this check is here just in case),
+					// skip token check
+					log.Logger.Warn().Msgf("cluster %q not found, not checking token", clusterName)
+				} else {
+					// Other error occurred, fatal
+					log.Logger.Error().Err(err).Msg("failed to get cluster")
+					logHelpError(cmd)
+					os.Exit(1)
+				}
+			} else {
+				// Cluster was found, use enable-auth value to
+				// determine whether to read/check token
+				if cl.Cluster.EnableAuth {
+					log.Logger.Debug().Msgf("authentication enabled for cluster %s, reading and checking token", cl.Name)
+					setToken(cmd)
+					checkToken(cmd)
+				} else {
+					log.Logger.Debug().Msgf("authentication disabled for cluster %s, not reading or checking for token", cl.Name)
+				}
+			}
+		}
+	}
+}
+
+// setToken sets the access token for a cobra command cmd. If --token
 // was passed, that value is set as the access token. Otherwise, the token is
 // read from an environment variable whose format is <CLUSTER>_ACCESS_TOKEN
 // where <CLUSTER> is the name of the cluster, in upper case, being contacted.
@@ -375,7 +423,7 @@ func getBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 // underscores, and making the letters uppercase. If no config file is set or
 // the environment variable is not set, an error is logged and the program
 // exits.
-func setTokenFromEnvVar(cmd *cobra.Command) {
+func setToken(cmd *cobra.Command) {
 	var (
 		clusterName string
 		varPrefix   string
