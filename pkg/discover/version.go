@@ -20,7 +20,7 @@ var (
 )
 
 func (dv DiscoveryVersion) String() string {
-	return fmt.Sprintf("v%d", (dv))
+	return fmt.Sprintf("%d", (dv))
 }
 
 func (dv *DiscoveryVersion) Set(v string) error {
