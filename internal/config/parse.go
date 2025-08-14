@@ -14,7 +14,6 @@ import (
 // - bool
 // - int
 // - float
-//
 func StringToType(s string) any {
 	// Try bool
 	if b, err := strconv.ParseBool(strings.ToLower(s)); err == nil {
