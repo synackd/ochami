@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-goreleaser:
     runs-on: ubuntu-latest
     steps:
       - name: Install scdoc for man page generation
@@ -36,3 +36,41 @@ jobs:
           version: '~> v2'
           args: release --snapshot --clean --skip publish
         id: goreleaser
+  build-make:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y make git
+      - name: Set up latest stable Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: 1
+          fetch-depth: 0
+      - name: Build manual pages
+        run: |
+          make
+  docs-make:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y make git scdoc
+      - name: Set up latest stable Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: 1
+          fetch-depth: 0
+      - name: Build manual pages
+        run: |
+          make man
