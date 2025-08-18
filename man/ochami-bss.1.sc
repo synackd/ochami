@@ -8,7 +8,8 @@ ochami-bss - Communicate with the Boot Script Service (BSS)
 
 ochami bss boot image set [OPTIONS]++
 ochami bss boot params (add | delete | get | set | update) [OPTIONS]++
-ochami bss boot script get [OPTIONS]
+ochami bss boot script get [OPTIONS]++
+ochami bss service status [OPTIONS]
 
 # DATA STRUCTURE
 
@@ -494,37 +495,42 @@ Subcommands for this command are as follows:
 		this flag can be specified multiple times or this flag can be specified
 		once and multiple xnames, separated by commas.
 
-## status
+## service
 
-Get BSS's status. This is useful for checking if BSS is running, if it is
-connected to SMD, or checking the storage backend type/connection status.
+Manage and check BSS itself.
 
-The format of this command is:
+Subcommands for this command are as follows:
 
 *status* [-F _format_] [--all | --smd | --storage | --version]
+	Get BSS's status. This is useful for checking if BSS is running, if it is
+	connected to SMD, or checking the storage backend type/connection status.
 
-This command sends a GET to endpoints under BSS's /service endpoint.
+	This command sends a GET to endpoints under BSS's /service endpoint.
 
-This command accepts the following options:
+	This command accepts the following options:
 
-*--all*
-	Print out all of the status information BSS knows about.
+	*--all*
+		Print out all of the status information BSS knows about.
 
-*-F, --format-output* _format_
-	Output response data in specified _format_. Supported values are:
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
 
-	- _json_ (default)
-	- _yaml_
+		- _json_ (default)
+		- _yaml_
 
-*--smd*
-	Print out the status of BSS's connection to SMD.
+	*--smd*
+		Print out the status of BSS's connection to SMD.
 
-*--storage*
-	Print out the backend storage type and connection status of BSS to that
-	storage backend.
+	*--storage*
+		Print out the backend storage type and connection status of BSS to that
+		storage backend.
 
-*--version*
-	Print out BSS's version.
+	*--version*
+		Print out BSS's version.
+
+## status
+
+This command is DEPRECATED. Use *service status* instead.
 
 # AUTHOR
 
