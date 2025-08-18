@@ -785,6 +785,33 @@ Subcommands for this command are as follows:
 	already in the group remain in the group, and xnames not specified that are
 	already in the group are removed from the group.
 
+## service
+
+Manage and check SMD itself.
+
+Subcommands for this command are as follows:
+
+*status* [-F _format_] [--all]
+	Get SMD's status. This is useful for checking if SMD is running or SMD's
+	connection to its storage service, etc.
+
+	This command sends a GET to endpoints under SMD's /service endpoint.
+
+	This command accepts the following options:
+
+	*--all*
+		Print out all of the status information SMD knows about.
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
+
+## status
+
+This command is DEPRECATED. Use *service status* instead.
+
 # AUTHOR
 
 Written by Devon T. Bautista and maintained by the OpenCHAMI developers.

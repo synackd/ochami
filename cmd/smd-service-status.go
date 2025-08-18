@@ -13,12 +13,11 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// smdStatusCmd represents the "smd status" command
-var smdStatusCmd = &cobra.Command{
-	Deprecated: "use 'smd service status' instead. This command will be removed soon.",
-	Use:        "status",
-	Args:       cobra.NoArgs,
-	Short:      "Get status of the State Management Database (SMD)",
+// smdServiceStatusCmd represents the "smd service status" command
+var smdServiceStatusCmd = &cobra.Command{
+	Use:   "status",
+	Args:  cobra.NoArgs,
+	Short: "Get status of the State Management Database (SMD)",
 	Long: `Get status of the State Management Database (SMD).
 
 See ochami-smd(1) for more details.`,
@@ -56,10 +55,10 @@ See ochami-smd(1) for more details.`,
 }
 
 func init() {
-	smdStatusCmd.Flags().Bool("all", false, "print all status data from SMD")
-	smdStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
+	smdServiceStatusCmd.Flags().Bool("all", false, "print all status data from SMD")
+	smdServiceStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
 
-	smdStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
+	smdServiceStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
 
-	smdCmd.AddCommand(smdStatusCmd)
+	smdServiceCmd.AddCommand(smdServiceStatusCmd)
 }
