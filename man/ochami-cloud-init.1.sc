@@ -19,7 +19,8 @@ ochami cloud-init node get group [OPTIONS] _group_ _id_...++
 ochami cloud-init node get meta-data [OPTIONS] _id_...++
 ochami cloud-init node get user-data [OPTIONS] _id_...++
 ochami cloud-init node get vendor-data [OPTIONS] _id_...++
-ochami cloud-init node set [OPTIONS]
+ochami cloud-init node set [OPTIONS]++
+ochami cloud-init service status [OPTIONS]
 
 # DATA STRUCTURE
 
@@ -614,6 +615,52 @@ Subcommands for this command are as follows:
 		- _json_ (default)
 		- _json-pretty_
 		- _yaml_
+
+## service
+
+Manage and check cloud-init itself.
+
+Subcommands for this command are as follows:
+
+*status* [-F _format_] [-q | (--version | --api)]
+	Get cloud-init's status.
+
+	Without *--version* or *--api*, prints that cloud-init is running to stdout
+	if it is, or an error to stdout if not. If *-q* is passed, no output is
+	printed to stdout and the command exits with a status code of 0 if
+	cloud-init is running and 1 if not.
+
+	Passing *--version* and/or *--api* will print the cloud-init server's
+	version and OpenAPI specification, respectively. These flags cannot be
+	passed along with *-q*.
+
+	This command sends a GET to status endpoints under cloud-init.
+
+	This command accepts the following options:
+
+	*--api*
+		Print out cloud-init's OpenAPI specification.
+
+		This flag is mutually exclusive with *-q*.
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
+
+	*-q, --quiet*
+		Do not print any output. Exit with an exit status of 0 if cloud-init is
+		running and 1 if not. *ochami* determines if cloud-init is running by
+		sending a GET to cloud-init's version endpoint and checking if the
+		response was successful (< 400).
+
+		This flag is mutually exclusive with *--api* and *--version*.
+
+	*--version*
+		Print out cloud-init's version information.
+
+		This flag is mutually exclusive with *-q*.
 
 # AUTHOR
 
