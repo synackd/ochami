@@ -41,37 +41,39 @@ The data structure for sending and receiving data with subcommands under the
 
 # COMMANDS
 
-## status
+## service
 
-Get PCS's status. This is useful for checking if PCS is running, if it is
-connected to SMD, or checking the storage backend connection status.
+Manage and check PCS itself.
 
-The format of this command is:
+Subcommands for this command are as follows:
 
 *status* [-F _format_] [--all | --smd | --storage | --vault]
+	Send a GET to PCS's /readiness or /health endpoints.
 
-This command sends a GET to PCS's /readiness or /health endpoints.
+	This command accepts the following options:
 
-This command accepts the following options:
+	*--all*
+		Print out all of the status information PCS knows about.
 
-*--all*
-	Print out all of the status information PCS knows about.
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
 
-*-F, --format-output* _format_
-	Output response data in specified _format_. Supported values are:
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
 
-	- _json_ (default)
-	- _json-pretty_
-	- _yaml_
+	*--smd*
+		Print out the status of PCS's connection to SMD.
 
-*--smd*
-	Print out the status of PCS's connection to SMD.
+	*--storage*
+		Print out the backend storage connection status of PCS.
 
-*--storage*
-	Print out the backend storage connection status of PCS.
+	*--vault*
+		Print out the backend vault connection status of PCS.
 
-*--vault*
-	Print out the backend vault connection status of PCS.
+## status
+
+Manage power status.
 
 ## transitions
 
