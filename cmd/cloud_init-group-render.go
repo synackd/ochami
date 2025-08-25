@@ -3,13 +3,14 @@
 package cmd
 
 import (
+	"bufio"
 	"errors"
-	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/nikolalohinski/gonja"
+	"github.com/nikolalohinski/gonja/v2"
+	"github.com/nikolalohinski/gonja/v2/exec"
 	"github.com/spf13/cobra"
 
 	"github.com/OpenCHAMI/ochami/internal/log"
@@ -90,6 +91,7 @@ See ochami-cloud-init(1) for more details.`,
 			os.Exit(1)
 		}
 		dsWrapper["ds"] = map[string]interface{}{"meta_data": ciData}
+		refData := exec.NewContext(dsWrapper)
 
 		// Render
 		tpl, err := gonja.FromBytes(ciConfigFileBytes)
@@ -98,15 +100,15 @@ See ochami-cloud-init(1) for more details.`,
 			logHelpError(cmd)
 			os.Exit(1)
 		}
-		out, err := tpl.Execute(dsWrapper)
-		if err != nil {
+		out := bufio.NewWriter(os.Stdout)
+		if err := tpl.Execute(out, refData); err != nil {
 			log.Logger.Error().Err(err).Msg("failed to render template")
 			logHelpError(cmd)
 			os.Exit(1)
 		}
 
-		// Print rendered cloud config
-		fmt.Println(out)
+		// Write rendered template to stdout
+		out.Flush()
 	},
 }
 
