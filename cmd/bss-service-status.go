@@ -34,8 +34,6 @@ See ochami-bss(1) for more details.`,
 			httpEnv, err = bssClient.GetStatus("storage")
 		} else if cmd.Flag("smd").Changed {
 			httpEnv, err = bssClient.GetStatus("smd")
-		} else if cmd.Flag("version").Changed {
-			httpEnv, err = bssClient.GetStatus("version")
 		} else {
 			httpEnv, err = bssClient.GetStatus("")
 		}
@@ -64,11 +62,10 @@ func init() {
 	bssServiceStatusCmd.Flags().Bool("all", false, "print all status data from BSS")
 	bssServiceStatusCmd.Flags().Bool("storage", false, "print status of storage backend from BSS")
 	bssServiceStatusCmd.Flags().Bool("smd", false, "print status of BSS connection to SMD")
-	bssServiceStatusCmd.Flags().Bool("version", false, "print version of BSS")
 	bssServiceStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
 
 	bssServiceStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
-	bssServiceStatusCmd.MarkFlagsMutuallyExclusive("all", "storage", "smd", "version")
+	bssServiceStatusCmd.MarkFlagsMutuallyExclusive("all", "storage", "smd")
 
 	bssServiceCmd.AddCommand(bssServiceStatusCmd)
 }

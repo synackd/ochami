@@ -9,7 +9,8 @@ ochami-bss - Communicate with the Boot Script Service (BSS)
 ochami bss boot image set [OPTIONS]++
 ochami bss boot params (add | delete | get | set | update) [OPTIONS]++
 ochami bss boot script get [OPTIONS]++
-ochami bss service status [OPTIONS]
+ochami bss service status [OPTIONS]++
+ochami bss service version
 
 # DATA STRUCTURE
 
@@ -501,7 +502,7 @@ Manage and check BSS itself.
 
 Subcommands for this command are as follows:
 
-*status* [-F _format_] [--all | --smd | --storage | --version]
+*status* [-F _format_] [--all | --smd | --storage]
 	Get BSS's status. This is useful for checking if BSS is running, if it is
 	connected to SMD, or checking the storage backend type/connection status.
 
@@ -525,8 +526,8 @@ Subcommands for this command are as follows:
 		Print out the backend storage type and connection status of BSS to that
 		storage backend.
 
-	*--version*
-		Print out BSS's version.
+*version*
+	Get BSS's version.
 
 ## status
 
