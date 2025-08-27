@@ -20,7 +20,8 @@ ochami cloud-init node get meta-data [OPTIONS] _id_...++
 ochami cloud-init node get user-data [OPTIONS] _id_...++
 ochami cloud-init node get vendor-data [OPTIONS] _id_...++
 ochami cloud-init node set [OPTIONS]++
-ochami cloud-init service status [OPTIONS]
+ochami cloud-init service status [OPTIONS]++
+ochami cloud-init service version [OPTIONS]
 
 # DATA STRUCTURE
 
@@ -622,17 +623,16 @@ Manage and check cloud-init itself.
 
 Subcommands for this command are as follows:
 
-*status* [-F _format_] [-q | (--version | --api)]
+*status* [-F _format_] [-q | --api]
 	Get cloud-init's status.
 
-	Without *--version* or *--api*, prints that cloud-init is running to stdout
-	if it is, or an error to stdout if not. If *-q* is passed, no output is
-	printed to stdout and the command exits with a status code of 0 if
-	cloud-init is running and 1 if not.
+	Without *--api*, prints that cloud-init is running to stdout if it is, or an
+	error to stdout if not. If *-q* is passed, no output is printed to stdout
+	and the command exits with a status code of 0 if cloud-init is running and 1
+	if not.
 
-	Passing *--version* and/or *--api* will print the cloud-init server's
-	version and OpenAPI specification, respectively. These flags cannot be
-	passed along with *-q*.
+	Passing *--api* will print the cloud-init server's version and OpenAPI
+	specification, respectively. These flags cannot be passed along with *-q*.
 
 	This command sends a GET to status endpoints under cloud-init.
 
@@ -655,12 +655,20 @@ Subcommands for this command are as follows:
 		sending a GET to cloud-init's version endpoint and checking if the
 		response was successful (< 400).
 
-		This flag is mutually exclusive with *--api* and *--version*.
+		This flag is mutually exclusive with *--api*.
 
-	*--version*
-		Print out cloud-init's version information.
+*version* [-F _format_]
+	Get cloud-init's version.
 
-		This flag is mutually exclusive with *-q*.
+	This command sends a GET to cloud-init's version endpoint.
+
+	This command accepts the following options:
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _yaml_
 
 # AUTHOR
 

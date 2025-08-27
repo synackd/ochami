@@ -25,7 +25,7 @@ See ochami-cloud-init(1) for more details.`,
 		// Create client to use for requests
 		cloudInitClient := cloudInitGetClient(cmd)
 
-		if !cmd.Flag("version").Changed && !cmd.Flag("api").Changed {
+		if !cmd.Flag("api").Changed {
 			if _, err := cloudInitClient.GetVersion(); err != nil {
 				if errors.Is(err, client.UnsuccessfulHTTPError) {
 					log.Logger.Error().Err(err).Msg("cloud-init status request yielded unsuccessful HTTP response")
@@ -50,18 +50,6 @@ See ochami-cloud-init(1) for more details.`,
 
 		var respArr []client.HTTPEnvelope
 		errOccurred := false
-		if cmd.Flag("version").Changed {
-			if henv, err := cloudInitClient.GetVersion(); err != nil {
-				if errors.Is(err, client.UnsuccessfulHTTPError) {
-					log.Logger.Error().Err(err).Msg("cloud-init version request yielded unsuccessful HTTP response")
-				} else {
-					log.Logger.Error().Err(err).Msg("failed to get cloud-init version")
-				}
-				errOccurred = true
-			} else {
-				respArr = append(respArr, henv)
-			}
-		}
 		if cmd.Flag("api").Changed {
 			if henv, err := cloudInitClient.GetAPI(); err != nil {
 				if errors.Is(err, client.UnsuccessfulHTTPError) {
@@ -95,11 +83,9 @@ See ochami-cloud-init(1) for more details.`,
 func init() {
 	cloudInitServiceStatusCmd.Flags().Bool("api", false, "print OpenAPI spec")
 	cloudInitServiceStatusCmd.Flags().BoolP("quiet", "q", false, "don't print output; return 0 if running, 1 if not")
-	cloudInitServiceStatusCmd.Flags().Bool("version", false, "print version information of cloud-init")
 	cloudInitServiceStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
 
 	cloudInitServiceStatusCmd.MarkFlagsMutuallyExclusive("quiet", "api")
-	cloudInitServiceStatusCmd.MarkFlagsMutuallyExclusive("quiet", "version")
 
 	cloudInitServiceStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
 
