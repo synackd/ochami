@@ -13,12 +13,12 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssServiceStatusCmd represents the "bss status" command
+// bssServiceStatusCmd represents the "bss service status" command
 var bssServiceStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
-	Short: "Check/Manage the Boot Script Service (BSS)",
-	Long: `Check/Manage the Boot Script Service (BSS). This is a metacommand.
+	Short: "Display status of the Boot Script Service (BSS)",
+	Long: `Display status of the Boot Script Service (BSS).
 
 See ochami-bss(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
