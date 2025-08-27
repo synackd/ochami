@@ -17,8 +17,8 @@ import (
 var cloudInitServiceStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
-	Short: "Check/Manage the cloud-init metadata service",
-	Long: `Check/Manage the cloud-init metadata service. This is a metacommand.
+	Short: "Display status of the cloud-init metadata service",
+	Long: `Display status of the cloud-init metadata service.
 
 See ochami-cloud-init(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
