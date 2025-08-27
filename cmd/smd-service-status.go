@@ -17,8 +17,8 @@ import (
 var smdServiceStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
-	Short: "Get status of the State Management Database (SMD)",
-	Long: `Get status of the State Management Database (SMD).
+	Short: "Display status of the State Management Database (SMD)",
+	Long: `Display status of the State Management Database (SMD).
 
 See ochami-smd(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
