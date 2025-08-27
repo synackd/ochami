@@ -13,13 +13,12 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/client"
 )
 
-// bssStatusCmd represents the "bss status" command
-var bssStatusCmd = &cobra.Command{
-	Deprecated: "use 'bss service status' instead. This command will be removed soon.",
-	Use:        "status",
-	Args:       cobra.NoArgs,
-	Short:      "Get status of the Boot Script Service (BSS)",
-	Long: `Get status of the Boot Script Service (BSS).
+// bssServiceStatusCmd represents the "bss service status" command
+var bssServiceStatusCmd = &cobra.Command{
+	Use:   "status",
+	Args:  cobra.NoArgs,
+	Short: "Display status of the Boot Script Service (BSS)",
+	Long: `Display status of the Boot Script Service (BSS).
 
 See ochami-bss(1) for more details.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -35,8 +34,6 @@ See ochami-bss(1) for more details.`,
 			httpEnv, err = bssClient.GetStatus("storage")
 		} else if cmd.Flag("smd").Changed {
 			httpEnv, err = bssClient.GetStatus("smd")
-		} else if cmd.Flag("version").Changed {
-			httpEnv, err = bssClient.GetStatus("version")
 		} else {
 			httpEnv, err = bssClient.GetStatus("")
 		}
@@ -62,14 +59,13 @@ See ochami-bss(1) for more details.`,
 }
 
 func init() {
-	bssStatusCmd.Flags().Bool("all", false, "print all status data from BSS")
-	bssStatusCmd.Flags().Bool("storage", false, "print status of storage backend from BSS")
-	bssStatusCmd.Flags().Bool("smd", false, "print status of BSS connection to SMD")
-	bssStatusCmd.Flags().Bool("version", false, "print version of BSS")
-	bssStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
+	bssServiceStatusCmd.Flags().Bool("all", false, "print all status data from BSS")
+	bssServiceStatusCmd.Flags().Bool("storage", false, "print status of storage backend from BSS")
+	bssServiceStatusCmd.Flags().Bool("smd", false, "print status of BSS connection to SMD")
+	bssServiceStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
 
-	bssStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
-	bssStatusCmd.MarkFlagsMutuallyExclusive("all", "storage", "smd", "version")
+	bssServiceStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
+	bssServiceStatusCmd.MarkFlagsMutuallyExclusive("all", "storage", "smd")
 
-	bssCmd.AddCommand(bssStatusCmd)
+	bssServiceCmd.AddCommand(bssServiceStatusCmd)
 }

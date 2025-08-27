@@ -26,10 +26,12 @@ type CloudInitClient struct {
 const (
 	serviceNameCloudInit = "cloud-init"
 
+	CloudInitRelpathAPI           = "/openapi.json"
 	CloudInitRelpathDefaults      = "/admin/cluster-defaults"
 	CloudInitRelpathGroups        = "/admin/groups"
 	CloudInitRelpathImpersonation = "/admin/impersonation"
 	CloudInitRelpathInstanceInfo  = "/admin/instance-info"
+	CloudInitRelpathVersion       = "/version"
 )
 
 // The different types of cloud-init data.
@@ -83,6 +85,16 @@ func NewClient(baseURI string, insecure bool) (*CloudInitClient, error) {
 	}
 
 	return cic, err
+}
+
+// GetAPI sends a GET to cloud-init's /openapi.json endpoint to retrieve the
+// OpenAPI specification.
+func (cic *CloudInitClient) GetAPI() (client.HTTPEnvelope, error) {
+	henv, err := cic.GetData(CloudInitRelpathAPI, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetAPI(): error getting cloud-init API: %w", err)
+	}
+	return henv, err
 }
 
 // GetDefaults is a wrapper function around OchamiClient.GetData that returns
@@ -241,6 +253,15 @@ func (cic *CloudInitClient) GetNodeGroupData(token, id string, groups ...string)
 	}
 
 	return henvs, errors, nil
+}
+
+// GetVersion sends a GET to cloud-init's /version endpoint.
+func (cic *CloudInitClient) GetVersion() (client.HTTPEnvelope, error) {
+	henv, err := cic.GetData(CloudInitRelpathVersion, "", nil)
+	if err != nil {
+		err = fmt.Errorf("GetVersion(): error getting cloud-init version: %w", err)
+	}
+	return henv, err
 }
 
 // PostDefaults is a wrapper function around OchamiClient.PostData that takes a

@@ -82,8 +82,8 @@ func flags() []string {
 	return []string{"all", "storage", "smd", "vault"}
 }
 
-// pcsStatusCmd represents the pcs-status command
-var pcsStatusCmd = &cobra.Command{
+// pcsServiceStatusCmd represents the "pcs service status" command
+var pcsServiceStatusCmd = &cobra.Command{
 	Use:   "status",
 	Args:  cobra.NoArgs,
 	Short: "Get status of Power Control Service (PCS)",
@@ -91,7 +91,7 @@ var pcsStatusCmd = &cobra.Command{
 
 See ochami-pcs(1) for more details.`,
 	Example: `  # Get status of PCS
-  ochami pcs status`,
+  ochami pcs service status`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
 		pcsClient := pcsGetClient(cmd)
@@ -172,10 +172,10 @@ See ochami-pcs(1) for more details.`,
 }
 
 func init() {
-	pcsStatusCmd.Flags().Bool("all", false, "print all status data from PCS")
-	pcsStatusCmd.Flags().Bool("storage", false, "print status of storage backend from PCS")
-	pcsStatusCmd.Flags().Bool("smd", false, "print status of PCS connection to SMD")
-	pcsStatusCmd.Flags().Bool("vault", false, "print status of PCS connection to Vault")
+	pcsServiceStatusCmd.Flags().Bool("all", false, "print all status data from PCS")
+	pcsServiceStatusCmd.Flags().Bool("storage", false, "print status of storage backend from PCS")
+	pcsServiceStatusCmd.Flags().Bool("smd", false, "print status of PCS connection to SMD")
+	pcsServiceStatusCmd.Flags().Bool("vault", false, "print status of PCS connection to Vault")
 
 	// Mark "all" as mutally exusive of all the other flags
 	// First we need a list of flags without "all"
@@ -183,11 +183,11 @@ func init() {
 		return flag == "all"
 	})
 	for i := 0; i < len(flags); i++ {
-		pcsStatusCmd.MarkFlagsMutuallyExclusive("all", flags[i])
+		pcsServiceStatusCmd.MarkFlagsMutuallyExclusive("all", flags[i])
 	}
 
-	pcsStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
-	pcsStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
+	pcsServiceStatusCmd.Flags().VarP(&formatOutput, "format-output", "F", "format of output printed to standard output (json,json-pretty,yaml)")
+	pcsServiceStatusCmd.RegisterFlagCompletionFunc("format-output", completionFormatData)
 
-	pcsCmd.AddCommand(pcsStatusCmd)
+	pcsServiceCmd.AddCommand(pcsServiceStatusCmd)
 }
