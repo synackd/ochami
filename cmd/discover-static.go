@@ -244,8 +244,9 @@ See ochami-discover(1) for more details.`,
 			ifaceErrs           []error
 			ifaceErr            error
 		)
-		// get discovery version value (err handled in cmd.Args)
-		if discoveryVersion == discover.DiscoveryMethodV2 {
+		// Get discovery version value (err handled in cmd.Args).
+		// Send EthernetInterfaces to SMD if discoverVersion is 1.
+		if discoveryVersion == discover.DiscoveryMethodV1 {
 			if cmd.Flag("overwrite").Changed {
 				// SMD's EthernetInterface API does not allow the PUT
 				// method. Instead, we loop over each ethernet interface
