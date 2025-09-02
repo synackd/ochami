@@ -35,13 +35,14 @@ func (nl NodeList) String() string {
 // Node represents a node entry in a payload file. Multiple of these are send to
 // SMD to "discover" them.
 type Node struct {
-	Name   string  `json:"name" yaml:"name"`
-	NID    int64   `json:"nid" yaml:"nid"`
-	Xname  string  `json:"xname" yaml:"xname"`
-	Group  string  `json:"group" yaml:"group"`
-	BMCMac string  `json:"bmc_mac" yaml:"bmc_mac"`
-	BMCIP  string  `json:"bmc_ip" yaml:"bmc_ip"`
-	Ifaces []Iface `json:"interfaces" yaml:"interfaces"`
+	Name   string   `json:"name" yaml:"name"`
+	NID    int64    `json:"nid" yaml:"nid"`
+	Xname  string   `json:"xname" yaml:"xname"`
+	Group  string   `json:"group" yaml:"group"` // DEPRECATED
+	Groups []string `json:"groups" yaml:"groups"`
+	BMCMac string   `json:"bmc_mac" yaml:"bmc_mac"`
+	BMCIP  string   `json:"bmc_ip" yaml:"bmc_ip"`
+	Ifaces []Iface  `json:"interfaces" yaml:"interfaces"`
 }
 
 func (n Node) String() string {
@@ -112,8 +113,11 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (smd.ComponentSlice, smd.Redfi
 		return comps, rfes, ifaces, fmt.Errorf("invalid URI: %s", baseURI)
 	}
 
-	// Deduplication map for Components
-	compMap := make(map[string]string)
+	var (
+		compMap    = make(map[string]string) // Deduplication map for SMD Components
+		systemMap  = make(map[string]string) // Deduplication map for BMC Systems
+		managerMap = make(map[string]string) // Deduplication map for BMC Managers
+	)
 	for _, node := range nl.Nodes {
 		log.Logger.Debug().Msgf("generating component structure for node with xname %s", node.Xname)
 		if _, ok := compMap[node.Xname]; !ok {
@@ -148,10 +152,6 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (smd.ComponentSlice, smd.Redfi
 		rfe.MACAddr = node.BMCMac
 		rfe.IPAddress = node.BMCIP
 		rfe.SchemaVersion = 1 // Tells SMD to use new (v2) parsing code
-
-		// Deduplication maps for fake BMC Managers and Systems
-		systemMap := make(map[string]string)
-		managerMap := make(map[string]string)
 
 		// Create fake BMC "System" for node if it doesn't already exist
 		if _, ok := systemMap[node.Xname]; !ok {
@@ -240,4 +240,16 @@ func DiscoveryInfoV2(baseURI string, nl NodeList) (smd.ComponentSlice, smd.Redfi
 		rfes.RedfishEndpoints = append(rfes.RedfishEndpoints, rfe)
 	}
 	return comps, rfes, ifaces, nil
+}
+
+// AddMemberToGroup adds xname to group, ensuring deduplication.
+func AddMemberToGroup(group smd.Group, xname string) smd.Group {
+	for _, x := range group.Members.IDs {
+		if x == xname {
+			return group
+		}
+	}
+	g := group
+	g.Members.IDs = append(g.Members.IDs, xname)
+	return g
 }
