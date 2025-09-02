@@ -26,6 +26,7 @@ nodes:
   xname: x1000c1s7b0n0
   bmc_mac: de:ca:fc:0f:ee:ee
   bmc_ip: 172.16.0.101
+  bmc_fqdn: x1000c1s7b0n0.openchami.example
   groups:
   - compute
   interfaces:
@@ -57,6 +58,7 @@ is used as the unique identifier for the node within the Component that gets
 created for node.
 - *bmc_mac* - MAC address of node's BMC.
 - *bmc_ip* - Desired IP address of node's BMC.
+- *bmc_fqdn* - FQDN of node's BMC. If omitted, SMD sets this equal to the xname.
 - *group* - *DEPRECATED.* Use *groups* instead. *group* will be removed in a
 future release.
 - *groups* - Optional list of groups to add node to. These will get created
