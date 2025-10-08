@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,7 +34,7 @@ See ochami-smd(1) for more details.`,
   ochami smd group update --description "New description for compute" compute
   ochami smd group update --tag existing_tag --tag new_tag compute
   ochami smd group update --tag existing_tag,new_tag compute
-  ochami smd group update --tag existing_tag,new_tag -d "New description for compute" compute
+  ochami smd group update --tag existing_tag,new_tag -D "New description for compute" compute
 
   # Update groups using input payload data
   ochami smd group update -d '{[
@@ -52,9 +53,18 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd group update -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
-		if len(args) == 0 && !cmd.Flag("description").Changed && !cmd.Flag("tag").Changed {
-			printUsageHandleError(cmd)
-			os.Exit(0)
+		if !cmd.Flag("data").Changed {
+			if len(args) == 0 {
+				return fmt.Errorf("expected -d or >= 1 argument (group label), got %d", len(args))
+			} else {
+				if !cmd.Flag("description").Changed && !cmd.Flag("tag").Changed {
+					return fmt.Errorf("group label passed, but no --description/--tag (at least one is required)")
+				}
+			}
+		} else {
+			if len(args) > 0 {
+				log.Logger.Warn().Msgf("raw data passed, ignoring extra arguments: %v", args)
+			}
 		}
 
 		return nil

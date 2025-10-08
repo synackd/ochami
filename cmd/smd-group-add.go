@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -31,8 +32,8 @@ This command sends a POST to SMD. An access token is required.
 See ochami-smd(1) for more details.`,
 	Example: `  # Add group using CLI flags
   ochami smd group add computes
-  ochami smd group add -d "Compute group" computes
-  ochami smd group add -d "Compute group" --tag tag1,tag2 --m x3000c1s7b0n1,x3000c1s7b1n1 computes
+  ochami smd group add -D "Compute group" computes
+  ochami smd group add -D "Compute group" --tag tag1,tag2 --m x3000c1s7b0n1,x3000c1s7b1n1 computes
   ochami smd group add \
     --description "ARM64 group" \
     --tag arm,64-bit \
@@ -64,9 +65,14 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd group add -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
-		if len(args) == 0 && !cmd.Flag("data").Changed {
-			printUsageHandleError(cmd)
-			os.Exit(0)
+		if !cmd.Flag("data").Changed {
+			if len(args) != 1 {
+				return fmt.Errorf("expected -d or 1 argument (group label), got %d", len(args))
+			}
+		} else {
+			if len(args) > 0 {
+				log.Logger.Warn().Msgf("raw data passed, ignoring CLI configuration for passed group %v", args)
+			}
 		}
 
 		return nil

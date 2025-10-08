@@ -43,14 +43,6 @@ var cloudInitNodeGetGroupCmd = &cobra.Command{
 See ochami-cloud-init(1) for more details.`,
 	Example: `  # Get data from compute and slurm groups for node x3000c0s0b0n0
   ochami cloud-init node get group x3000c0s0b1n0 compute slurm`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		}
-
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
 		cloudInitClient := cloudInitGetClient(cmd)
@@ -122,14 +114,6 @@ var cloudInitNodeGetMetadataCmd = &cobra.Command{
 	Long: `Get meta-data for specific node(s).
 
 See ochami-cloud-init(1) for more details.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		}
-
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
 		cloudInitClient := cloudInitGetClient(cmd)
@@ -209,14 +193,6 @@ var cloudInitNodeGetUserdataCmd = &cobra.Command{
 	Long: `Get user-data for specific node(s).
 
 See ochami-cloud-init(1) for more details.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		}
-
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
 		cloudInitClient := cloudInitGetClient(cmd)
@@ -283,14 +259,6 @@ var cloudInitNodeGetVendordataCmd = &cobra.Command{
 	Long: `Get vendor-data for specific node(s).
 
 See ochami-cloud-init(1) for more details.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		}
-
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create client to use for requests
 		cloudInitClient := cloudInitGetClient(cmd)

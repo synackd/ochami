@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -43,13 +44,16 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd group delete -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// With options, only one of:
-		// - A payload file with -f
+		// - A payload file with -d
 		// - A set of one or more group labels
 		// must be passed.
-		if len(args) == 0 {
-			if !cmd.Flag("data").Changed {
-				printUsageHandleError(cmd)
-				os.Exit(0)
+		if !cmd.Flag("data").Changed {
+			if len(args) == 0 {
+				return fmt.Errorf("expected -d or >= 1 argument (group label), got %d", len(args))
+			}
+		} else {
+			if len(args) > 1 {
+				log.Logger.Warn().Msgf("raw data passed, ignoring extra arguments: %v", args)
 			}
 		}
 

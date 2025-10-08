@@ -43,10 +43,14 @@ See ochami-cloud-init(1) for more details.`,
   echo '<yaml_data>' | ochami cloud-init group delete -f yaml
   echo '<yaml_data>' | ochami cloud-init group delete -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 && !cmd.Flag("data").Changed {
-			return fmt.Errorf("either -d or at least one group name is required")
-		} else if len(args) > 0 && cmd.Flag("data").Changed {
-			return fmt.Errorf("either -d or at least one group name is required, but not both")
+		if !cmd.Flag("data").Changed {
+			if len(args) == 0 {
+				return fmt.Errorf("expected -d or at >= 1 argument (group name(s)); got none")
+			}
+		} else {
+			if len(args) > 0 {
+				return fmt.Errorf("raw data passed, ignoring extra arguments: %v", args)
+			}
 		}
 
 		return nil
