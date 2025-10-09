@@ -84,7 +84,7 @@ See ochami-smd(1) for more details.`,
 		var err error
 		if cmd.Flag("data").Changed {
 			// Use payload file if passed
-			handlePayload(cmd, &rfes.RedfishEndpoints)
+			handlePayload(cmd, &rfes)
 		} else {
 			// ...otherwise use CLI options/args
 			rfe := csm.RedfishEndpoint{
