@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -43,14 +44,17 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd rfe delete -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// With options, only one of:
-		// - A payload file with -f
+		// - A payload/file with -d
 		// - --all
 		// - A set of one or more xnames
 		// must be passed.
-		if len(args) == 0 {
-			if !cmd.Flag("all").Changed && !cmd.Flag("data").Changed {
-				printUsageHandleError(cmd)
-				os.Exit(0)
+		if !cmd.Flag("all").Changed && !cmd.Flag("data").Changed {
+			if len(args) == 0 {
+				return fmt.Errorf("expected -d, --all, or >= 1 argument (xname), got %d", len(args))
+			}
+		} else {
+			if len(args) > 0 {
+				log.Logger.Warn().Msgf("raw data or --all passed, ignoring extra arguments: %v", args)
 			}
 		}
 

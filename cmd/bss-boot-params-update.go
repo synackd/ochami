@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/OpenCHAMI/bss/pkg/bssTypes"
@@ -47,12 +48,28 @@ See ochami-bss(1) for details.`,
   echo '<json_data>' | ochami bss boot params update -d @-
   echo '<yaml_data>' | ochami bss boot params update -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		// cmd.LocalFlags().NFlag() doesn't seem to work, so we check every flag
-		if len(args) == 0 &&
-			!cmd.Flag("xname").Changed && !cmd.Flag("nid").Changed && !cmd.Flag("mac").Changed &&
-			!cmd.Flag("kernel").Changed && !cmd.Flag("initrd").Changed && !cmd.Flag("data").Changed {
-			printUsageHandleError(cmd)
-			os.Exit(0)
+		// Function to return true if any flag is set
+		anyChanged := func(flags ...string) bool {
+			for _, f := range flags {
+				if cmd.Flag(f).Changed {
+					return true
+				}
+			}
+			return false
+		}
+		if cmd.Flag("data").Changed {
+			// -d/--data trumps all, ignore values of other flags if specified
+			if anyChanged("xname", "nid", "mac", "kernel", "initrd", "params") {
+				log.Logger.Warn().Msgf("raw data passed, ignoring CLI configuration")
+			}
+		} else {
+			// If -d/--data not passed, then at least one of --xname/--nid/--mac must
+			// be specified, along with at least one of --kernel/--initrd/--params
+			if !anyChanged("xname", "nid", "mac") {
+				return fmt.Errorf("expected -d or one of --xname, --nid, or --mac")
+			} else if !anyChanged("kernel", "initrd", "params") {
+				return fmt.Errorf("specifying any of --xname, --nid, or --mac also requires specifying at least one of --kernel, --initrd, or --params")
+			}
 		}
 
 		return nil
@@ -153,9 +170,6 @@ func init() {
 	bssBootParamsUpdateCmd.Flags().VarP(&formatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 
 	bssBootParamsUpdateCmd.RegisterFlagCompletionFunc("format-input", completionFormatData)
-
-	bssBootParamsUpdateCmd.MarkFlagsOneRequired("xname", "mac", "nid", "data")
-	bssBootParamsUpdateCmd.MarkFlagsOneRequired("kernel", "initrd", "params", "data")
 
 	bssBootParamsCmd.AddCommand(bssBootParamsUpdateCmd)
 }

@@ -56,11 +56,16 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd component add -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
-		if len(args) == 0 && !cmd.Flag("data").Changed {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		} else if len(args) != 2 {
-			return fmt.Errorf("expected 2 arguments (xname, nid) but got %d: %v", len(args), args)
+		if !cmd.Flag("data").Changed {
+			if len(args) == 0 {
+				return fmt.Errorf("expected -d or 2 arguments (xname, nid), got neither")
+			} else if len(args) != 2 {
+				return fmt.Errorf("expected -d or 2 arguments (xname, nid) but got %d: %v", len(args), args)
+			}
+		} else {
+			if len(args) > 0 {
+				log.Logger.Warn().Msgf("raw data passed, ignoring extra arguments: %v", args)
+			}
 		}
 
 		return nil

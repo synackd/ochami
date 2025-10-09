@@ -34,7 +34,7 @@ This command sends a POST to SMD. An access token is required.
 See ochami-smd(1) for more details.`,
 	Example: `  # Add ethernet interface using CLI flags
   ochami smd iface add x3000c1s7b55n0 de:ca:fc:0f:fe:ee NMN,172.16.0.55
-  ochami smd iface add -d "Node Management for n55" x3000c1s7b55n0 de:ca:fc:0f:fe:ee NMN,172.16.0.55
+  ochami smd iface add -D "Node Management for n55" x3000c1s7b55n0 de:ca:fc:0f:fe:ee NMN,172.16.0.55
   ochami smd iface add x3000c1s7b55n0 de:ca:fc:0f:fe:ee external,10.1.0.55 internal,172.16.0.55
 
   # Add ethernet interfaces using input payload file
@@ -46,11 +46,14 @@ See ochami-smd(1) for more details.`,
   echo '<yaml_data>' | ochami smd iface add -d @- -f yaml`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check that all required args are passed
-		if len(args) == 0 && !cmd.Flag("data").Changed {
-			printUsageHandleError(cmd)
-			os.Exit(0)
-		} else if len(args) < 3 {
-			return fmt.Errorf("expected at least 3 arguments (comp_id, mac_addr, net_ip_paor) but got %d: %v", len(args), args)
+		if !cmd.Flag("data").Changed {
+			if len(args) != 3 {
+				return fmt.Errorf("expected -d or >= 3 arguments (component id, mac address, network name, ip address), got %d", len(args))
+			}
+		} else {
+			if len(args) > 0 {
+				log.Logger.Warn().Msgf("raw data passed, ignoring extra arguments: %v", args)
+			}
 		}
 
 		return nil
