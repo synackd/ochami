@@ -1,4 +1,4 @@
-name: Run golangci-lint
+name: Lint
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   golangci:
-    name: lint
+    name: Run golangci-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
