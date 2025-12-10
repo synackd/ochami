@@ -17,11 +17,11 @@ jobs:
           sudo apt update
           sudo apt install scdoc
       - name: Set up latest stable Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: stable
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-tags: 1
           fetch-depth: 0
@@ -44,11 +44,11 @@ jobs:
           sudo apt update
           sudo apt install -y make git
       - name: Set up latest stable Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: stable
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-tags: 1
           fetch-depth: 0
@@ -63,11 +63,11 @@ jobs:
           sudo apt update
           sudo apt install -y make git scdoc
       - name: Set up latest stable Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: stable
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-tags: 1
           fetch-depth: 0
