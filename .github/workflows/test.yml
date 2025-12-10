@@ -1,4 +1,4 @@
-name: Run unit tests
+name: Test
 
 permissions:
   contents: read
@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up latest stable Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: stable
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-tags: 1
           fetch-depth: 0
