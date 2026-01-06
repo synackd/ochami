@@ -16,7 +16,7 @@ const (
 	BSSRelpathBootParams      = "/bootparameters"
 	BSSRelpathBootScript      = "/bootscript"
 	BSSRelpathService         = "/service"
-	BSSRelpathDumpState       = "/dumpstate"
+	BSSRelpathDumpstate       = "/dumpstate"
 	BSSRelpathEndpointHistory = "/endpoint-history"
 	BSSRelpathHosts           = "/hosts"
 )
@@ -233,12 +233,12 @@ func (bc *BSSClient) GetStatus(component string) (client.HTTPEnvelope, error) {
 	return henv, err
 }
 
-// GetDumpState is a wrapper function around OchamiClient.GetData that queries the
+// GetDumpstate is a wrapper function around OchamiClient.GetData that queries the
 // /dumpstate endpoint and returns its response and an error, if one occurred.
-func (bc *BSSClient) GetDumpState() (client.HTTPEnvelope, error) {
-	henv, err := bc.GetData(BSSRelpathDumpState, "", nil)
+func (bc *BSSClient) GetDumpstate() (client.HTTPEnvelope, error) {
+	henv, err := bc.GetData(BSSRelpathDumpstate, "", nil)
 	if err != nil {
-		err = fmt.Errorf("GetDumpState(): error getting dump state: %w", err)
+		err = fmt.Errorf("GetDumpstate(): error getting dump state: %w", err)
 	}
 
 	return henv, err
