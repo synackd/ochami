@@ -57,6 +57,7 @@ LDFLAGS := -s \
 	   -X '$(IMPORT)internal/version.BuildHost=$(BUILDHOST)' \
 	   -X '$(IMPORT)internal/version.BuildUser=$(BUILDUSER)'
 
+CMD      := $(call rwildcard,cmd,*.go)
 INTERNAL := $(call rwildcard,internal,*.go)
 PKG      := $(call rwildcard,pkg,*.go)
 MANSRC   := $(wildcard man/*.sc)
@@ -165,7 +166,7 @@ uninstall-man:
 	rm -f $(foreach man1page,$(subst man/,,$(MAN1BIN)),$(DESTDIR)$(mandir)/man1/$(man1page))
 	rm -f $(foreach man5page,$(subst man/,,$(MAN5BIN)),$(DESTDIR)$(mandir)/man5/$(man5page))
 
-$(NAME): *.go cmd/*.go $(INTERNAL) $(PKG)
+$(NAME): *.go $(CMD) $(INTERNAL) $(PKG)
 ifeq ($(GO),)
 	$(error go command not found.)
 endif
