@@ -14,6 +14,7 @@ import (
 
 	// Subcommands
 	service_cmd "github.com/OpenCHAMI/ochami/cmd/pcs/service"
+	status_cmd "github.com/OpenCHAMI/ochami/cmd/pcs/status"
 	transition_cmd "github.com/OpenCHAMI/ochami/cmd/pcs/transition"
 )
 
@@ -41,6 +42,7 @@ See ochami-pcs(1) for more details.`,
 	pcsCmd.AddCommand(
 		service_cmd.NewCmd(),
 		transition_cmd.NewCmd(),
+		status_cmd.NewCmd(),
 	)
 
 	return pcsCmd
