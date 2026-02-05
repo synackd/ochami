@@ -113,7 +113,7 @@ func newCmdStatusList() *cobra.Command {
 		Short: "List active PCS transitions",
 		Long: `List active PCS transitions.
 
-  See ochami-pcs(1) for more details.`,
+See ochami-pcs(1) for more details.`,
 		Example: `  # List status
   ochami pcs status list`,
 		Run: func(cmd *cobra.Command, args []string) {

@@ -33,7 +33,7 @@ func newCmdStatusShow() *cobra.Command {
 		Short: "Show power status of target component",
 		Long: `Show power status of target component.
 
-  See ochami-pcs(1) for more details.`,
+See ochami-pcs(1) for more details.`,
 		Example: `  # show power status of component
   ochami pcs status show x3000c0s15b0`,
 		Run: func(cmd *cobra.Command, args []string) {
