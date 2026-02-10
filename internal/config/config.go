@@ -14,6 +14,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	kyaml "github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
@@ -28,6 +29,7 @@ import (
 type ServiceName string
 
 const (
+	ServiceBoot      ServiceName = ""
 	ServiceBSS       ServiceName = "bss"
 	ServiceCloudInit ServiceName = "cloud-init"
 	ServicePCS       ServiceName = "pcs"
@@ -35,10 +37,11 @@ const (
 )
 
 const (
-	DefaultBasePathBSS       = "/boot/v1"
-	DefaultBasePathCloudInit = "/cloud-init"
-	DefaultBasePathPCS       = "/"
-	DefaultBasePathSMD       = "/hsm/v2"
+	DefaultBasePathBootService = "/boot"
+	DefaultBasePathBSS         = "/boot/v1"
+	DefaultBasePathCloudInit   = "/cloud-init"
+	DefaultBasePathPCS         = "/"
+	DefaultBasePathSMD         = "/hsm/v2"
 
 	SystemConfigFile = "/etc/ochami/config.yaml"
 )
@@ -50,6 +53,7 @@ var DefaultConfig = Config{
 		Format: "rfc3339",
 		Level:  "warning",
 	},
+	Timeout: 30 * time.Second,
 }
 
 var (
@@ -67,6 +71,7 @@ var (
 // Config represents the structure of a configuration file.
 type Config struct {
 	Log            ConfigLog       `yaml:"log,omitempty"`
+	Timeout        time.Duration   `yaml:"timeout,omitempty"`
 	DefaultCluster string          `yaml:"default-cluster,omitempty"`
 	Clusters       []ConfigCluster `yaml:"clusters,omitempty"`
 }
@@ -97,12 +102,13 @@ type ConfigCluster struct {
 // ConfigClusterConfig is the actual structure for an individual cluster
 // configuration.
 type ConfigClusterConfig struct {
-	URI        string                 `yaml:"uri,omitempty"`
-	BSS        ConfigClusterBSS       `yaml:"bss,omitempty"`
-	CloudInit  ConfigClusterCloudInit `yaml:"cloud-init,omitempty"`
-	PCS        ConfigClusterPCS       `yaml:"pcs,omitempty"`
-	SMD        ConfigClusterSMD       `yaml:"smd,omitempty"`
-	EnableAuth bool                   `yaml:"enable-auth"`
+	URI         string                   `yaml:"uri,omitempty"`
+	BootService ConfigClusterBootService `yaml:"boot-service,omitempty"`
+	BSS         ConfigClusterBSS         `yaml:"bss,omitempty"`
+	CloudInit   ConfigClusterCloudInit   `yaml:"cloud-init,omitempty"`
+	PCS         ConfigClusterPCS         `yaml:"pcs,omitempty"`
+	SMD         ConfigClusterSMD         `yaml:"smd,omitempty"`
+	EnableAuth  bool                     `yaml:"enable-auth"`
 }
 
 // UnmarshalYAML unmarshals YAML into a ConfigClusterConfig, handling default
@@ -158,6 +164,13 @@ func (c *ConfigClusterConfig) UnmarshalYAML(value *yaml.Node) error {
 
 	// No errors occurred
 	return nil
+}
+
+// ConfigClusterBootService represents configuration specifically for the
+// boot service.
+type ConfigClusterBootService struct {
+	APIVersion string `yaml:"api-version,omitempty"`
+	URI        string `yaml:"uri,omitempty"`
 }
 
 // ConfigClusterBSS represents configuration specifically for the Boot Script
@@ -252,6 +265,15 @@ func (ccc *ConfigClusterConfig) GetServiceBaseURI(svcName ServiceName) (string, 
 	var svcURI *url.URL
 	var err error
 	switch svcName {
+	case ServiceBoot:
+		if ccc.URI == "" && ccc.BootService.URI == "" {
+			return "", ErrMissingURI{Service: svcName}
+		}
+		if ccc.BootService.URI != "" {
+			svcURI, err = url.Parse(ccc.BootService.URI)
+		} else {
+			svcURI, err = url.Parse(DefaultBasePathBootService)
+		}
 	case ServiceBSS:
 		if ccc.URI == "" && ccc.BSS.URI == "" {
 			return "", ErrMissingURI{Service: svcName}
