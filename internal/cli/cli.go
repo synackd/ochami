@@ -286,6 +286,10 @@ func UseCACert(client *client.OchamiClient) {
 	}
 }
 
+func GetBaseURIBootService(cmd *cobra.Command) (string, error) {
+	return GetBaseURI(cmd, config.ServiceBoot)
+}
+
 func GetBaseURIBSS(cmd *cobra.Command) (string, error) {
 	return GetBaseURI(cmd, config.ServiceBSS)
 }
@@ -355,6 +359,8 @@ func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 		log.Logger.Debug().Msg("using base URI passed on command line")
 		ccc := config.ConfigClusterConfig{URI: cmd.Flag("cluster-uri").Value.String()}
 		switch serviceName {
+		case config.ServiceBoot:
+			ccc.BootService.URI = cmd.Flag("uri").Value.String()
 		case config.ServiceBSS:
 			ccc.BSS.URI = cmd.Flag("uri").Value.String()
 		case config.ServiceCloudInit:
@@ -379,6 +385,85 @@ func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	}
 
 	return baseURI, err
+}
+
+func GetAPIVersion(cmd *cobra.Command, serviceName config.ServiceName) (string, error) {
+	// Precedence of getting API version for requests (higher numbers override
+	// all preceding numbers):
+	//
+	// 1. If "default-cluster" is set in config file (config file must be
+	//    specified), use cluster identified by that name as source of info.
+	// 2. If --cluster is set, search config file for matching name and read
+	//    details from there.
+	// 3. If flags corresponding to cluster info (e.g. --cluster-uri,
+	//    --uri) are set, read details from them.
+	var (
+		apiVersion    string
+		clusterName   string
+		clusterToUse  config.ConfigCluster
+		clusterConfig config.ConfigClusterConfig
+		clusterList   = config.GlobalConfig.Clusters
+	)
+	if config.GlobalConfig.DefaultCluster != "" {
+		// 3. Check 'default-cluster'
+		clusterName = config.GlobalConfig.DefaultCluster
+		clusterList = config.GlobalConfig.Clusters
+		log.Logger.Debug().Msgf("using API version from %s in default cluster %s", serviceName, clusterName)
+		for _, c := range clusterList {
+			if c.Name == clusterName {
+				clusterToUse = c
+				break
+			}
+		}
+		if clusterToUse == (config.ConfigCluster{}) {
+			return "", fmt.Errorf("default cluster %s not found", clusterName)
+		}
+		clusterConfig = clusterToUse.Cluster
+	} else if cmd.Flag("cluster").Changed {
+		// 2. Check --cluster (overrides "default-cluster").
+		clusterName = cmd.Flag("cluster").Value.String()
+		log.Logger.Debug().Msgf("reading API version for %s from cluster %s passed from command line", serviceName, clusterName)
+		for _, c := range clusterList {
+			if c.Name == clusterName {
+				clusterToUse = c
+				break
+			}
+		}
+		if clusterToUse == (config.ConfigCluster{}) {
+			return "", fmt.Errorf("cluster %s not found", clusterName)
+		}
+
+		clusterConfig = clusterToUse.Cluster
+	}
+
+	if !cmd.Flag("api-version").Changed {
+		switch serviceName {
+		case config.ServiceBoot:
+			apiVersion = clusterConfig.BootService.APIVersion
+		default:
+			return "", fmt.Errorf("unknown service %q specified when fetching API version", serviceName)
+		}
+	} else {
+		// 1. Check flag (--api-version) and override any previously-set values
+		// while leaving unspecified ones alone.
+		apiVersion = cmd.Flag("api-version").Value.String()
+	}
+
+	return apiVersion, nil
+}
+
+// GetTimeout returns the timeout specified by --timeout, if passed. Otherwise,
+// the config value of timeout is used. If that is not set, the compile-time
+// default is used.
+func GetTimeout(cmd *cobra.Command) time.Duration {
+	if cmd.Flag("timeout").Changed {
+		if dur, err := cmd.Flags().GetDuration("timeout"); err != nil {
+			log.Logger.Warn().Err(err).Msgf("failed to get timeout from flag, falling back to config value of %s", config.GlobalConfig.Timeout)
+		} else {
+			return dur
+		}
+	}
+	return config.GlobalConfig.Timeout
 }
 
 // HandleToken is a wrapper function around code that reads, checks, and
