@@ -29,7 +29,7 @@ func newCmdBootScriptGet() *cobra.Command {
 		Long: `Get iPXE boot script for a component. Specifying one of --mac, --xname,
 or --nid is required to specify which component to fetch the boot script for.
 
-This command sends a GET to BSS. An access cli.Token is not required.
+This command sends a GET to BSS. An access token is not required.
 
 See ochami-bss(1) for more details.`,
 		Example: `  ochami boot script get --mac 00:c0:ff:ee:00:00`,
