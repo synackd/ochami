@@ -225,3 +225,227 @@ arr:
 		})
 	}
 }
+
+type testItem struct {
+	ID   int    `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"`
+}
+
+func TestUnmarshalDataSlice(t *testing.T) {
+	type args struct {
+		data     []byte
+		inFormat DataFormat
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		want    []testItem
+		wantErr bool
+	}{
+		{
+			name: "json single object",
+			args: args{data: []byte(`{"id":1,"name":"solo"}`), inFormat: DataFormatJson},
+			want: []testItem{{ID: 1, Name: "solo"}},
+		},
+		{
+			name: "json array",
+			args: args{data: []byte(`[{"id":2,"name":"a"},{"id":3,"name":"b"}]`), inFormat: DataFormatJson},
+			want: []testItem{{ID: 2, Name: "a"}, {ID: 3, Name: "b"}},
+		},
+		{
+			name: "json-pretty single object",
+			args: args{data: []byte("\n  {\n    \"id\": 4,\n    \"name\": \"pretty\"\n  }\n"), inFormat: DataFormatJsonPretty},
+			want: []testItem{{ID: 4, Name: "pretty"}},
+		},
+		{
+			name: "json-pretty array",
+			args: args{data: []byte("\n  [\n    {\n      \"id\": 5,\n      \"name\": \"p1\"\n    },\n    {\n      \"id\": 6,\n      \"name\": \"p2\"\n    }\n  ]\n"), inFormat: DataFormatJsonPretty},
+			want: []testItem{{ID: 5, Name: "p1"}, {ID: 6, Name: "p2"}},
+		},
+		{
+			name:    "json wrong top-level",
+			args:    args{data: []byte(`123`), inFormat: DataFormatJson},
+			wantErr: true,
+		},
+		{
+			name:    "json malformed",
+			args:    args{data: []byte(`{"id":1,"name":}`), inFormat: DataFormatJson},
+			wantErr: true,
+		},
+		{
+			name: "yaml single mapping (block)",
+			args: args{data: []byte("id: 10\nname: solo\n"), inFormat: DataFormatYaml},
+			want: []testItem{{ID: 10, Name: "solo"}},
+		},
+		{
+			name: "yaml single mapping (flow)",
+			args: args{data: []byte(`{id: 11, name: flow}`), inFormat: DataFormatYaml},
+			want: []testItem{{ID: 11, Name: "flow"}},
+		},
+		{
+			name: "yaml sequence (block)",
+			args: args{data: []byte("- id: 12\n  name: a\n- id: 13\n  name: b\n"), inFormat: DataFormatYaml},
+			want: []testItem{{ID: 12, Name: "a"}, {ID: 13, Name: "b"}},
+		},
+		{
+			name: "yaml sequence (flow)",
+			args: args{data: []byte(`[{id: 14, name: a}, {id: 15, name: b}]`), inFormat: DataFormatYaml},
+			want: []testItem{{ID: 14, Name: "a"}, {ID: 15, Name: "b"}},
+		},
+		{
+			name:    "yaml wrong top-level scalar",
+			args:    args{data: []byte(`justastring`), inFormat: DataFormatYaml},
+			wantErr: true,
+		},
+		{
+			name:    "unknown format",
+			args:    args{data: []byte(`{"id":1,"name":"x"}`), inFormat: DataFormat("toml")},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			var got []testItem
+			err := UnmarshalDataSlice[testItem](tt.args.data, &got, tt.args.inFormat)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("UnmarshalDataSlice() err=%v wantErr=%v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("UnmarshalDataSlice() got=%#v want=%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUnmarshalDataSlice_NilDestination(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    []byte
+		format  DataFormat
+		wantErr bool
+	}{
+		{name: "json nil dest", data: []byte(`{"id":1,"name":"x"}`), format: DataFormatJson, wantErr: true},
+		{name: "yaml nil dest", data: []byte("id: 1\nname: x\n"), format: DataFormatYaml, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			err := UnmarshalDataSlice[testItem](tt.data, nil, tt.format)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("UnmarshalDataSlice(nil) err=%v wantErr=%v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUnmarshalDataSliceJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    []byte
+		want    []testItem
+		wantErr bool
+		nilDest bool
+	}{
+		{name: "single object", data: []byte(`{"id":1,"name":"solo"}`), want: []testItem{{ID: 1, Name: "solo"}}},
+		{name: "array", data: []byte(`[{"id":2,"name":"a"},{"id":3,"name":"b"}]`), want: []testItem{{ID: 2, Name: "a"}, {ID: 3, Name: "b"}}},
+		{name: "wrong top-level", data: []byte(`123`), wantErr: true},
+		{name: "malformed", data: []byte(`{"id":1,"name":}`), wantErr: true},
+		{name: "nil dest", data: []byte(`{"id":1,"name":"x"}`), wantErr: true, nilDest: true},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			var got []testItem
+			var dest *[]testItem
+			if tt.nilDest {
+				dest = nil
+			} else {
+				dest = &got
+			}
+
+			err := unmarshalDataSliceJSON[testItem](tt.data, dest)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unmarshalDataSliceJSON() err=%v wantErr=%v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("unmarshalDataSliceJSON() got=%#v want=%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUnmarshalDataSliceYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    []byte
+		want    []testItem
+		wantErr bool
+		nilDest bool
+	}{
+		{name: "single mapping block", data: []byte("id: 10\nname: solo\n"), want: []testItem{{ID: 10, Name: "solo"}}},
+		{name: "single mapping flow", data: []byte(`{id: 11, name: flow}`), want: []testItem{{ID: 11, Name: "flow"}}},
+		{name: "sequence block", data: []byte("- id: 12\n  name: a\n- id: 13\n  name: b\n"), want: []testItem{{ID: 12, Name: "a"}, {ID: 13, Name: "b"}}},
+		{name: "sequence flow", data: []byte(`[{id: 14, name: a}, {id: 15, name: b}]`), want: []testItem{{ID: 14, Name: "a"}, {ID: 15, Name: "b"}}},
+		{name: "wrong top-level scalar", data: []byte(`justastring`), wantErr: true},
+		{name: "malformed", data: []byte("id: [1, 2\nname: x\n"), wantErr: true},
+		{name: "nil dest", data: []byte("id: 1\nname: x\n"), wantErr: true, nilDest: true},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			var got []testItem
+			var dest *[]testItem
+			if tt.nilDest {
+				dest = nil
+			} else {
+				dest = &got
+			}
+
+			err := unmarshalDataSliceYAML[testItem](tt.data, dest)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unmarshalDataSliceYAML() err=%v wantErr=%v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("unmarshalDataSliceYAML() got=%#v want=%#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFirstNonSpaceByte(t *testing.T) {
+	tests := []struct {
+		name string
+		in   []byte
+		want byte
+	}{
+		{name: "empty", in: []byte(""), want: 0},
+		{name: "whitespace only", in: []byte(" \n\t "), want: 0},
+		{name: "json object", in: []byte("  {\n}\n"), want: '{'},
+		{name: "json array", in: []byte("\n\t[1,2]"), want: '['},
+		{name: "yaml block sequence", in: []byte("\n  - a\n"), want: '-'},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if got := firstNonSpaceByte(tt.in); got != tt.want {
+				t.Fatalf("firstNonSpaceByte()=%q want=%q", got, tt.want)
+			}
+		})
+	}
+}

@@ -492,10 +492,32 @@ func HandlePayload(cmd *cobra.Command, v any) {
 	}
 }
 
+// HandlePayloadSlice is similar to HandlePayload except that it unmarshals the
+// payload data into a typed slice.
+func HandlePayloadSlice[T any](cmd *cobra.Command, v *[]T) {
+	if cmd.Flag("data").Changed {
+		data := cmd.Flag("data").Value.String()
+		if err := client.ReadPayloadSlice[T](data, FormatInput, v); err != nil {
+			log.Logger.Error().Err(err).Msg("unable to read payload data or file into slice")
+			LogHelpError(cmd)
+			os.Exit(1)
+		}
+	}
+}
+
 // HandlePayloadStdin is similar to HandlePayload except the data is read from
 // standard input.
 func HandlePayloadStdin(cmd *cobra.Command, v any) {
 	if err := client.ReadPayloadStdin(FormatInput, v); err != nil {
+		log.Logger.Error().Err(err).Msg("error reading payload data from stdin")
+		os.Exit(1)
+	}
+}
+
+// HandlePayloadStdinSlice is similar to HandlePayloadStdin except that it
+// unmarshals the payload data into a typed slice.
+func HandlePayloadStdinSlice[T any](cmd *cobra.Command, v *[]T) {
+	if err := client.ReadPayloadStdinSlice[T](FormatInput, v); err != nil {
 		log.Logger.Error().Err(err).Msg("error reading payload data from stdin")
 		os.Exit(1)
 	}
