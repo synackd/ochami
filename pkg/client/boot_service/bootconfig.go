@@ -85,3 +85,22 @@ func (bsc *BootServiceClient) ListBootConfigs(token string, outFormat format.Dat
 
 	return out, nil
 }
+
+// SetBootConfig is a wrapper that calls the boot-service client's
+// UpdateBootConfiguration() function, passing it context. The output is a
+// pointer to the boot configuration that got updated, along with an error if
+// one occurred.
+func (bsc *BootServiceClient) SetBootConfig(token string, uid string, bootCfg boot_service_client.UpdateBootConfigurationRequest) (*bootconfiguration.BootConfiguration, error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+	defer cancel()
+
+	item, err := bsc.Client.UpdateBootConfiguration(ctx, uid, bootCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set boot configuration %+v: %w", bootCfg, err)
+	}
+
+	return item, nil
+}
