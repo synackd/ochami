@@ -32,6 +32,7 @@ See ochami-boot(1) for more details.`,
 
 	// Add subcommands
 	bootConfigCmd.AddCommand(
+		newCmdBootConfigAdd(),
 		newCmdBootConfigGet(),
 		newCmdBootConfigList(),
 	)
