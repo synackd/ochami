@@ -84,3 +84,21 @@ func (bsc *BootServiceClient) ListBMCs(token string, outFormat format.DataFormat
 
 	return out, nil
 }
+
+// SetBMC is a wrapper that calls the boot-service client's UpdateBMC()
+// function, passing it context. The output is a pointer to the BMC details that
+// got updated, along with an error if one occurred.
+func (bsc *BootServiceClient) SetBMC(token string, uid string, bmc boot_service_client.UpdateBMCRequest) (*bmc.BMC, error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+	defer cancel()
+
+	item, err := bsc.Client.UpdateBMC(ctx, uid, bmc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set BMC %+v: %w", bmc, err)
+	}
+
+	return item, nil
+}
