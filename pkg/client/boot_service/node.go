@@ -40,6 +40,31 @@ func (bsc *BootServiceClient) AddNodes(token string, nodes []boot_service_client
 	return
 }
 
+// DeleteNodes is a wrapper that calls the boot-service client's DeleteNode()
+// function, passing it context and a list of node UIDs to delete. The output is
+// a slice of node UIDs that got deleted, a slice of errors containing any
+// errors deleting nodes, and an error that is populated if an error in the
+// function itself occurred.
+func (bsc *BootServiceClient) DeleteNodes(token string, uids []string) (nodesDeleted []string, errors []error, funcErr error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	// TODO: Make concurrent
+	for _, nodeUid := range uids {
+		ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+		defer cancel()
+
+		if err := bsc.Client.DeleteNode(ctx, nodeUid); err != nil {
+			newErr := fmt.Errorf("failed to delete node %s: %w", nodeUid, err)
+			errors = append(errors, newErr)
+		} else {
+			nodesDeleted = append(nodesDeleted, nodeUid)
+		}
+	}
+
+	return
+}
+
 // GetNode is a wrapper that calls the boot-service client's GetNode() function,
 // passing it context and a UID. The output is a []byte containing the entity's
 // node information, formatted as outFormat.
