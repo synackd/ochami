@@ -40,6 +40,31 @@ func (bsc *BootServiceClient) AddBMCs(token string, bmcs []boot_service_client.C
 	return
 }
 
+// DeleteBMCs is a wrapper that calls the boot-service client's DeleteBMC()
+// function, passing it context and a list of bmc UIDs to delete. The output is
+// a slice of BMC UIDs that got deleted, a slice of errors containing any
+// errors deleting BMCs, and an error that is populated if an error in the
+// function itself occurred.
+func (bsc *BootServiceClient) DeleteBMCs(token string, uids []string) (bmcsDeleted []string, errors []error, funcErr error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	// TODO: Make concurrent
+	for _, bmcUid := range uids {
+		ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+		defer cancel()
+
+		if err := bsc.Client.DeleteBMC(ctx, bmcUid); err != nil {
+			newErr := fmt.Errorf("failed to delete BMC %s: %w", bmcUid, err)
+			errors = append(errors, newErr)
+		} else {
+			bmcsDeleted = append(bmcsDeleted, bmcUid)
+		}
+	}
+
+	return
+}
+
 // GetBMC is a wrapper that calls the boot-service client's GetBMC() function,
 // passing it context and a UID. The output is a []byte containing the entity's
 // BMC information, formatted as outFormat.
