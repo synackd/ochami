@@ -34,6 +34,7 @@ See ochami-boot(1) for more details.`,
 		newCmdBootNodeAdd(),
 		newCmdBootNodeGet(),
 		newCmdBootNodeList(),
+		newCmdBootNodeSet(),
 	)
 
 	return bootNodeCmd

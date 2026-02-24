@@ -84,3 +84,21 @@ func (bsc *BootServiceClient) ListNodes(token string, outFormat format.DataForma
 
 	return out, nil
 }
+
+// SetNode is a wrapper that calls the boot-service client's UpdateNode()
+// function, passing it context. The output is a pointer to the node
+// details that got updated, along with an error if one occurred.
+func (bsc *BootServiceClient) SetNode(token string, uid string, node boot_service_client.UpdateNodeRequest) (*node.Node, error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+	defer cancel()
+
+	item, err := bsc.Client.UpdateNode(ctx, uid, node)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set node %+v: %w", node, err)
+	}
+
+	return item, nil
+}
