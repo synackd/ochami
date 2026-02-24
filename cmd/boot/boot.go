@@ -14,6 +14,7 @@ import (
 
 	// Subcommands
 	config_cmd "github.com/OpenCHAMI/ochami/cmd/boot/config"
+	node_cmd "github.com/OpenCHAMI/ochami/cmd/boot/node"
 )
 
 func NewCmd() *cobra.Command {
@@ -41,6 +42,7 @@ See ochami-boot(1) for more details.`,
 	// Add subcommands
 	bootCmd.AddCommand(
 		config_cmd.NewCmd(),
+		node_cmd.NewCmd(),
 	)
 
 	return bootCmd
