@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -193,6 +194,59 @@ func unmarshalDataSliceYAML[T any](data []byte, v *[]T) error {
 	default:
 		return fmt.Errorf("failed to unmarshal YAML: expected mapping or sequence, got %v", root.Kind)
 	}
+}
+
+// SetNestedField sets a field in a nested map using dot notation
+// Example: SetNestedField(map, "status.health", "OK") sets map["status"]["health"] = "OK"
+func SetNestedField(target map[string]interface{}, path string, value interface{}) {
+	if target == nil {
+		return
+	}
+
+	// Split + drop empty segments to avoid "" keys and slice issues.
+	raw := strings.Split(path, ".")
+	parts := make([]string, 0, len(raw))
+	for _, p := range raw {
+		if p != "" {
+			parts = append(parts, p)
+		}
+	}
+	if len(parts) == 0 {
+		return
+	}
+
+	current := target
+
+	// Navigate to the parent of the target field
+	for _, part := range parts[:len(parts)-1] {
+		next, ok := current[part].(map[string]interface{})
+		if !ok || next == nil {
+			next = make(map[string]interface{})
+			current[part] = next
+		}
+		current = next
+	}
+
+	// Set the final field
+	finalField := parts[len(parts)-1]
+	if value == nil {
+		// For unset operations, we use JSON Merge Patch null semantics
+		current[finalField] = nil
+		return
+	}
+
+	if stringValue, ok := value.(string); ok {
+		// Try to parse as JSON first, then as string
+		var jsonValue interface{}
+		if err := json.Unmarshal([]byte(stringValue), &jsonValue); err == nil {
+			current[finalField] = jsonValue
+		} else {
+			current[finalField] = stringValue
+		}
+		return
+	}
+
+	current[finalField] = value
 }
 
 func firstNonSpaceByte(b []byte) byte {

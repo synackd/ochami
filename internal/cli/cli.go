@@ -652,3 +652,13 @@ func CompletionDiscoveryVersion(cmd *cobra.Command, args []string, toComplete st
 	}
 	return helpSlice, cobra.ShellCompDirectiveDefault
 }
+
+// CompletionPatchMethod is the cobra completion function for the --patch-method
+// flag.
+func CompletionPatchMethod(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var helpSlice []string
+	for k, v := range client.PatchMethodHelp {
+		helpSlice = append(helpSlice, fmt.Sprintf("%s\t%s", k, v))
+	}
+	return helpSlice, cobra.ShellCompDirectiveDefault
+}

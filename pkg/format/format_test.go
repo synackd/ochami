@@ -427,6 +427,244 @@ func TestUnmarshalDataSliceYAML(t *testing.T) {
 	}
 }
 
+func TestSetNestedField(t *testing.T) {
+	type tc struct {
+		name  string
+		start map[string]interface{}
+		path  string
+		value interface{}
+		want  map[string]interface{}
+	}
+
+	tests := []tc{
+		{
+			name:  "creates nested maps and sets leaf",
+			start: map[string]interface{}{},
+			path:  "status.health",
+			value: "OK",
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "OK",
+				},
+			},
+		},
+		{
+			name: "overwrites existing leaf value",
+			start: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "BAD",
+				},
+			},
+			path:  "status.health",
+			value: "OK",
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "OK",
+				},
+			},
+		},
+		{
+			name: "preserves sibling keys in existing nested map",
+			start: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "BAD",
+					"uptime": 123,
+				},
+			},
+			path:  "status.health",
+			value: "OK",
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "OK",
+					"uptime": 123,
+				},
+			},
+		},
+		{
+			name:  "handles deeper nesting",
+			start: map[string]interface{}{},
+			path:  "a.b.c",
+			value: 42,
+			want: map[string]interface{}{
+				"a": map[string]interface{}{
+					"b": map[string]interface{}{
+						"c": 42,
+					},
+				},
+			},
+		},
+		{
+			name: "parent exists but is not a map: converts it to map and continues",
+			start: map[string]interface{}{
+				"status": "not-a-map",
+			},
+			path:  "status.health",
+			value: "OK",
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "OK",
+				},
+			},
+		},
+		{
+			name: "value nil uses merge-patch null semantics (sets explicit nil)",
+			start: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": "OK",
+				},
+			},
+			path:  "status.health",
+			value: nil,
+			want: map[string]interface{}{
+				"status": map[string]interface{}{
+					"health": nil,
+				},
+			},
+		},
+		{
+			name:  "string value that is valid JSON object is unmarshaled",
+			start: map[string]interface{}{},
+			path:  "spec.config",
+			value: `{"x":1,"y":"z"}`,
+			want: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"config": map[string]interface{}{
+						"x": float64(1),
+						"y": "z",
+					},
+				},
+			},
+		},
+		{
+			name:  "string value that is valid JSON array is unmarshaled",
+			start: map[string]interface{}{},
+			path:  "spec.list",
+			value: `[1,"a",true,null]`,
+			want: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"list": []interface{}{
+						float64(1),
+						"a",
+						true,
+						nil,
+					},
+				},
+			},
+		},
+		{
+			name:  "string value that is valid JSON scalar is unmarshaled",
+			start: map[string]interface{}{},
+			path:  "spec.enabled",
+			value: `true`,
+			want: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"enabled": true,
+				},
+			},
+		},
+		{
+			name:  "string value that is not JSON remains a string",
+			start: map[string]interface{}{},
+			path:  "spec.note",
+			value: "hello world",
+			want: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"note": "hello world",
+				},
+			},
+		},
+		{
+			name:  "non-string values are set directly",
+			start: map[string]interface{}{},
+			path:  "spec.count",
+			value: int64(7),
+			want: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"count": int64(7),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := cloneMap(tt.start)
+			SetNestedField(got, tt.path, tt.value)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("SetNestedField(%v, %q, %#v)\n got: %#v\nwant: %#v",
+					tt.start, tt.path, tt.value, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSetNestedField_EdgeCases_NoPanics(t *testing.T) {
+	t.Run("nil target is a no-op (no panic)", func(t *testing.T) {
+		var m map[string]interface{}  // nil
+		SetNestedField(m, "a.b", "v") // should not panic
+		// can't assert contents (nil), just ensure no panic
+	})
+
+	t.Run("empty path is a no-op", func(t *testing.T) {
+		m := map[string]interface{}{"a": 1}
+		SetNestedField(m, "", "x")
+		want := map[string]interface{}{"a": 1}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+
+	t.Run("path of only dots is a no-op", func(t *testing.T) {
+		m := map[string]interface{}{"a": 1}
+		SetNestedField(m, "...", "x")
+		want := map[string]interface{}{"a": 1}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+
+	t.Run("leading dot ignores empty segment (.a behaves like a)", func(t *testing.T) {
+		m := map[string]interface{}{}
+		SetNestedField(m, ".a", "v")
+		want := map[string]interface{}{"a": "v"}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+
+	t.Run("trailing dot ignores empty segment (a. behaves like a)", func(t *testing.T) {
+		m := map[string]interface{}{}
+		SetNestedField(m, "a.", "v")
+		want := map[string]interface{}{"a": "v"}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+
+	t.Run("double dots ignore empty segment (a..b behaves like a.b)", func(t *testing.T) {
+		m := map[string]interface{}{}
+		SetNestedField(m, "a..b", "v")
+		want := map[string]interface{}{
+			"a": map[string]interface{}{
+				"b": "v",
+			},
+		}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+
+	t.Run("single segment path still sets top-level field", func(t *testing.T) {
+		m := map[string]interface{}{"a": 1}
+		SetNestedField(m, "b", 2)
+		want := map[string]interface{}{"a": 1, "b": 2}
+		if !reflect.DeepEqual(m, want) {
+			t.Fatalf("got %#v want %#v", m, want)
+		}
+	})
+}
+
 func TestFirstNonSpaceByte(t *testing.T) {
 	tests := []struct {
 		name string
@@ -448,4 +686,21 @@ func TestFirstNonSpaceByte(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Deep-copy helper so test cases don't accidentally share maps.
+func cloneMap(m map[string]interface{}) map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]interface{}, len(m))
+	for k, v := range m {
+		switch vv := v.(type) {
+		case map[string]interface{}:
+			out[k] = cloneMap(vv)
+		default:
+			out[k] = v
+		}
+	}
+	return out
 }

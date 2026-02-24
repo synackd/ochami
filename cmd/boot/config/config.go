@@ -35,6 +35,7 @@ See ochami-boot(1) for more details.`,
 		newCmdBootConfigAdd(),
 		newCmdBootConfigGet(),
 		newCmdBootConfigList(),
+		newCmdBootConfigPatch(),
 		newCmdBootConfigSet(),
 	)
 

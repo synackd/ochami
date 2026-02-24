@@ -11,6 +11,7 @@ import (
 	boot_service_client "github.com/openchami/boot-service/pkg/client"
 	"github.com/openchami/boot-service/pkg/resources/bootconfiguration"
 
+	"github.com/OpenCHAMI/ochami/pkg/client"
 	"github.com/OpenCHAMI/ochami/pkg/format"
 )
 
@@ -84,6 +85,42 @@ func (bsc *BootServiceClient) ListBootConfigs(token string, outFormat format.Dat
 	}
 
 	return out, nil
+}
+
+// PatchBootConfig is a wrapper that calls the boot-service client's
+// PatchBootConfiguration() function. It accepts data that represents a patch
+// formatted as patchFormat and sends it as JSON to the boot-service via a PATCH
+// request for the boot configuration identified by uid.
+func (bsc *BootServiceClient) PatchBootConfig(token string, patchFormat client.PatchMethod, uid string, data map[string]interface{}) (*bootconfiguration.BootConfiguration, error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+	defer cancel()
+
+	outData, err := format.MarshalData(data, format.DataFormatJson)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert data to JSON: %w", err)
+	}
+
+	var contentType string
+	switch patchFormat {
+	case client.PatchMethodRFC6902:
+		contentType = "application/json-patch+json"
+	case client.PatchMethodRFC7386:
+		contentType = "application/merge-patch+json"
+	case client.PatchMethodKeyVal:
+		contentType = "application/merge-patch+json"
+	default:
+		return nil, fmt.Errorf("unknown patch format: %s", patchFormat)
+	}
+
+	item, err := bsc.Client.PatchBootConfiguration(ctx, uid, outData, contentType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to patch boot configuration for %s: %w", uid, err)
+	}
+
+	return item, nil
 }
 
 // SetBootConfig is a wrapper that calls the boot-service client's
