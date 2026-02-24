@@ -41,6 +41,31 @@ func (bsc *BootServiceClient) AddBootConfigs(token string, bootCfgs []boot_servi
 	return
 }
 
+// DeleteBootConfigs is a wrapper that calls the boot-service client's
+// DeleteBootConfiguration() function, passing it context and a list of boot
+// config UIDs to delete. The output is a slice of boot config UIDs that got
+// deleted, a slice of errors containing any errors deleting nodes, and an error
+// that is populated if an error in the function itself occurred.
+func (bsc *BootServiceClient) DeleteBootConfigs(token string, uids []string) (bcfgsDeleted []string, errors []error, funcErr error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	// TODO: Make concurrent
+	for _, bcfgUid := range uids {
+		ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+		defer cancel()
+
+		if err := bsc.Client.DeleteBootConfiguration(ctx, bcfgUid); err != nil {
+			newErr := fmt.Errorf("failed to delete boot config %s: %w", bcfgUid, err)
+			errors = append(errors, newErr)
+		} else {
+			bcfgsDeleted = append(bcfgsDeleted, bcfgUid)
+		}
+	}
+
+	return
+}
+
 // GetBootConfig is a wrapper that calls the boot-service client's
 // GetBootConfiguration() function, passing it context and a UID. The output is
 // a []byte containing the entity's boot configuration, formatted as outFormat.
