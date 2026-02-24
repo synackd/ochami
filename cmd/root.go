@@ -77,7 +77,7 @@ See ochami-config(5) for more details on configuring the ochami config file(s).`
 	rootCmd.MarkFlagsMutuallyExclusive("cluster", "cluster-uri")
 
 	// Do not allow simultaneously passing a token and ignoring it
-	rootCmd.MarkFlagsMutuallyExclusive("token", "token")
+	rootCmd.MarkFlagsMutuallyExclusive("token", "no-token")
 
 	// Add subcommands
 	rootCmd.AddCommand(

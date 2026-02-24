@@ -33,7 +33,7 @@ func newCmdBootImageSet() *cobra.Command {
 At least one of --xname, --mac, or --nid is required to tell ochami which
 components need modification.
 
-An access cli.Token is required.
+An access token is required.
 
 See ochami-bss(1) for more details.`,
 		Example: `  # Set nodes to boot live image

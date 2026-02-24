@@ -34,7 +34,7 @@ payload data ('json' by default), but the rules above
 still apply for the payload. If "-" is used as the input
 payload filename, the data is read from standard input.
 
-This command sends a DELETE to SMD. An access cli.Token is required.
+This command sends a DELETE to SMD. An access token is required.
 
 See ochami-smd(1) for more details.`,
 		Example: `  # Delete components using CLI flags

@@ -30,7 +30,7 @@ func newCmdBootParamsGet() *cobra.Command {
 parameters are returned. Optionally, --mac, --xname, and/or --nid can be passed at least once
 to get boot parameters for specific components.
 
-This command sends a GET to BSS. An access cli.Token is required.
+This command sends a GET to BSS. An access token is required.
 
 See ochami-bss(1) for more details.`,
 		Example: `  ochami bss boot params get

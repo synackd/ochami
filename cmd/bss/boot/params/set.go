@@ -37,7 +37,7 @@ input payload data ('json' by default), but the rules above still
 apply for the payload. If "-" is used as the input payload filename,
 the data is read from standard input.
 
-This command sends a PUT to BSS. An access cli.Token is required.
+This command sends a PUT to BSS. An access token is required.
 
 See ochami-bss(1) for more details.`,
 		Example: `  # Set boot params using CLI flags

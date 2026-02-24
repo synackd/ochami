@@ -124,7 +124,8 @@ func (c *ConfigClusterConfig) UnmarshalYAML(value *yaml.Node) error {
 		//
 		// Order of nodes in MappingNode are key, val, key, val, ...
 		for i := 0; i+1 < len(n.Content); i += 2 {
-			if n.Content[i].Value == "enable-auth" {
+			switch n.Content[i].Value {
+			case "enable-auth":
 				// Make sure a value was passed
 				if len(n.Content[i+1].Value) == 0 {
 					return ErrInvalidConfigVal{
