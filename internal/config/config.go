@@ -76,6 +76,68 @@ type Config struct {
 	Clusters       []ConfigCluster `yaml:"clusters,omitempty"`
 }
 
+// UnmarshalYAML unmarshals YAML into a Config, handling default values. For
+// instance, it detects if 'timeout' is present in the YAML and, if not, assigns
+// the default value.
+func (c *Config) UnmarshalYAML(value *yaml.Node) error {
+	type alias Config
+
+	// If node is top-level document (DocumentNode), work with MappingNode contained within
+	n := value
+	if n.Kind == yaml.DocumentNode && len(n.Content) == 1 {
+		n = n.Content[0]
+	}
+
+	// Detect whether config keys were explicitly set
+	hasTimeout := false
+	if n.Kind == yaml.MappingNode {
+		// Iterate over keys to find desired one
+		//
+		// Order of nodes in MappingNode are key, val, key, val, ...
+		for i := 0; i+1 < len(n.Content); i += 2 {
+			switch n.Content[i].Value {
+			case "timeout":
+				// Make sure a value was passed
+				if len(n.Content[i+1].Value) == 0 {
+					return ErrInvalidConfigVal{
+						Key:      "timeout",
+						Value:    "empty value",
+						Expected: "duration",
+						Line:     n.Content[i].Line,
+					}
+				} else if _, err := time.ParseDuration(n.Content[i+1].Value); err != nil {
+					return ErrInvalidConfigVal{
+						Key:      "timeout",
+						Value:    "invalid duration",
+						Expected: "duration",
+						Line:     n.Content[i].Line,
+					}
+				}
+				// If key was found and is not empty, set our sentinal
+				hasTimeout = true
+				break
+			}
+		}
+	}
+
+	// Decode once into a alias type to avoid infinite recursion when unmarshalling
+	var tmp alias
+	if err := n.Decode(&tmp); err != nil {
+		return err
+	}
+
+	// Set default value only if the key was not present
+	if !hasTimeout {
+		tmp.Timeout = 30 * time.Second
+	}
+
+	// Assign temporarily-aliased struct back to receiver
+	*c = Config(tmp)
+
+	// No errors occurred
+	return nil
+}
+
 // GetCluster searches for a cluster by name and returns it if it exists in the
 // config. If not, an ErrUnknownCluster is returned.
 func (c Config) GetCluster(name string) (ConfigCluster, error) {
@@ -123,7 +185,7 @@ func (c *ConfigClusterConfig) UnmarshalYAML(value *yaml.Node) error {
 		n = n.Content[0]
 	}
 
-	// Detect whether "enable-auth" was explicitly set
+	// Detect whether config keys were explicitly set
 	hasEnableAuth := false
 	if n.Kind == yaml.MappingNode {
 		// Iterate over keys to find desired one
