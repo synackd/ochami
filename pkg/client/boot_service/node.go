@@ -11,6 +11,29 @@ import (
 	"github.com/OpenCHAMI/ochami/pkg/format"
 )
 
+// GetNode is a wrapper that calls the boot-service client's GetNode() function,
+// passing it context and a UID. The output is a []byte containing the entity's
+// node information, formatted as outFormat.
+func (bsc *BootServiceClient) GetNode(token string, outFormat format.DataFormat, uid string) ([]byte, error) {
+	// TODO: boot-service client functions don't support tokens yet.
+	_ = token
+
+	ctx, cancel := context.WithTimeout(context.Background(), bsc.Timeout)
+	defer cancel()
+
+	bcfg, err := bsc.Client.GetNode(ctx, uid)
+	if err != nil {
+		return nil, fmt.Errorf("request to get node info for %s failed: %w", uid, err)
+	}
+
+	out, err := format.MarshalData(bcfg, outFormat)
+	if err != nil {
+		return nil, fmt.Errorf("formatting node info for %s failed: %w", uid, err)
+	}
+
+	return out, nil
+}
+
 // ListNodes is a wrapper that calls the boot-service client's GetNodes()
 // function, passing it context. The output is a []byte containing a list of
 // nodes formatted as outFormat.
