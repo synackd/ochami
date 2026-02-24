@@ -13,6 +13,7 @@ import (
 	"github.com/OpenCHAMI/ochami/internal/config"
 
 	// Subcommands
+	bmc_cmd "github.com/OpenCHAMI/ochami/cmd/boot/bmc"
 	config_cmd "github.com/OpenCHAMI/ochami/cmd/boot/config"
 	node_cmd "github.com/OpenCHAMI/ochami/cmd/boot/node"
 )
@@ -41,6 +42,7 @@ See ochami-boot(1) for more details.`,
 
 	// Add subcommands
 	bootCmd.AddCommand(
+		bmc_cmd.NewCmd(),
 		config_cmd.NewCmd(),
 		node_cmd.NewCmd(),
 	)
