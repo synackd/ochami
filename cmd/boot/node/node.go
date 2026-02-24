@@ -30,7 +30,9 @@ See ochami-boot(1) for more details.`,
 	}
 
 	// Add subcommands
-	bootNodeCmd.AddCommand()
+	bootNodeCmd.AddCommand(
+		newCmdBootNodeList(),
+	)
 
 	return bootNodeCmd
 }
