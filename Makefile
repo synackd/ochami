@@ -7,6 +7,7 @@ GO         ?= $(shell command -v go 2>/dev/null)
 GORELEASER ?= $(shell command -v goreleaser 2>/dev/null)
 GIT        ?= $(shell command -v git 2>/dev/null)
 AWK        ?= $(shell command -v awk 2>/dev/null)
+REUSE      ?= $(shell command -v reuse 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
 HOSTCMD    ?= $(shell command -v hostname 2>/dev/null)
 INSTALL    ?= $(shell command -v install 2>/dev/null)
@@ -118,6 +119,13 @@ endif
 .PHONY: goreleaser-clean
 goreleaser-clean: ## Clean Goreleaser files (remove dist/)
 	$(RM) -rf dist/
+
+.PHONY: check-reuse
+check-reuse:
+ifeq ($(REUSE),)
+	$(error reuse command not found)
+endif
+	reuse lint
 
 .PHONY: test
 test: unit-test ## Run all tests
