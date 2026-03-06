@@ -166,6 +166,8 @@ make GORELEASER_OPTS='--clean --snapshot --single-target' goreleaser-build
 
 Make provides convenient and quick building for fast iteration and development.
 
+Run `make help` to see available targets.
+
 Linker flags are used to embed build metadata into the binary. Building can
 simply be done via:
 
