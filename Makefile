@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: MIT
 
 # Set path to commands
-GO      ?= $(shell command -v go 2>/dev/null)
-GIT     ?= $(shell command -v git 2>/dev/null)
+GO         ?= $(shell command -v go 2>/dev/null)
+GORELEASER ?= $(shell command -v goreleaser 2>/dev/null)
+GIT        ?= $(shell command -v git 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
-HOSTCMD ?= $(shell command -v hostname 2>/dev/null)
-INSTALL ?= $(shell command -v install 2>/dev/null)
-SCDOC   ?= $(shell command -v scdoc 2>/dev/null)
-SHELL   ?= /bin/sh
+HOSTCMD    ?= $(shell command -v hostname 2>/dev/null)
+INSTALL    ?= $(shell command -v install 2>/dev/null)
+SCDOC      ?= $(shell command -v scdoc 2>/dev/null)
+SHELL      ?= /bin/sh
 
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
@@ -78,6 +79,38 @@ binaries: $(NAME)
 
 .PHONY: unittest
 unittest:
+
+.PHONY: goreleaser-build
+goreleaser-build:
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
+ifeq ($(GORELEASER),)
+	$(error goreleaser command not found.)
+endif
+	env \
+		GOVERSION=$(GOVER) \
+		BUILD_HOST=$(BUILDHOST) \
+		BUILD_USER=$(BUILDUSER) \
+		$(GORELEASER) build $(GORELEASER_OPTS)
+
+.PHONY: goreleaser-release
+goreleaser-release:
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
+ifeq ($(GORELEASER),)
+	$(error goreleaser command not found.)
+endif
+	env \
+		GOVERSION=$(GOVER) \
+		BUILD_HOST=$(BUILDHOST) \
+		BUILD_USER=$(BUILDUSER) \
+		$(GORELEASER) release $(GORELEASER_OPTS)
+
+.PHONY: goreleaser-clean
+goreleaser-clean: ## Clean Goreleaser files (remove dist/)
+	$(RM) -rf dist/
 ifeq ($(GO),)
 	$(error go command not found.)
 endif

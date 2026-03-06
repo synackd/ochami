@@ -155,6 +155,13 @@ goreleaser build --clean --snapshot --single-target
 
 Remove `--single-target` to build for all targets.
 
+There is also a `goreleaser-build` make target that sets variables
+automatically:
+
+```bash
+make GORELEASER_OPTS='--clean --snapshot --single-target' goreleaser-build
+```
+
 ### Make
 
 Make provides convenient and quick building for fast iteration and development.
