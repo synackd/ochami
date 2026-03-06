@@ -15,15 +15,6 @@ SHELL      ?= /bin/sh
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
 
-IMPORT := github.com/OpenCHAMI/ochami/
-
-prefix      ?= /usr/local
-exec_prefix ?= $(prefix)
-bindir      ?= $(exec_prefix)/bin
-mandir      ?= $(exec_prefix)/man
-libexecdir  ?= $(prefix)/usr/libexec/ochami
-sharedir    ?= $(prefix)/usr/share
-
 # Check that commands are present
 ifeq ($(GIT),)
 $(error git command not found.)
@@ -42,6 +33,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
 NAME      ?= ochami
+IMPORT    := github.com/OpenCHAMI/$(NAME)/
 VERSION   ?= $(shell $(GIT) describe --tags --always --dirty --broken --abbrev=0)
 TAG       ?= $(shell $(GIT) describe --tags --always --abbrev=0)
 BRANCH    ?= $(shell $(GIT) branch --show-current)
@@ -70,6 +62,13 @@ MAN1BIN  := $(filter %.1,$(MANBIN))
 MAN5BIN  := $(filter %.5,$(MANBIN))
 
 HELPERS := extras/scripts/ochami-discovery-old2new.py
+
+prefix      ?= /usr/local
+exec_prefix ?= $(prefix)
+bindir      ?= $(exec_prefix)/bin
+mandir      ?= $(exec_prefix)/man
+libexecdir  ?= $(prefix)/usr/libexec/$(NAME)
+sharedir    ?= $(prefix)/usr/share
 
 .PHONY: all
 all: binaries
