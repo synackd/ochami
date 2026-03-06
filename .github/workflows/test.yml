@@ -27,4 +27,4 @@ jobs:
           fetch-tags: 1
           fetch-depth: 0
       - name: Run Go unit tests
-        run: go test ./...
+        run: make test

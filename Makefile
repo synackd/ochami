@@ -76,8 +76,6 @@ all: binaries
 .PHONY: binaries
 binaries: $(NAME)
 
-.PHONY: unittest
-unittest:
 
 .PHONY: goreleaser-build
 goreleaser-build:
@@ -110,6 +108,12 @@ endif
 .PHONY: goreleaser-clean
 goreleaser-clean: ## Clean Goreleaser files (remove dist/)
 	$(RM) -rf dist/
+
+.PHONY: test
+test: unit-test ## Run all tests
+
+.PHONY: unit-test
+unit-test: ## Run unit tests only
 ifeq ($(GO),)
 	$(error go command not found.)
 endif
