@@ -3,16 +3,17 @@
 # SPDX-License-Identifier: MIT
 
 # Set path to commands
-GO         ?= $(shell command -v go 2>/dev/null)
-GORELEASER ?= $(shell command -v goreleaser 2>/dev/null)
-GIT        ?= $(shell command -v git 2>/dev/null)
-AWK        ?= $(shell command -v awk 2>/dev/null)
-REUSE      ?= $(shell command -v reuse 2>/dev/null)
+GO            ?= $(shell command -v go 2>/dev/null)
+GOLANGCI_LINT ?= $(shell command -v golangci-lint 2>/dev/null)
+GORELEASER    ?= $(shell command -v goreleaser 2>/dev/null)
+GIT           ?= $(shell command -v git 2>/dev/null)
+AWK           ?= $(shell command -v awk 2>/dev/null)
+REUSE         ?= $(shell command -v reuse 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
-HOSTCMD    ?= $(shell command -v hostname 2>/dev/null)
-INSTALL    ?= $(shell command -v install 2>/dev/null)
-SCDOC      ?= $(shell command -v scdoc 2>/dev/null)
-SHELL      ?= /bin/sh
+HOSTCMD       ?= $(shell command -v hostname 2>/dev/null)
+INSTALL       ?= $(shell command -v install 2>/dev/null)
+SCDOC         ?= $(shell command -v scdoc 2>/dev/null)
+SHELL         ?= /bin/sh
 
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
@@ -126,6 +127,13 @@ ifeq ($(REUSE),)
 	$(error reuse command not found)
 endif
 	reuse lint
+
+.PHONY: lint
+lint:
+ifeq ($(GOLANGCI_LINT),)
+	$(error golangci-lint command not found)
+endif
+	$(GOLANGCI_LINT) run
 
 .PHONY: test
 test: unit-test ## Run all tests
