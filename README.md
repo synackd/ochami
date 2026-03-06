@@ -95,6 +95,7 @@ default-cluster: foobar
 log:
     format: rfc3339
     level: warning
+timeout: 30s
 
 ```
 
@@ -103,7 +104,7 @@ log:
 Test access by contacting an API endpoint not requiring an access token:
 
 ```bash
-$ ochami bss status
+$ ochami bss service status
 {"bss-status":"running"}
 
 ```
@@ -154,9 +155,18 @@ goreleaser build --clean --snapshot --single-target
 
 Remove `--single-target` to build for all targets.
 
+There is also a `goreleaser-build` make target that sets variables
+automatically:
+
+```bash
+make GORELEASER_OPTS='--clean --snapshot --single-target' goreleaser-build
+```
+
 ### Make
 
 Make provides convenient and quick building for fast iteration and development.
+
+Run `make help` to see available targets.
 
 Linker flags are used to embed build metadata into the binary. Building can
 simply be done via:
@@ -177,7 +187,7 @@ sudo make install
 ### Pulling
 
 ```bash
-docker pull ghcr.io/synackd/ochami:latest
+docker pull ghcr.io/openchami/ochami:latest
 ```
 
 ### Building
@@ -199,6 +209,6 @@ docker build . --tag ochami:dirty
 ### Running
 
 ```bash
-docker run ghcr.io/synackd/ochami:latest ochami --ignore-config help
+docker run ghcr.io/openchami/ochami:latest ochami --ignore-config help
 ```
 The above incantation will print out the command line's help message.

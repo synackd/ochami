@@ -3,25 +3,20 @@
 # SPDX-License-Identifier: MIT
 
 # Set path to commands
-GO      ?= $(shell command -v go 2>/dev/null)
-GIT     ?= $(shell command -v git 2>/dev/null)
+GO            ?= $(shell command -v go 2>/dev/null)
+GOLANGCI_LINT ?= $(shell command -v golangci-lint 2>/dev/null)
+GORELEASER    ?= $(shell command -v goreleaser 2>/dev/null)
+GIT           ?= $(shell command -v git 2>/dev/null)
+AWK           ?= $(shell command -v awk 2>/dev/null)
+REUSE         ?= $(shell command -v reuse 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
-HOSTCMD ?= $(shell command -v hostname 2>/dev/null)
-INSTALL ?= $(shell command -v install 2>/dev/null)
-SCDOC   ?= $(shell command -v scdoc 2>/dev/null)
-SHELL   ?= /bin/sh
+HOSTCMD       ?= $(shell command -v hostname 2>/dev/null)
+INSTALL       ?= $(shell command -v install 2>/dev/null)
+SCDOC         ?= $(shell command -v scdoc 2>/dev/null)
+SHELL         ?= /bin/sh
 
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
-
-IMPORT := github.com/OpenCHAMI/ochami/
-
-prefix      ?= /usr/local
-exec_prefix ?= $(prefix)
-bindir      ?= $(exec_prefix)/bin
-mandir      ?= $(exec_prefix)/man
-libexecdir  ?= $(prefix)/usr/libexec/ochami
-sharedir    ?= $(prefix)/usr/share
 
 # Check that commands are present
 ifeq ($(GIT),)
@@ -41,6 +36,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
 NAME      ?= ochami
+IMPORT    := github.com/OpenCHAMI/$(NAME)/
 VERSION   ?= $(shell $(GIT) describe --tags --always --dirty --broken --abbrev=0)
 TAG       ?= $(shell $(GIT) describe --tags --always --abbrev=0)
 BRANCH    ?= $(shell $(GIT) branch --show-current)
@@ -70,52 +66,118 @@ MAN5BIN  := $(filter %.5,$(MANBIN))
 
 HELPERS := extras/scripts/ochami-discovery-old2new.py
 
+prefix      ?= /usr/local
+exec_prefix ?= $(prefix)
+bindir      ?= $(exec_prefix)/bin
+mandir      ?= $(exec_prefix)/man
+libexecdir  ?= $(prefix)/usr/libexec/$(NAME)
+sharedir    ?= $(prefix)/usr/share
+
 .PHONY: all
-all: binaries
+all: binaries ## Build everything
 
 .PHONY: binaries
-binaries: $(NAME)
+binaries: $(NAME) ## Build binaries
 
-.PHONY: unittest
-unittest:
+.PHONY: help
+help: ## Show this help
+ifeq ($(AWK),)
+        $(error awk command not found.)
+endif
+	@$(AWK) 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m[VAR=val]... <target>\033[0m\n\nTargets:\n"} \
+	/^[a-zA-Z0-9_\/.-]+:.*##/ { \
+	        printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 \
+	}' $(MAKEFILE_LIST)
+
+.PHONY: goreleaser-build
+goreleaser-build: ## Run `goreleaser build` (accepts GORELEASER_OPTS)
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
+ifeq ($(GORELEASER),)
+	$(error goreleaser command not found.)
+endif
+	env \
+		GOVERSION=$(GOVER) \
+		BUILD_HOST=$(BUILDHOST) \
+		BUILD_USER=$(BUILDUSER) \
+		$(GORELEASER) build $(GORELEASER_OPTS)
+
+.PHONY: goreleaser-release
+goreleaser-release: ## Run `goreleaser release` (accepts GORELEASER_OPTS)
+ifeq ($(GO),)
+	$(error go command not found.)
+endif
+ifeq ($(GORELEASER),)
+	$(error goreleaser command not found.)
+endif
+	env \
+		GOVERSION=$(GOVER) \
+		BUILD_HOST=$(BUILDHOST) \
+		BUILD_USER=$(BUILDUSER) \
+		$(GORELEASER) release $(GORELEASER_OPTS)
+
+.PHONY: goreleaser-clean
+goreleaser-clean: ## Clean Goreleaser files (remove dist/)
+	$(RM) -rf dist/
+
+.PHONY: check-reuse
+check-reuse:
+ifeq ($(REUSE),)
+	$(error reuse command not found)
+endif
+	reuse lint
+
+.PHONY: lint
+lint:
+ifeq ($(GOLANGCI_LINT),)
+	$(error golangci-lint command not found)
+endif
+	$(GOLANGCI_LINT) run
+
+.PHONY: test
+test: unit-test ## Run all tests
+
+.PHONY: unit-test
+unit-test: ## Run unit tests only
 ifeq ($(GO),)
 	$(error go command not found.)
 endif
 	$(GO) test -cover -v ./...
 
 .PHONY: clean
-clean:
+clean: ## Clean Go build artifacts
 ifeq ($(GO),)
 	$(error go command not found.)
 endif
 	$(GO) clean -i -x
 
 .PHONY: clean-man
-clean-man:
+clean-man: ## Clean generated manual pages
 	rm -f $(MANBIN)
 
 .PHONY: clean-completions
-clean-completions:
+clean-completions: ## Clean generated shell completions
 	rm -rf completions/
 
-completions: $(NAME)
+completions: $(NAME) ## Generate shell completions
 	./scripts/completions.sh
 
 .PHONY: distclean
-distclean: clean clean-completions clean-man
+distclean: clean clean-completions clean-man ## Clean everything (prepare for distribution)
 
 .PHONY: install
-install: install-prog install-helper install-completions install-man
+install: install-prog install-helper install-completions install-man ## Install everything
 
 .PHONY: install-prog
-install-prog: $(NAME)
+install-prog: $(NAME) ## Install program
 ifeq ($(INSTALL),)
 	$(error install command not found.)
 endif
 	$(INSTALL_PROGRAM) $(NAME) $(DESTDIR)$(bindir)/$(NAME)
 
 .PHONY: install-helper
-install-helper: $(HELPERS)
+install-helper: $(HELPERS) ## Install helper scripts
 ifeq ($(INSTALL),)
 	$(error install command not found.)
 endif
@@ -124,7 +186,7 @@ endif
 	done
 
 .PHONY: install-completions
-install-completions: completions
+install-completions: completions ## Install shell completions
 ifeq ($(INSTALL),)
 	$(error install command not found.)
 endif
@@ -133,7 +195,7 @@ endif
 	$(INSTALL_DATA) ./completions/ochami.zsh $(DESTDIR)$(sharedir)/zsh/site-functions/_ochami
 
 .PHONY: install-man
-install-man: $(MANBIN)
+install-man: $(MANBIN) ## Install manual pages
 ifeq ($(INSTALL),)
 	$(error install command not found.)
 endif
@@ -143,7 +205,7 @@ endif
 	$(INSTALL_DATA) $(MAN5BIN) $(DESTDIR)$(mandir)/man5/
 
 .PHONY: man
-man: $(MANBIN)
+man: $(MANBIN) ## Generate manual pages
 
 man/%: man/%.sc
 ifeq ($(SCDOC),)
@@ -152,20 +214,20 @@ endif
 	$(SCDOC) < $< > $@
 
 .PHONY: uninstall
-uninstall: uninstall-prog uninstall-completions uninstall-man
+uninstall: uninstall-prog uninstall-completions uninstall-man ## Uninstall everything
 
 .PHONY: uninstall-prog
-uninstall-prog:
+uninstall-prog: ## Uninstall program
 	rm -f $(DESTDIR)$(bindir)/$(NAME)
 
 .PHONY: uninstall-completions
-uninstall-completions:
+uninstall-completions: ## Uninstall shell completions
 	rm -f $(DESTDIR)/usr/share/bash-completion/completions/ochami
 	rm -f $(DESTDIR)/usr/share/fish/vendor_completions.d/ochami.fish
 	rm -f $(DESTDIR)/usr/share/zsh/site-functions/_ochami
 
 .PHONY: uninstall-man
-uninstall-man:
+uninstall-man: ## Uninstall manual pages
 	rm -f $(foreach man1page,$(subst man/,,$(MAN1BIN)),$(DESTDIR)$(mandir)/man1/$(man1page))
 	rm -f $(foreach man5page,$(subst man/,,$(MAN5BIN)),$(DESTDIR)$(mandir)/man5/$(man5page))
 
