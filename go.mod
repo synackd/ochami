@@ -20,10 +20,10 @@ require (
 	github.com/knadh/koanf/v2 v2.2.2
 	github.com/lestrrat-go/jwx v1.2.31
 	github.com/nikolalohinski/gonja/v2 v2.4.0
-	github.com/openchami/boot-service v0.0.0-20251209232132-dd247bcb2456
+	github.com/openchami/boot-service v0.1.1
 	github.com/openchami/schemas v0.0.0-20250625220233-9aad17a286c4
 	github.com/rs/zerolog v1.34.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/synackd/go-kargs v0.0.1-beta.1
 	github.com/vbauerster/mpb/v8 v8.10.2
 	gopkg.in/yaml.v3 v3.0.1
@@ -77,7 +77,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/openchami/fabrica v0.3.0 // indirect
+	github.com/openchami/fabrica v0.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
