@@ -22,7 +22,7 @@ RUN make
 # STAGE 2: Application
 #
 
-FROM cgr.dev/chainguard/wolfi-base
+FROM --platform=$TARGETPLATFORM cgr.dev/chainguard/wolfi-base
 
 RUN apk add --no-cache tini
 
