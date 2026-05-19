@@ -172,7 +172,7 @@ dockers:
     goarch: arm64
     build_flag_templates:
       - "--pull"
-      - "--platform=linux/amd64"
+      - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.created={{ .Date }}"
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
