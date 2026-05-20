@@ -26,9 +26,9 @@ jobs:
         id: pr
         run: |
           if [[ "${{ inputs.pr_number }}" != "" ]]; then
-            echo "number=pr-${{ inputs.pr_number }}" >> $GITHUB_ENV
+            echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
           else
-            echo "number=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Delete PR container images
@@ -36,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUM=${{ steps.pr.outputs.number }}
+          PR_NUM="${{ steps.pr.outputs.number }}"
           PACKAGE_NAME="${{ github.event.repository.name }}"
           ORG_NAME="${{ github.repository_owner }}"
 
@@ -68,16 +68,3 @@ jobs:
           delete_tag "pr-${PR_NUM}-arm64"
 
           echo "Cleanup completed for PR ${PR_NUM}"
-
-      - name: Post cleanup confirmation
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = ${{ steps.pr.outputs.number }};
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `PR artifacts have been cleaned up. Container images \`pr-${prNumber}\` have been removed from ghcr.io.\n\n*Note: GitHub Actions artifacts will expire automatically after 30 days.*`
-            });
