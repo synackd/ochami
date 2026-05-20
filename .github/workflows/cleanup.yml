@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: © 2025 OpenCHAMI a Series of LF Projects, LLC
+#
+# SPDX-License-Identifier: MIT
+
+name: Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR Number to clean container tags (optional, for manual PR cleaning)'
+        required: false
+        type: string
+
+permissions:
+  packages: write       # Delete from ghcr.io
+  pull-requests: write  # Post cleanup confirmation
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR number
+        id: pr
+        run: |
+          if [[ "${{ inputs.pr_number }}" != "" ]]; then
+            echo "number=pr-${{ inputs.pr_number }}" >> $GITHUB_ENV
+          else
+            echo "number=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Delete PR container images
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM=${{ steps.pr.outputs.number }}
+          PACKAGE_NAME="${{ github.event.repository.name }}"
+          ORG_NAME="${{ github.repository_owner }}"
+
+          echo "Cleaning up container images for PR ${PR_NUM}..."
+
+          # Function to delete a specific tag
+          delete_tag() {
+            local tag=$1
+            echo "Attempting to delete tag: ${tag}"
+
+            # Get all versions of the package
+            VERSIONS=$(gh api --paginate "/orgs/${ORG_NAME}/packages/container/${PACKAGE_NAME}/versions" --jq '.[] | select(.metadata.container.tags[] | contains("'${tag}'")) | .id')
+
+            if [ -z "$VERSIONS" ]; then
+              echo "No version found for tag ${tag}"
+              return
+            fi
+
+            # Delete each version with this tag
+            for VERSION_ID in $VERSIONS; do
+              echo "Deleting version ID: ${VERSION_ID}"
+              gh api --method DELETE "/orgs/${ORG_NAME}/packages/container/${PACKAGE_NAME}/versions/${VERSION_ID}" || echo "Failed to delete version ${VERSION_ID}"
+            done
+          }
+
+          # Delete PR-specific tags
+          delete_tag "pr-${PR_NUM}"
+          delete_tag "pr-${PR_NUM}-amd64"
+          delete_tag "pr-${PR_NUM}-arm64"
+
+          echo "Cleanup completed for PR ${PR_NUM}"
+
+      - name: Post cleanup confirmation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `PR artifacts have been cleaned up. Container images \`pr-${prNumber}\` have been removed from ghcr.io.\n\n*Note: GitHub Actions artifacts will expire automatically after 30 days.*`
+            });

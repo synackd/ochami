@@ -4,13 +4,17 @@
 
 name: Build
 on:
-  push:
-    branches:
-      - main
   pull_request:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR Number to build (optional, for manual PR builds)'
+        required: false
+        type: string
 
 permissions:
-  contents: write
+  contents: write # For creating temporary local Git tags
+  packages: write # For pushing PR container
 
 jobs:
   build-goreleaser:
@@ -20,25 +24,56 @@ jobs:
         run: |
           sudo apt update
           sudo apt install scdoc
+
       - name: Set up latest stable Go
         uses: actions/setup-go@v6
         with:
           go-version: stable
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
           fetch-tags: 1
           fetch-depth: 0
+
+      - name: Create Tag for PR
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.pr_number != '')
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          PR_NUM="${{ github.event.number }}"
+          if [[ "${{ inputs.pr_number }}" != "" ]]; then
+            PR_NUM="${{ inputs.pr_number }}"
+          fi
+          git tag -f -a v0.0.0-pr-${PR_NUM} -m "pr-${PR_NUM} Build"
+
       - name: Set build environment variables
         run: |
-          echo GOVERSION=$(go env GOVERSION) >> $GITHUB_ENV
-          echo BUILD_HOST=$(hostname) >> $GITHUB_ENV
-          echo BUILD_USER=$(whoami) >> $GITHUB_ENV
+          echo "GOVERSION=$(go env GOVERSION)" >> $GITHUB_ENV
+          echo "BUILD_HOST=$(hostname)" >> $GITHUB_ENV
+          echo "BUILD_USER=$(whoami)" >> $GITHUB_ENV
+          echo "IS_PR_BUILD=true" >> $GITHUB_ENV
+          if [[ "${{ inputs.pr_number }}" != "" ]]; then
+            echo "DOCKER_TAG=pr-${{ inputs.pr_number }}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
+          fi
+
       - name: Build with goreleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: release --snapshot --clean --skip publish
+          args: release --clean --skip announce,validate,aur
         id: goreleaser
   build-make:
     runs-on: ubuntu-latest
