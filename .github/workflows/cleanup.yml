@@ -7,6 +7,12 @@ name: Cleanup
 on:
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR Number to clean container tags (optional, for manual PR cleaning)'
+        required: false
+        type: string
 
 permissions:
   packages: write       # Delete from ghcr.io
@@ -19,7 +25,11 @@ jobs:
       - name: Get PR number
         id: pr
         run: |
-          echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          if [[ "${{ inputs.pr_number }}" != "" ]]; then
+            echo "number=pr-${{ inputs.pr_number }}" >> $GITHUB_ENV
+          else
+            echo "number=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          fi
 
       - name: Delete PR container images
         continue-on-error: true
@@ -27,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUM=${{ steps.pr.outputs.number }}
-          PACKAGE_NAME="ochami"
+          PACKAGE_NAME="${{ github.event.repository.name }}"
           ORG_NAME="${{ github.repository_owner }}"
 
           echo "Cleaning up container images for PR ${PR_NUM}..."
