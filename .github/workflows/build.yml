@@ -69,11 +69,22 @@ jobs:
             echo "DOCKER_TAG=pr-${{ github.event.number }}" >> $GITHUB_ENV
           fi
 
+      - name: Check if fork PR
+        id: fork_check
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" && \
+                "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+            echo "SKIP_CONTAINER_PUBLISH=true" >> $GITHUB_ENV
+            echo "::warning title=Fork PR - Container Publish Skipped::Containers will be built but not published for fork PRs due to GitHub security restrictions. See CONTRIBUTING.md for details."
+          else
+            echo "SKIP_CONTAINER_PUBLISH=false" >> $GITHUB_ENV
+          fi
+
       - name: Build with goreleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: release --clean --skip announce,validate,aur
+          args: release --clean --skip announce,validate,aur${{ env.SKIP_CONTAINER_PUBLISH == 'true' && ',publish' || '' }}
         id: goreleaser
   build-make:
     runs-on: ubuntu-latest
