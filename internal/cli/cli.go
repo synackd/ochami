@@ -357,20 +357,25 @@ func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	// previously-set values while leaving unspecified ones alone.
 	if cmd.Flag("cluster-uri").Changed || (cmd.Flag("uri") != nil && cmd.Flag("uri").Changed) {
 		log.Logger.Debug().Msg("using base URI passed on command line")
-		ccc := config.ConfigClusterConfig{URI: cmd.Flag("cluster-uri").Value.String()}
-		switch serviceName {
-		case config.ServiceBoot:
-			ccc.BootService.URI = cmd.Flag("uri").Value.String()
-		case config.ServiceBSS:
-			ccc.BSS.URI = cmd.Flag("uri").Value.String()
-		case config.ServiceCloudInit:
-			ccc.CloudInit.URI = cmd.Flag("uri").Value.String()
-		case config.ServicePCS:
-			ccc.PCS.URI = cmd.Flag("uri").Value.String()
-		case config.ServiceSMD:
-			ccc.SMD.URI = cmd.Flag("uri").Value.String()
-		default:
-			return "", fmt.Errorf("unknown service %q specified when generating base URI", serviceName)
+		var ccc config.ConfigClusterConfig
+		if cmd.Flag("cluster-uri").Changed {
+			ccc.URI = cmd.Flag("cluster-uri").Value.String()
+		}
+		if cmd.Flag("uri") != nil && cmd.Flag("uri").Changed {
+			switch serviceName {
+			case config.ServiceBoot:
+				ccc.BootService.URI = cmd.Flag("uri").Value.String()
+			case config.ServiceBSS:
+				ccc.BSS.URI = cmd.Flag("uri").Value.String()
+			case config.ServiceCloudInit:
+				ccc.CloudInit.URI = cmd.Flag("uri").Value.String()
+			case config.ServicePCS:
+				ccc.PCS.URI = cmd.Flag("uri").Value.String()
+			case config.ServiceSMD:
+				ccc.SMD.URI = cmd.Flag("uri").Value.String()
+			default:
+				return "", fmt.Errorf("unknown service %q specified when generating base URI", serviceName)
+			}
 		}
 		clusterConfig = clusterConfig.MergeURIConfig(ccc)
 	}
