@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -303,7 +302,7 @@ func (oc *OchamiClient) MakeRequest(method, uri string, headers *HTTPHeaders, bo
 		if resBodyLen > 0 {
 			var resBodyCopy bytes.Buffer
 			resBodyReader := io.TeeReader(res.Body, &resBodyCopy)
-			resBodyBytes, err := ioutil.ReadAll(resBodyReader)
+			resBodyBytes, err := io.ReadAll(resBodyReader)
 			if err != nil {
 				log.Logger.Error().Err(err).Msg("failed to read body for debug message")
 			}
