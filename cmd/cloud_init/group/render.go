@@ -34,7 +34,13 @@ func newCmdGroupRender() *cobra.Command {
 
 See ochami-cloud-init(1) for more details.`,
 		Example: `  # Render group 'compute' cloud-init config for node x3000c0s0b0n0
-  ochami cloud-init group render compute x3000c0s0b0n0`,
+  ochami cloud-init group render compute x3000c0s0b0n0
+
+  # Render group 'compute' cloud-init config for node x1000c0s0b0n0, loading extra variables in
+  # from extra-vars.json, stdin, and directly, respectively
+  ochami -k cloud-init group render --extra-vars @extra-vars.json compute x1000c0s0b0n0
+  ochami -k cloud-init group render --extra-vars @- compute x1000c0s0b0n0
+  ochami -k cloud-init group render --extra-vars '{"key":"value"}' compute x1000c0s0b0n0`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Create client to use for requests
 			cloudInitClient := cloud_init_lib.GetClient(cmd)
@@ -90,6 +96,25 @@ See ochami-cloud-init(1) for more details.`,
 				os.Exit(1)
 			}
 			dsWrapper["ds"] = map[string]interface{}{"meta_data": ciData}
+
+			// Read any extra variables specified (This is mostly copy-pasted from cli.HandlePayload)
+			// The primary difference is the flag name
+			extraVarsMap := make(map[string]interface{})
+			if cmd.Flag("extra-vars").Changed {
+				extraVars := cmd.Flag("extra-vars").Value.String()
+				if err := client.ReadPayload(extraVars, cli.FormatInput, &extraVarsMap); err != nil {
+					log.Logger.Error().Err(err).Msg("unable to read extra variable data or file")
+					cli.LogHelpError(cmd)
+					os.Exit(1)
+				}
+			}
+
+			// Apply extra variables to the context
+			for k, v := range extraVarsMap {
+				dsWrapper[k] = v
+			}
+
+			// Construct the context for the template
 			refData := exec.NewContext(dsWrapper)
 
 			// Render
@@ -110,6 +135,12 @@ See ochami-cloud-init(1) for more details.`,
 			out.Flush()
 		},
 	}
+
+	// Create flags
+	groupRenderCmd.Flags().VarP(&cli.FormatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
+	groupRenderCmd.Flags().StringP("extra-vars", "e", "", "extra variables to be passed to the template renderer or (if starting with @) file containing extra variables (can be - to read from stdin)")
+
+	groupRenderCmd.RegisterFlagCompletionFunc("format-input", cli.CompletionFormatData)
 
 	return groupRenderCmd
 }
