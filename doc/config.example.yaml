@@ -36,6 +36,18 @@ log:
 # Default: 30s
 #timeout: 30s
 
+# Specify the default input and output formats if none are passed on the command
+# line. These are overridden by the *--format-input* and *--format-output* options,
+# respectively.
+# 
+# Available values are:
+#
+# json (default)
+# json-pretty
+# yaml
+#default-input-format: json
+#default-output-format: json
+
 ################################################################################
 #
 # CLUSTER-SPECIFIC OPTIONS

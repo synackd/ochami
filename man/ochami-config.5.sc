@@ -71,6 +71,18 @@ These configuration options are global configuration options.
 
 	This option can be overridden by the *--timeout* flag.
 
+*default-input-format*: _data_format_
+*default-output-format*: _data_format_
+	Specify the default input and output formats if none are passed on the command
+	line. These are overridden by the *--format-input* and *--format-output* options,
+	respectively.
+
+	Default: *json*
+	Supported:
+	- _json_
+	- _json-pretty_
+	- _yaml_
+
 # CLUSTER CONFIGURATION
 
 These configuration options apply only to cluster configuration, i.e. under the
