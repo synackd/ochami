@@ -22,17 +22,6 @@ IS_PR_BUILD ?= false
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
 
-# Check that commands are present
-ifeq ($(GIT),)
-$(error git command not found.)
-endif
-ifeq ($(HOSTCMD),)
-$(error hostname command not found.)
-endif
-ifeq ($(SHELL),)
-$(error '$(SHELL)' undefined.)
-endif
-
 # Recursive wildcard function, obtained from https://stackoverflow.com/a/18258352
 #
 # Arg 1: Space-separated list of directories to recurse into
@@ -43,13 +32,38 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 #
 # Arg 1: Command path (can be a variable like $(GO) or direct path)
 # Arg 2: Command name for error message
-# Usage: $(call require-command,$(GO),go)
-define require-command
+# Usage: $(call require-command-shell,$(GO),go)
+define require-command-shell
 @if [ -z "$(1)" ]; then \
 	echo "make: *** $(2) command not found" >&2; \
 	exit 1; \
 fi
 endef
+
+# require-command-shell, but for Makefile-level checks
+#
+# Arg 1: Command path (can be a variable like $(GO) or direct path)
+# Arg 2: Command name for error message
+# Usage: $(call require-command-make,$(GO),go)
+#
+# Note: This function is intended to be used with $(eval $(call ...)).
+# The $$ escaping ensures that the ifeq conditional evaluates during $(eval)
+# execution (when $(1) has its actual value) rather than during define parsing
+# (when $(1) is literally the text "$(1)").
+define require-command-make
+ifeq ($$(strip $(1)),)
+$$(error '$(2)' command not found)
+endif
+endef
+
+# Check that required commands are present
+$(eval $(call require-command-make,$(GIT),git))
+$(eval $(call require-command-make,$(HOSTCMD),hostname))
+
+# Ensure shell is defined
+ifeq ($(SHELL),)
+$(error '$(SHELL)' undefined.)
+endif
 
 NAME          ?= ochami
 IMPORT        := github.com/OpenCHAMI/$(NAME)/
@@ -99,9 +113,7 @@ binaries: $(NAME) ## Build binaries
 
 .PHONY: help
 help: ## Show this help
-ifeq ($(AWK),)
-        $(error awk command not found.)
-endif
+	$(call require-command-shell,$(AWK),awk)
 	@$(AWK) 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m[VAR=val]... <target>\033[0m\n\nTargets:\n"} \
 	/^[a-zA-Z0-9_\/.-]+:.*##/ { \
 	        printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 \
@@ -109,17 +121,13 @@ endif
 
 .PHONY: container
 container: ## Perform a multi-stage container build (accepts CONTAINER_PROG, CONTAINER_OPTS, CONTAINER_TAG, FQCN)
-	$(call require-command,$(CONTAINER_PROG),container program "$(CONTAINER_PROG)")
+	$(call require-command-shell,$(CONTAINER_PROG),container program "$(CONTAINER_PROG)")
 	$(CONTAINER_PROG) build -t $(FQCN) . $(CONTAINER_OPTS)
 
 .PHONY: goreleaser-build
 goreleaser-build: ## Run `goreleaser build` (accepts GORELEASER_OPTS)
-ifeq ($(GO),)
-	$(error go command not found.)
-endif
-ifeq ($(GORELEASER),)
-	$(error goreleaser command not found.)
-endif
+	$(call require-command-shell,$(GO),go)
+	$(call require-command-shell,$(GORELEASER),goreleaser)
 	env \
 		GOVERSION=$(GOVER) \
 		BUILD_HOST=$(BUILDHOST) \
@@ -129,12 +137,8 @@ endif
 
 .PHONY: goreleaser-release
 goreleaser-release: ## Run `goreleaser release` (accepts GORELEASER_OPTS)
-ifeq ($(GO),)
-	$(error go command not found.)
-endif
-ifeq ($(GORELEASER),)
-	$(error goreleaser command not found.)
-endif
+	$(call require-command-shell,$(GO),go)
+	$(call require-command-shell,$(GORELEASER),goreleaser)
 	env \
 		GOVERSION=$(GOVER) \
 		BUILD_HOST=$(BUILDHOST) \
@@ -148,16 +152,12 @@ goreleaser-clean: ## Clean Goreleaser files (remove dist/)
 
 .PHONY: check-reuse
 check-reuse:
-ifeq ($(REUSE),)
-	$(error reuse command not found)
-endif
+	$(call require-command-shell,$(REUSE),reuse)
 	reuse lint
 
 .PHONY: lint
 lint:
-ifeq ($(GOLANGCI_LINT),)
-	$(error golangci-lint command not found)
-endif
+	$(call require-command-shell,$(GOLANGCI_LINT),golangci-lint)
 	$(GOLANGCI_LINT) run
 
 .PHONY: test
@@ -165,16 +165,12 @@ test: unit-test ## Run all tests
 
 .PHONY: unit-test
 unit-test: ## Run unit tests only
-ifeq ($(GO),)
-	$(error go command not found.)
-endif
+	$(call require-command-shell,$(GO),go)
 	$(GO) test -cover -v ./...
 
 .PHONY: clean
 clean: ## Clean Go build artifacts
-ifeq ($(GO),)
-	$(error go command not found.)
-endif
+	$(call require-command-shell,$(GO),go)
 	$(GO) clean -i -x
 
 .PHONY: clean-man
@@ -196,34 +192,26 @@ install: install-prog install-helper install-completions install-man ## Install 
 
 .PHONY: install-prog
 install-prog: $(NAME) ## Install program
-ifeq ($(INSTALL),)
-	$(error install command not found.)
-endif
+	$(call require-command-shell,$(INSTALL),install)
 	$(INSTALL_PROGRAM) $(NAME) $(DESTDIR)$(bindir)/$(NAME)
 
 .PHONY: install-helper
 install-helper: $(HELPERS) ## Install helper scripts
-ifeq ($(INSTALL),)
-	$(error install command not found.)
-endif
+	$(call require-command-shell,$(INSTALL),install)
 	for h in $(HELPERS); do \
 		$(INSTALL_PROGRAM) "$$h" "$(DESTDIR)$(libexecdir)/$$(basename $$h)"; \
 	done
 
 .PHONY: install-completions
 install-completions: completions ## Install shell completions
-ifeq ($(INSTALL),)
-	$(error install command not found.)
-endif
+	$(call require-command-shell,$(INSTALL),install)
 	$(INSTALL_DATA) ./completions/ochami.bash $(DESTDIR)$(sharedir)/bash-completion/completions/ochami
 	$(INSTALL_DATA) ./completions/ochami.fish $(DESTDIR)$(sharedir)/fish/vendor_completions.d/ochami.fish
 	$(INSTALL_DATA) ./completions/ochami.zsh $(DESTDIR)$(sharedir)/zsh/site-functions/_ochami
 
 .PHONY: install-man
 install-man: $(MANBIN) ## Install manual pages
-ifeq ($(INSTALL),)
-	$(error install command not found.)
-endif
+	$(call require-command-shell,$(INSTALL),install)
 	mkdir -p $(DESTDIR)$(mandir)/man1
 	mkdir -p $(DESTDIR)$(mandir)/man5
 	$(INSTALL_DATA) $(MAN1BIN) $(DESTDIR)$(mandir)/man1/
@@ -233,9 +221,7 @@ endif
 man: $(MANBIN) ## Generate manual pages
 
 man/%: man/%.sc
-ifeq ($(SCDOC),)
-	$(error scdoc command not found.)
-endif
+	$(call require-command-shell,$(SCDOC),scdoc)
 	$(SCDOC) < $< > $@
 
 .PHONY: uninstall
@@ -257,7 +243,5 @@ uninstall-man: ## Uninstall manual pages
 	rm -f $(foreach man5page,$(subst man/,,$(MAN5BIN)),$(DESTDIR)$(mandir)/man5/$(man5page))
 
 $(NAME): *.go $(CMD) $(INTERNAL) $(PKG)
-ifeq ($(GO),)
-	$(error go command not found.)
-endif
+	$(call require-command-shell,$(GO),go)
 	$(GO) build -v -ldflags="$(LDFLAGS)"
