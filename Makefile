@@ -15,6 +15,11 @@ INSTALL       ?= $(shell command -v install 2>/dev/null)
 SCDOC         ?= $(shell command -v scdoc 2>/dev/null)
 SHELL         ?= /bin/sh
 
+# Allow override for container registry in goreleaser builds
+# Supports Docker, Podman, and other OCI-compliant runtimes
+CONTAINER_REGISTRY_OWNER ?= $(shell $(GIT) config --get remote.origin.url | sed -n 's#.*/\([^/]*\)/[^/]*\.git$$#\1#p' || echo "openchami")
+IS_PR_BUILD              ?= false
+
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
 
@@ -101,6 +106,8 @@ endif
 		GOVERSION=$(GOVER) \
 		BUILD_HOST=$(BUILDHOST) \
 		BUILD_USER=$(BUILDUSER) \
+		IS_PR_BUILD=$(IS_PR_BUILD) \
+		CONTAINER_REGISTRY_OWNER=$(CONTAINER_REGISTRY_OWNER) \
 		$(GORELEASER) build $(GORELEASER_OPTS)
 
 .PHONY: goreleaser-release
@@ -115,6 +122,8 @@ endif
 		GOVERSION=$(GOVER) \
 		BUILD_HOST=$(BUILDHOST) \
 		BUILD_USER=$(BUILDUSER) \
+		IS_PR_BUILD=$(IS_PR_BUILD) \
+		CONTAINER_REGISTRY_OWNER=$(CONTAINER_REGISTRY_OWNER) \
 		$(GORELEASER) release $(GORELEASER_OPTS)
 
 .PHONY: goreleaser-clean
