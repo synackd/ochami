@@ -16,6 +16,17 @@ services, especially the [State Management Database
 (BSS)](https://github.com/OpenCHAMI/bss). The tool is meant to ease interaction
 with the API so one need not be proficient in `curl`.
 
+## Contributing
+
+This project welcomes contributions! Please see **[CONTRIBUTING.md](CONTRIBUTING.md)** for details on:
+
+- Building locally with Make
+- Building and testing containers (Docker/Podman)
+- Setting up PR container builds from forks
+- Code standards, DCO, and REUSE compliance
+
+General OpenCHAMI contribution guidelines: [OpenCHAMI Contributing Guidelines](https://github.com/OpenCHAMI/.github/blob/main/CONTRIBUTING.md)
+
 ## Documentation
 
 There are manual pages in the [man directory](/man), which contain the most
