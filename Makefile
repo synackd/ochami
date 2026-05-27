@@ -3,22 +3,21 @@
 # SPDX-License-Identifier: MIT
 
 # Set path to commands
-GO            ?= $(shell command -v go 2>/dev/null)
-GOLANGCI_LINT ?= $(shell command -v golangci-lint 2>/dev/null)
-GORELEASER    ?= $(shell command -v goreleaser 2>/dev/null)
-GIT           ?= $(shell command -v git 2>/dev/null)
-AWK           ?= $(shell command -v awk 2>/dev/null)
-REUSE         ?= $(shell command -v reuse 2>/dev/null)
+GO             ?= $(shell command -v go 2>/dev/null)
+GOLANGCI_LINT  ?= $(shell command -v golangci-lint 2>/dev/null)
+GORELEASER     ?= $(shell command -v goreleaser 2>/dev/null)
+GIT            ?= $(shell command -v git 2>/dev/null)
+AWK            ?= $(shell command -v awk 2>/dev/null)
+REUSE          ?= $(shell command -v reuse 2>/dev/null)
 # Use HOSTCMD to not conflict with Make's $(HOSTNAME)
-HOSTCMD       ?= $(shell command -v hostname 2>/dev/null)
-INSTALL       ?= $(shell command -v install 2>/dev/null)
-SCDOC         ?= $(shell command -v scdoc 2>/dev/null)
-SHELL         ?= /bin/sh
+HOSTCMD        ?= $(shell command -v hostname 2>/dev/null)
+INSTALL        ?= $(shell command -v install 2>/dev/null)
+SCDOC          ?= $(shell command -v scdoc 2>/dev/null)
+SHELL          ?= /bin/sh
+CONTAINER_PROG ?= $(shell command -v docker 2>/dev/null)
 
-# Allow override for container registry in goreleaser builds
-# Supports Docker, Podman, and other OCI-compliant runtimes
-CONTAINER_REGISTRY_OWNER ?= $(shell $(GIT) config --get remote.origin.url | sed -n 's#.*/\([^/]*\)/[^/]*\.git$$#\1#p' || echo "openchami")
-IS_PR_BUILD              ?= false
+# Allow override for PR builds in goreleaser
+IS_PR_BUILD ?= false
 
 INSTALL_PROGRAM ?= $(INSTALL) -Dm755
 INSTALL_DATA    ?= $(INSTALL) -Dm644
@@ -40,16 +39,30 @@ endif
 # Arg 2: Space-separated list of patterns to match
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-NAME      ?= ochami
-IMPORT    := github.com/OpenCHAMI/$(NAME)/
-VERSION   ?= $(shell $(GIT) describe --tags --always --dirty --broken --abbrev=0)
-TAG       ?= $(shell $(GIT) describe --tags --always --abbrev=0)
-BRANCH    ?= $(shell $(GIT) branch --show-current)
-BUILD     ?= $(shell $(GIT) rev-parse HEAD)
-GOVER     := $(shell $(GO) env GOVERSION)
-GITSTATE  := $(shell if output=$($(GIT) status --porcelain) && [ -n "$output" ]; then echo dirty; else echo clean; fi)
-BUILDHOST := $(shell $(HOSTCMD))
-BUILDUSER := $(shell whoami)
+# Function to check if a command is available and error if not found
+#
+# Arg 1: Command path (can be a variable like $(GO) or direct path)
+# Arg 2: Command name for error message
+# Usage: $(call require-command,$(GO),go)
+define require-command
+@if [ -z "$(1)" ]; then \
+	echo "make: *** $(2) command not found" >&2; \
+	exit 1; \
+fi
+endef
+
+NAME          ?= ochami
+IMPORT        := github.com/OpenCHAMI/$(NAME)/
+VERSION       ?= $(shell $(GIT) describe --tags --always --dirty --broken --abbrev=0)
+TAG           ?= $(shell $(GIT) describe --tags --always --abbrev=0)
+BRANCH        ?= $(shell $(GIT) branch --show-current)
+BUILD         ?= $(shell $(GIT) rev-parse HEAD)
+GOVER         := $(shell $(GO) env GOVERSION)
+GITSTATE      := $(shell if output=$($(GIT) status --porcelain) && [ -n "$output" ]; then echo dirty; else echo clean; fi)
+BUILDHOST     := $(shell $(HOSTCMD))
+BUILDUSER     := $(shell whoami)
+CONTAINER_TAG ?= latest
+FQCN          ?= ghcr.io/openchami/$(NAME):$(CONTAINER_TAG)
 LDFLAGS := -s \
 	   -X '$(IMPORT)internal/version.Version=$(VERSION)' \
 	   -X '$(IMPORT)internal/version.Tag=$(TAG)' \
@@ -94,6 +107,11 @@ endif
 	        printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 \
 	}' $(MAKEFILE_LIST)
 
+.PHONY: container
+container: ## Perform a multi-stage container build (accepts CONTAINER_PROG, CONTAINER_OPTS, CONTAINER_TAG, FQCN)
+	$(call require-command,$(CONTAINER_PROG),container program "$(CONTAINER_PROG)")
+	$(CONTAINER_PROG) build -t $(FQCN) . $(CONTAINER_OPTS)
+
 .PHONY: goreleaser-build
 goreleaser-build: ## Run `goreleaser build` (accepts GORELEASER_OPTS)
 ifeq ($(GO),)
@@ -107,7 +125,6 @@ endif
 		BUILD_HOST=$(BUILDHOST) \
 		BUILD_USER=$(BUILDUSER) \
 		IS_PR_BUILD=$(IS_PR_BUILD) \
-		CONTAINER_REGISTRY_OWNER=$(CONTAINER_REGISTRY_OWNER) \
 		$(GORELEASER) build $(GORELEASER_OPTS)
 
 .PHONY: goreleaser-release
@@ -123,7 +140,6 @@ endif
 		BUILD_HOST=$(BUILDHOST) \
 		BUILD_USER=$(BUILDUSER) \
 		IS_PR_BUILD=$(IS_PR_BUILD) \
-		CONTAINER_REGISTRY_OWNER=$(CONTAINER_REGISTRY_OWNER) \
 		$(GORELEASER) release $(GORELEASER_OPTS)
 
 .PHONY: goreleaser-clean
