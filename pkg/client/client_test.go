@@ -7,7 +7,6 @@ package client
 
 import (
 	"errors"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -158,7 +157,7 @@ func TestFileToHTTPBody(t *testing.T) {
 	// Prepare a temp JSON file
 	dir := t.TempDir()
 	path := filepath.Join(dir, "payload.json")
-	if err := ioutil.WriteFile(path, []byte(`{"n":42}`), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"n":42}`), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -207,7 +206,7 @@ func TestReadPayload(t *testing.T) {
 	// Prepare a temp JSON file
 	dir := t.TempDir()
 	path := filepath.Join(dir, "data.json")
-	if err := ioutil.WriteFile(path, []byte(`{"k":7}`), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"k":7}`), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -280,19 +279,19 @@ func TestReadPayloadSlice(t *testing.T) {
 	// Prepare temp files
 	dir := t.TempDir()
 	jsonSinglePath := filepath.Join(dir, "single.json")
-	if err := ioutil.WriteFile(jsonSinglePath, []byte(`{"k":7}`), 0o644); err != nil {
+	if err := os.WriteFile(jsonSinglePath, []byte(`{"k":7}`), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 	jsonArrayPath := filepath.Join(dir, "array.json")
-	if err := ioutil.WriteFile(jsonArrayPath, []byte(`[{"k":1},{"k":2}]`), 0o644); err != nil {
+	if err := os.WriteFile(jsonArrayPath, []byte(`[{"k":1},{"k":2}]`), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 	yamlSinglePath := filepath.Join(dir, "single.yaml")
-	if err := ioutil.WriteFile(yamlSinglePath, []byte("k: 9\n"), 0o644); err != nil {
+	if err := os.WriteFile(yamlSinglePath, []byte("k: 9\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 	yamlArrayPath := filepath.Join(dir, "array.yaml")
-	if err := ioutil.WriteFile(yamlArrayPath, []byte("- k: 3\n- k: 4\n"), 0o644); err != nil {
+	if err := os.WriteFile(yamlArrayPath, []byte("- k: 3\n- k: 4\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 

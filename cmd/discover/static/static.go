@@ -77,8 +77,7 @@ See ochami-discover(1) for more details.`,
 			}
 
 			// This endpoint requires authentication, so a token is needed
-			cli.SetToken(cmd)
-			cli.CheckToken(cmd)
+			cli.HandleToken(cmd)
 
 			// Create client to make request to SMD
 			smdClient, err := smd.NewClient(smdBaseURI, cli.Insecure)
@@ -575,6 +574,7 @@ See ochami-discover(1) for more details.`,
 	staticCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 	staticCmd.Flags().VarP(&cli.FormatInput, "format-input", "f", "format of input payload data (json,json-pretty,yaml)")
 	staticCmd.Flags().Bool("overwrite", false, "overwrite any existing information instead of failing")
+	staticCmd.Flags().String("uri", "", "absolute base URI or relative base path of SMD")
 
 	staticCmd.RegisterFlagCompletionFunc("format-input", cli.CompletionFormatData)
 	staticCmd.RegisterFlagCompletionFunc("discovery-version", cli.CompletionDiscoveryVersion)
