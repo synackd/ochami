@@ -31,6 +31,25 @@ jobs:
             echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Detect repository owner
+        id: owner
+        run: |
+          # For PRs, get the head repository owner (the fork's owner)
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            REPO_OWNER="${{ github.event.pull_request.head.repo.owner.login }}"
+          else
+            # For manual workflow_dispatch, use repository owner
+            REPO_OWNER="${{ github.repository_owner }}"
+          fi
+
+          # Fallback to repository_owner if detection failed
+          if [[ -z "$REPO_OWNER" ]]; then
+            REPO_OWNER="${{ github.repository_owner }}"
+          fi
+
+          echo "owner=$REPO_OWNER" >> $GITHUB_OUTPUT
+          echo "Detected registry owner for cleanup: $REPO_OWNER"
+
       - name: Delete PR container images
         continue-on-error: true
         env:
@@ -38,7 +57,7 @@ jobs:
         run: |
           PR_NUM="${{ steps.pr.outputs.number }}"
           PACKAGE_NAME="${{ github.event.repository.name }}"
-          ORG_NAME="${{ github.repository_owner }}"
+          ORG_NAME="${{ steps.owner.outputs.owner }}"
 
           echo "Cleaning up container images for PR ${PR_NUM}..."
 
