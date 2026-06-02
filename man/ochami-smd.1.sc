@@ -747,6 +747,104 @@ Subcommands for this command are as follows:
 		flag will *replace* any existing tags, so be sure any existing tags that
 		need to be kept are passed to this flag.
 
+*membership* [-F _format_] [FILTERS]
+	Gets the memberships of one or more nodes.
+
+	This commands sends a GET to endpoints under SMD's /memberships endpoint.
+
+	This command accepts the following options:
+
+	*--arch* _arch_
+		Filter the results based on architecture. Can be specified multiple times
+		for selecting components with different architectures.
+
+	*--class* _class_
+		Filter the results based on HMS hardware class. Can be specified multiple
+		times for selecting entries with different classes.
+
+	*--enabled* _enabled_
+		Filter the results based on enabled status (true or false).
+
+	*--flag* _flag_
+		Filter the results based on HMS flag value like OK, Alert etc. Can be
+		specified multiple times for selecting entries with different flags.
+
+	*-F, --format-output* _format_
+		Output response data in specified _format_. Supported values are:
+
+		- _json_ (default)
+		- _json-pretty_
+		- _yaml_
+
+	*--group* _group_
+		Restrict search to the given group label. One group can be combined with
+		at most one partition argument which will be treated as a logical AND.
+		NULL will return components in NO groups.
+
+	*--id* _id_
+		Filter the results based on xname ID(s). Can be specified multiple times
+		for selecting entries with multiple specific xnames.
+
+	*--nid-end* _nid_end_
+		Filter the results based on NIDs less than or equal to the provided
+		integer.
+
+	*--nid* _nid_
+		Filter the results based on NID. Can be specified multiple times for
+		selecting entries with multiple specific NIDs.
+
+	*--nid-start* _nid_start_
+		Filter the results based on NIDs equal to or greater than the provided
+		integer.
+
+	*--partition* _partition_
+		Restrict search to the given partition (p#.#). One partition can be
+		combined with at most one group argument which will be treated as a
+		logical AND. NULL will return components in NO partition.
+
+	*--role* _role_
+		Filter the results based on HMS role. Can be specified multiple times for
+		selecting entries with different roles. Valid values are:
+
+		- Compute
+		- Service
+		- System
+		- Application
+		- Storage
+		- Management
+
+		Additional valid values may be added via configuration file. See the
+		results of 'GET /service/values/role' for the complete list.
+
+	*--softwarestatus* _softwarestatus_
+		Filter the results based on software status. Software status is a free
+		form string. Matching is case-insensitive. Can be specified multiple
+		times for selecting entries with different software statuses.
+
+	*--state* _state_
+		Filter the results based on HMS state like Ready, On etc. Can be
+		specified multiple times for selecting entries in different states.
+
+	*--subrole* _subrole_
+		Filter the results based on HMS subrole. Can be specified multiple times
+		for selecting entries with different subroles. Valid values are:
+
+		- Master
+		- Worker
+		- Storage
+
+		Additional valid values may be added via configuration file. See the
+		results of 'GET /service/values/subrole' for the complete list.
+
+	*--subtype* _subtype_
+		Filter the results based on HMS subtype. Can be specified multiple times
+		for selecting entries with different subtypes.
+
+	*--type* _type_
+		Filter the results based on HMS type like Node, NodeEnclosure, NodeBMC
+		etc. Can be specified multiple times for selecting entries of multiple
+		types.
+
 ## group member
 
 Manage SMD group membership. For general group management, see *group*.
