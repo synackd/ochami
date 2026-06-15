@@ -3,7 +3,22 @@
 #
 # SPDX-License-Identifier: MIT
 
+# Editor artifacts
+.vscode/
+*.swp
+*.swo
+*.swn
+.*.sw?
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Test/build artifacts
 completions/
+coverage/
 dist/
 ochami
-.vscode/
+*.cover
+*.out
