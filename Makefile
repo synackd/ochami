@@ -153,7 +153,7 @@ goreleaser-clean: ## Clean Goreleaser files (remove dist/)
 .PHONY: check-reuse
 check-reuse:
 	$(call require-command-shell,$(REUSE),reuse)
-	reuse lint
+	reuse lint --lines
 
 .PHONY: lint
 lint:
