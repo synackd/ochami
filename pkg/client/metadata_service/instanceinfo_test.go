@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"testing"
 
-	api "github.com/OpenCHAMI/metadata-service/apis/cloud-init.openchami.io/v1"
-	metadata_service_client "github.com/OpenCHAMI/metadata-service/pkg/client"
 	"github.com/openchami/fabrica/pkg/fabrica"
+	api "github.com/openchami/metadata-service/apis/cloud-init.openchami.io/v1"
+	metadata_service_client "github.com/openchami/metadata-service/pkg/client"
 )
 
 func TestAddInstanceInfoSpecs_OmitsLabels(t *testing.T) {
