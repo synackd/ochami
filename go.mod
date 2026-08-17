@@ -18,11 +18,11 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/lestrrat-go/jwx/v3 v3.2.0
 	github.com/nikolalohinski/gonja/v2 v2.9.0
-	github.com/openchami/boot-service v0.3.1
+	github.com/openchami/boot-service v0.3.2
 	github.com/openchami/bss v1.32.3
 	github.com/openchami/cloud-init v1.4.8
-	github.com/openchami/fabrica v0.4.9
-	github.com/openchami/metadata-service v0.2.1
+	github.com/openchami/fabrica v0.4.10
+	github.com/openchami/metadata-service v0.2.2
 	github.com/openchami/schemas v0.0.0-20250625220233-9aad17a286c4
 	github.com/openchami/smd/v2 v2.20.5
 	github.com/rs/zerolog v1.35.1
