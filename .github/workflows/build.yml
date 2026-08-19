@@ -18,24 +18,20 @@ permissions:
 
 jobs:
   build-goreleaser:
+    # GoReleaser requires Docker Buildx, which is unavailable on the
+    # unprivileged ubuntu-slim runner.
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Install scdoc for man page generation
         run: |
           sudo apt update
-          sudo apt install scdoc
+          sudo apt install -y --no-install-recommends scdoc
 
       - name: Set up latest stable Go
         uses: actions/setup-go@v7
         with:
           go-version: stable
-
-      - name: Docker Login
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -80,6 +76,14 @@ jobs:
             echo "SKIP_CONTAINER_PUBLISH=false" >> $GITHUB_ENV
           fi
 
+      - name: GHCR Login
+        if: env.SKIP_CONTAINER_PUBLISH == 'false'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build with goreleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -88,12 +92,13 @@ jobs:
         id: goreleaser
 
   build-make-binaries:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
     steps:
       - name: Install build dependencies
         run: |
           sudo apt update
-          sudo apt install -y make git
+          sudo apt install -y --no-install-recommends make git
 
       - name: Set up latest stable Go
         uses: actions/setup-go@v7
@@ -106,12 +111,15 @@ jobs:
           fetch-tags: 1
           fetch-depth: 0
 
-      - name: Build manual pages
+      - name: Build with make
         run: |
           make
 
   build-make-container-multistage:
+    # Container builds require a Docker daemon, which is unavailable on the
+    # unprivileged ubuntu-slim runner.
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Install build dependencies
         run: |
@@ -129,13 +137,14 @@ jobs:
           make container
 
   docs-make:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
     steps:
 
       - name: Install build dependencies
         run: |
           sudo apt update
-          sudo apt install -y make git scdoc
+          sudo apt install -y --no-install-recommends make git scdoc
 
       - name: Set up latest stable Go
         uses: actions/setup-go@v7

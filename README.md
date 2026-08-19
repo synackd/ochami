@@ -10,6 +10,28 @@ SPDX-License-Identifier: MIT
 <!-- Text width is 80, only use spaces and use 4 spaces instead of tabs -->
 <!-- vim: set et sta tw=80 ts=4 sw=4 sts=0: -->
 
+[![Release with Goreleaser](https://github.com/OpenCHAMI/ochami/actions/workflows/release.yml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/release.yml)
+[![Test](https://github.com/OpenCHAMI/ochami/actions/workflows/test.yml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/test.yml)
+[![Coverage](https://github.com/OpenCHAMI/ochami/actions/workflows/coverage.yaml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/coverage.yaml)
+
+<details>
+<summary>Additional project checks</summary>
+
+**Build quality**
+
+[![Build](https://github.com/OpenCHAMI/ochami/actions/workflows/build.yml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/build.yml)
+[![Lint](https://github.com/OpenCHAMI/ochami/actions/workflows/lint.yml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/lint.yml)
+[![REUSE compliance check](https://github.com/OpenCHAMI/ochami/actions/workflows/reuse.yaml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/reuse.yaml)
+
+**Security**
+
+[![CodeQL](https://github.com/OpenCHAMI/ochami/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/github-code-scanning/codeql)
+[![Vulnerability Check](https://github.com/OpenCHAMI/ochami/actions/workflows/govulncheck.yaml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/govulncheck.yaml)
+[![OpenSSF Scorecard](https://github.com/OpenCHAMI/ochami/actions/workflows/scorecard.yaml/badge.svg)](https://github.com/OpenCHAMI/ochami/actions/workflows/scorecard.yaml)
+
+</details>
+<br/>
+
 `ochami` is the command line interface to interact with the API of OpenCHAMI
 services, especially the [State Management Database
 (SMD)](https://github.com/OpenCHAMI/smd) and the [Boot Script Service
@@ -190,6 +212,23 @@ simply be done via:
 ```bash
 make
 ```
+
+### Local checks before pushing
+
+Before pushing changes, build the project and run the same primary checks and
+tests used for pull requests:
+
+```bash
+# Build the executable.
+make
+
+# Run static checks and tests.
+make lint reuse mod test
+```
+
+The `lint` target requires `golangci-lint`, and `reuse` requires the REUSE CLI.
+The `mod` target tidies Go module files; review and commit any resulting changes
+to `go.mod` or `go.sum`.
 
 On Unix-like systems, one can also install the binary, man pages, and
 completions:

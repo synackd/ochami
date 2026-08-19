@@ -150,8 +150,8 @@ goreleaser-release: ## Run `goreleaser release` (accepts GORELEASER_OPTS)
 goreleaser-clean: ## Clean Goreleaser files (remove dist/)
 	$(RM) -rf dist/
 
-.PHONY: check-reuse
-check-reuse:
+.PHONY: reuse
+reuse: ## Check REUSE compliance
 	$(call require-command-shell,$(REUSE),reuse)
 	reuse lint --lines
 
@@ -160,6 +160,11 @@ lint:
 	$(call require-command-shell,$(GOLANGCI_LINT),golangci-lint)
 	$(GOLANGCI_LINT) run
 
+.PHONY: mod
+mod: ## Download and prune Go modules
+	$(call require-command-shell,$(GO),go)
+	$(GO) mod tidy
+
 .PHONY: test
 test: unit-test ## Run all tests
 
@@ -167,6 +172,11 @@ test: unit-test ## Run all tests
 unit-test: ## Run unit tests only
 	$(call require-command-shell,$(GO),go)
 	$(GO) test -cover -v ./...
+
+.PHONY: coverage
+coverage: ## Run unit tests and generate a coverage profile
+	$(call require-command-shell,$(GO),go)
+	$(GO) test -covermode=atomic -coverprofile=coverage.out ./...
 
 .PHONY: clean
 clean: ## Clean Go build artifacts
