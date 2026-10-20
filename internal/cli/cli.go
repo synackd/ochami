@@ -21,9 +21,9 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/spf13/cobra"
 
-	"github.com/openchami/ochami/internal/config"
 	"github.com/openchami/ochami/internal/log"
 	"github.com/openchami/ochami/pkg/client"
+	"github.com/openchami/ochami/pkg/config"
 	"github.com/openchami/ochami/pkg/discover"
 	"github.com/openchami/ochami/pkg/format"
 
@@ -155,7 +155,7 @@ func (i ioStream) LoopYesNo(p string) (bool, error) {
 func InitConfig(cmd *cobra.Command, create bool) error {
 	// Do not read or write config file if --ignore-config passed
 	if cmd.Flags().Changed("ignore-config") {
-		err := config.LoadGlobalConfigDefaultOnly()
+		err := loadDefaultConfig()
 		if err != nil {
 			return fmt.Errorf("unable to load default config: %w", err)
 		}
@@ -188,9 +188,9 @@ func InitConfig(cmd *cobra.Command, create bool) error {
 	// config file and user config file if not passed.
 	var err error
 	if ConfigFile != "" {
-		err = config.LoadGlobalConfigFromFile(ConfigFile)
+		err = loadConfigFromFile(ConfigFile)
 	} else {
-		err = config.LoadGlobalConfigMerged()
+		err = loadMergedConfig()
 	}
 	if err != nil {
 		return err
@@ -208,36 +208,37 @@ func InitLogging(cmd *cobra.Command) error {
 		if err != nil {
 			return fmt.Errorf("failed to fetch flag log-format: %w", err)
 		}
-		config.GlobalConfig.Log.Format = lf
+		activeConfig.Log.Format = lf
 	}
 	if cmd.Flags().Changed("log-level") {
 		ll, err := cmd.Flags().GetString("log-level")
 		if err != nil {
 			return fmt.Errorf("failed to fetch flag log-level: %w", err)
 		}
-		config.GlobalConfig.Log.Level = ll
+		activeConfig.Log.Level = ll
 	}
 	if cmd.Flags().Changed("log-color") {
 		lc, err := cmd.Flags().GetString("log-color")
 		if err != nil {
 			return fmt.Errorf("failed to fetch flag log-color: %w", err)
 		}
-		config.GlobalConfig.Log.Color = lc
+		activeConfig.Log.Color = lc
 	}
 
 	// 2. Apply defaults for empty values (lowest precedence)
-	if config.GlobalConfig.Log.Level == "" {
-		config.GlobalConfig.Log.Level = config.DefaultConfigMap["log.level"].(string)
+	defaults := config.DefaultGlobalMap()
+	if activeConfig.Log.Level == "" {
+		activeConfig.Log.Level = defaults["log.level"].(string)
 	}
-	if config.GlobalConfig.Log.Format == "" {
-		config.GlobalConfig.Log.Format = config.DefaultConfigMap["log.format"].(string)
+	if activeConfig.Log.Format == "" {
+		activeConfig.Log.Format = defaults["log.format"].(string)
 	}
-	if config.GlobalConfig.Log.Color == "" {
-		config.GlobalConfig.Log.Color = config.DefaultConfigMap["log.color"].(string)
+	if activeConfig.Log.Color == "" {
+		activeConfig.Log.Color = defaults["log.color"].(string)
 	}
 
 	// 3. Initialize logger
-	if err := log.Init(config.GlobalConfig.Log.Level, config.GlobalConfig.Log.Format, config.GlobalConfig.Log.Color); err != nil {
+	if err := log.Init(activeConfig.Log.Level, activeConfig.Log.Format, activeConfig.Log.Color); err != nil {
 		return err
 	}
 
@@ -251,7 +252,7 @@ func InitLogging(cmd *cobra.Command) error {
 // missing. This creation only applies when a config file is explicitly
 // specified on the command line and not the merged config.
 func InitConfigAndLogging(cmd *cobra.Command, createCfg bool) error {
-	// Load configuration first (this populates GlobalConfig)
+	// Load configuration first (this populates activeConfig and activeEffective)
 	if err := InitConfig(cmd, createCfg); err != nil {
 		// Keep a more specific code from InitConfig (e.g. CodeDeclined).
 		return EnsureCode(CodeConfig, fmt.Errorf("failed to initialize config: %w", err))
@@ -259,6 +260,12 @@ func InitConfigAndLogging(cmd *cobra.Command, createCfg bool) error {
 	// Initialize logging second (flag overrides are applied inside InitLogging)
 	if err := InitLogging(cmd); err != nil {
 		return Errorf(CodeConfig, "failed to initialize logging: %w", err)
+	}
+	// Loading tolerates a cluster defined more than once in a config file
+	// (selecting it fails later), so warn about each one now that logging
+	// is up.
+	for _, dup := range activeConfig.DuplicateClusters() {
+		log.Logger.Warn().Msg(dup.Error())
 	}
 	return nil
 }
@@ -376,6 +383,22 @@ func GetBaseURIRCS(cmd *cobra.Command) (string, error) {
 	return GetBaseURI(cmd, config.ServiceRCS)
 }
 
+// lookupCluster returns the cluster named name from the active configuration.
+// If no such cluster exists, the error says whether name came from
+// default-cluster (isDefault) or --cluster. Other errors, such as
+// config.ErrDuplicateCluster for a cluster defined more than once in a config
+// file, are returned as is.
+func lookupCluster(name string, isDefault bool) (config.Cluster, error) {
+	cl, err := activeConfig.GetCluster(name)
+	if errors.As(err, &config.ErrUnknownCluster{}) {
+		if isDefault {
+			return config.Cluster{}, fmt.Errorf("default cluster %s not found", name)
+		}
+		return config.Cluster{}, fmt.Errorf("cluster %s not found", name)
+	}
+	return cl, err
+}
+
 func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, error) {
 	// Precedence of getting base URI for requests (higher numbers override
 	// all preceding numbers):
@@ -388,37 +411,24 @@ func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	//    --uri) are set, read details from them.
 	var (
 		clusterName   string
-		clusterToUse  config.ConfigCluster
-		clusterConfig config.ConfigClusterConfig
-		clusterList   = config.GlobalConfig.Clusters
+		clusterConfig config.ClusterConfig
 	)
-	if config.GlobalConfig.DefaultCluster != "" {
+	if activeConfig.DefaultCluster != "" {
 		// 3. Check 'default-cluster'.
-		clusterName = config.GlobalConfig.DefaultCluster
-		clusterList = config.GlobalConfig.Clusters
+		clusterName = activeConfig.DefaultCluster
 		log.Logger.Debug().Msgf("using base URI from default cluster %s", clusterName)
-		for _, c := range clusterList {
-			if c.Name == clusterName {
-				clusterToUse = c
-				break
-			}
-		}
-		if clusterToUse == (config.ConfigCluster{}) {
-			return "", fmt.Errorf("default cluster %s not found", clusterName)
+		clusterToUse, err := lookupCluster(clusterName, true)
+		if err != nil {
+			return "", err
 		}
 		clusterConfig = clusterToUse.Cluster
 	} else if cmd.Flag("cluster").Changed {
 		// 2. Check --cluster (overrides "default-cluster").
 		clusterName = cmd.Flag("cluster").Value.String()
 		log.Logger.Debug().Msgf("reading URI from cluster %s passed from command line", clusterName)
-		for _, c := range clusterList {
-			if c.Name == clusterName {
-				clusterToUse = c
-				break
-			}
-		}
-		if clusterToUse == (config.ConfigCluster{}) {
-			return "", fmt.Errorf("cluster %s not found", clusterName)
+		clusterToUse, err := lookupCluster(clusterName, false)
+		if err != nil {
+			return "", err
 		}
 
 		clusterConfig = clusterToUse.Cluster
@@ -427,7 +437,7 @@ func GetBaseURI(cmd *cobra.Command, serviceName config.ServiceName) (string, err
 	// previously-set values while leaving unspecified ones alone.
 	if cmd.Flag("cluster-uri").Changed || (cmd.Flag("uri") != nil && cmd.Flag("uri").Changed) {
 		log.Logger.Debug().Msg("using base URI passed on command line")
-		var ccc config.ConfigClusterConfig
+		var ccc config.ClusterConfig
 		if cmd.Flag("cluster-uri").Changed {
 			ccc.URI = cmd.Flag("cluster-uri").Value.String()
 		}
@@ -479,37 +489,24 @@ func GetAPIVersion(cmd *cobra.Command, serviceName config.ServiceName) (string, 
 	var (
 		apiVersion    string
 		clusterName   string
-		clusterToUse  config.ConfigCluster
-		clusterConfig config.ConfigClusterConfig
-		clusterList   = config.GlobalConfig.Clusters
+		clusterConfig config.ClusterConfig
 	)
-	if config.GlobalConfig.DefaultCluster != "" {
+	if activeConfig.DefaultCluster != "" {
 		// 3. Check 'default-cluster'
-		clusterName = config.GlobalConfig.DefaultCluster
-		clusterList = config.GlobalConfig.Clusters
+		clusterName = activeConfig.DefaultCluster
 		log.Logger.Debug().Msgf("using API version from %s in default cluster %s", serviceName, clusterName)
-		for _, c := range clusterList {
-			if c.Name == clusterName {
-				clusterToUse = c
-				break
-			}
-		}
-		if clusterToUse == (config.ConfigCluster{}) {
-			return "", fmt.Errorf("default cluster %s not found", clusterName)
+		clusterToUse, err := lookupCluster(clusterName, true)
+		if err != nil {
+			return "", err
 		}
 		clusterConfig = clusterToUse.Cluster
 	} else if cmd.Flag("cluster").Changed {
 		// 2. Check --cluster (overrides "default-cluster").
 		clusterName = cmd.Flag("cluster").Value.String()
 		log.Logger.Debug().Msgf("reading API version for %s from cluster %s passed from command line", serviceName, clusterName)
-		for _, c := range clusterList {
-			if c.Name == clusterName {
-				clusterToUse = c
-				break
-			}
-		}
-		if clusterToUse == (config.ConfigCluster{}) {
-			return "", fmt.Errorf("cluster %s not found", clusterName)
+		clusterToUse, err := lookupCluster(clusterName, false)
+		if err != nil {
+			return "", err
 		}
 
 		clusterConfig = clusterToUse.Cluster
@@ -539,12 +536,12 @@ func GetAPIVersion(cmd *cobra.Command, serviceName config.ServiceName) (string, 
 func GetTimeout(cmd *cobra.Command) time.Duration {
 	if cmd.Flag("timeout").Changed {
 		if dur, err := cmd.Flags().GetDuration("timeout"); err != nil {
-			log.Logger.Warn().Err(err).Msgf("failed to get timeout from flag, falling back to config value of %s", config.GlobalConfig.Timeout)
+			log.Logger.Warn().Err(err).Msgf("failed to get timeout from flag, falling back to config value of %s", activeConfig.Timeout)
 		} else {
 			return dur
 		}
 	}
-	return config.GlobalConfig.Timeout
+	return activeConfig.Timeout
 }
 
 // HandleToken is a wrapper function around code that reads, checks, and
@@ -561,23 +558,15 @@ func HandleToken(cmd *cobra.Command) error {
 		if cmd.Flag("cluster").Changed {
 			// Use cluster passed via --cluster
 			clusterName = cmd.Flag("cluster").Value.String()
-		} else if config.GlobalConfig.DefaultCluster != "" {
+		} else if activeConfig.DefaultCluster != "" {
 			// Use default cluster
-			clusterName = config.GlobalConfig.DefaultCluster
+			clusterName = activeConfig.DefaultCluster
 		}
 
 		if clusterName != "" {
-			if cl, err := config.GlobalConfig.GetCluster(clusterName); err != nil {
-				if errors.Is(err, config.ErrUnknownCluster{}) {
-					// Cluster was not found (this error
-					// should be caught before this function, but
-					// this check is here just in case),
-					// skip token check
-					log.Logger.Warn().Msgf("cluster %q not found, not checking token", clusterName)
-				} else {
-					// Other error occurred, fatal
-					return Errorf(CodeConfig, "failed to get cluster: %w", err)
-				}
+			cl, err := activeConfig.GetCluster(clusterName)
+			if err != nil {
+				return Errorf(CodeConfig, "failed to get cluster: %w", err)
 			} else {
 				// Cluster was found, use enable-auth value to
 				// determine whether to read/check token
@@ -622,8 +611,8 @@ func SetToken(cmd *cobra.Command) error {
 	if cmd.Flag("cluster").Changed {
 		clusterName = cmd.Flag("cluster").Value.String()
 		log.Logger.Debug().Msg("--cluster specified: " + clusterName)
-	} else if config.GlobalConfig.DefaultCluster != "" {
-		clusterName = config.GlobalConfig.DefaultCluster
+	} else if activeConfig.DefaultCluster != "" {
+		clusterName = activeConfig.DefaultCluster
 		log.Logger.Debug().Msg("--cluster not specified, using default-cluster: " + clusterName)
 	} else {
 		return Errorf(CodeAuth, "no default-cluster specified and --token not passed")

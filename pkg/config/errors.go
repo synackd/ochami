@@ -1,0 +1,161 @@
+// SPDX-FileCopyrightText: © 2024-2025 Triad National Security, LLC. All rights reserved.
+// SPDX-FileCopyrightText: © 2025 OpenCHAMI a Series of LF Projects, LLC
+//
+// SPDX-License-Identifier: MIT
+
+package config
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Error is implemented by every typed error this package defines. Callers
+// that need to distinguish "a config error occurred" from other error
+// classes (e.g. internal/cli's exit-code classification) should match
+// against this interface via errors.As rather than hand-enumerating the
+// concrete types below, so that a new error type added here is
+// automatically recognized.
+type Error interface {
+	error
+	ochamiConfigError()
+}
+
+// ErrInvalidConfigVal represents an error that occurs when a value for a key in
+// the configuration is invalid.
+type ErrInvalidConfigVal struct {
+	Key      string
+	Value    string
+	Expected string
+	Line     int
+}
+
+func (eicv ErrInvalidConfigVal) Error() string {
+	msg := fmt.Sprintf("invalid value for key %q: got %s but expected %s", eicv.Key, eicv.Value, eicv.Expected)
+	if eicv.Line > 0 {
+		return fmt.Sprintf("line %d: %s", eicv.Line, msg)
+	}
+	return msg
+}
+
+func (ErrInvalidConfigVal) ochamiConfigError() {}
+
+// ErrUnknownCluster represents an error that occurs when a requested cluster
+// name is not found in the config.
+type ErrUnknownCluster struct {
+	ClusterName string
+}
+
+func (euc ErrUnknownCluster) Error() string {
+	return fmt.Sprintf("cluster %s not found", euc.ClusterName)
+}
+
+func (ErrUnknownCluster) ochamiConfigError() {}
+
+// ErrClusterExists represents an error that occurs when an operation
+// requiring a new, unused cluster name (File.AddCluster, File.RenameCluster)
+// is given a name that already exists in the config.
+type ErrClusterExists struct {
+	ClusterName string
+}
+
+func (ece ErrClusterExists) Error() string {
+	return fmt.Sprintf("cluster %s already exists", ece.ClusterName)
+}
+
+func (ErrClusterExists) ochamiConfigError() {}
+
+// ErrDuplicateCluster represents an error that occurs when an operation
+// names a cluster that is defined more than once in a single config source,
+// so which definition the operation should use is ambiguous. Path is the
+// config file, if known, and Source is the name of the config source (see
+// Source.Name), if known. Indices are the zero-based positions of the
+// cluster's entries in the source's clusters list.
+type ErrDuplicateCluster struct {
+	Source  string
+	Path    string
+	Name    string
+	Indices []int
+}
+
+func (edc ErrDuplicateCluster) Error() string {
+	var where string
+	switch {
+	case edc.Path != "":
+		where = " in " + edc.Path
+	case edc.Source != "":
+		where = fmt.Sprintf(" in config '%s'", edc.Source)
+	}
+	entries := make([]string, len(edc.Indices))
+	for i, idx := range edc.Indices {
+		entries[i] = fmt.Sprintf("clusters[%d]", idx)
+	}
+	return fmt.Sprintf("cluster %q is defined %d times%s (%s); edit the file to remove or merge the duplicates",
+		edc.Name, len(edc.Indices), where, strings.Join(entries, ", "))
+}
+
+func (ErrDuplicateCluster) ochamiConfigError() {}
+
+// ErrUnknownKey represents an error that occurs when a requested config key
+// is not set in the file.
+type ErrUnknownKey struct {
+	Key string
+}
+
+func (euk ErrUnknownKey) Error() string {
+	return fmt.Sprintf("key %q does not exist", euk.Key)
+}
+
+func (ErrUnknownKey) ochamiConfigError() {}
+
+// ErrMissingURI represents an error that occurs when neither the cluster.uri
+// nor the <service>.uri config values are set for a service. Service is the
+// name of the service whose config value is being checked.
+type ErrMissingURI struct {
+	Service ServiceName
+}
+
+func (emu ErrMissingURI) Error() string {
+	return fmt.Sprintf("base URI for %s not found (neither cluster.uri nor %s.uri specified)", emu.Service, emu.Service)
+}
+
+func (ErrMissingURI) ochamiConfigError() {}
+
+// ErrInvalidURI represents an error that occurs when the cluster URI is
+// invalid, i.e. is not a valid absolute URI (proto://host[:port][/path]). Err
+// contains the specific error representing the problem.
+type ErrInvalidURI struct {
+	Err error
+}
+
+func (eiu ErrInvalidURI) Error() string {
+	return fmt.Sprintf("invalid URI: %v", eiu.Err)
+}
+
+func (ErrInvalidURI) ochamiConfigError() {}
+
+// ErrInvalidServiceURI represents an error that occurs when a service's URI is
+// invalid, i.e. is neither a valid absolute URI (proto://host[:port][/path])
+// nor a valid relative path (/path).
+type ErrInvalidServiceURI struct {
+	Err     error
+	Service ServiceName
+}
+
+func (eisu ErrInvalidServiceURI) Error() string {
+	return fmt.Sprintf("invalid service URI for %s: %v", eisu.Service, eisu.Err)
+}
+
+func (ErrInvalidServiceURI) ochamiConfigError() {}
+
+// ErrUnknownService represents an error that occurs when the service name
+// presented is unknown.
+type ErrUnknownService struct {
+	Service string
+}
+
+func (eus ErrUnknownService) Error() string {
+	return fmt.Sprintf("unknown service: %s", eus.Service)
+}
+
+func (ErrUnknownService) ochamiConfigError() {}

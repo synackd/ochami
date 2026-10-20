@@ -8,11 +8,11 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/knadh/koanf/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/openchami/ochami/internal/cli"
-	"github.com/openchami/ochami/internal/config"
+	"github.com/openchami/ochami/internal/configfile"
+	"github.com/openchami/ochami/pkg/config"
 )
 
 func newCmdClusterShow() *cobra.Command {
@@ -22,6 +22,7 @@ func newCmdClusterShow() *cobra.Command {
 		Args:  cobra.MaximumNArgs(2),
 		Short: "View cluster configuration options the CLI sees from a config file",
 		Long: `View cluster configuration options the CLI sees from a config file.
+Showing a single cluster fails if a config file defines it more than once.
 
 See ochami-config(1) for details on the config commands.
 See ochami-config(5) for details on the configuration options.`,
@@ -46,39 +47,31 @@ See ochami-config(5) for details on the configuration options.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the config from the relevant file depending on the flag,
 			// or the merged config if none.
-			var ko *koanf.Koanf
-			var err error
-			if cmd.Flags().Changed("system") {
-				ko, err = config.ReadConfigWithDefaults(config.SystemConfigFile)
-				if err != nil {
-					return cli.Errorf(cli.CodeConfig, "failed to read system config file: %w", err)
-				}
-			} else if cmd.Flags().Changed("user") {
-				ko, err = config.ReadConfigWithDefaults(config.UserConfigFile)
-				if err != nil {
-					return cli.Errorf(cli.CodeConfig, "failed to read user config file: %w", err)
-				}
-			} else if cmd.Flags().Changed("config") {
-				ko, err = config.ReadConfigWithDefaults(cmd.Flag("config").Value.String())
-				if err != nil {
-					return cli.Errorf(cli.CodeConfig, "failed to read config file %s: %w", cmd.Flag("config").Value.String(), err)
-				}
-			} else {
-				ko = config.GlobalKoanf
+			eff, err := cli.ResolveShowEffective(cmd)
+			if err != nil {
+				return err
 			}
 
 			var key string
 			var val string
 			if len(args) == 0 {
 				// No cluster specified, get all of them.
-				val, err = config.GetConfigString(ko, "clusters")
+				val, err = configfile.GetConfigString(eff, "clusters")
 				if err != nil {
 					return cli.Errorf(cli.CodeConfig, "failed to fetch config for all clusters: %w", err)
 				}
 			} else {
-				var cfgCl *config.ConfigCluster
-				var clusters []config.ConfigCluster
-				if err := ko.Unmarshal("clusters", &clusters); err != nil {
+				// A cluster defined more than once in a config file has
+				// no single configuration to show.
+				for _, dup := range eff.DuplicateClusters() {
+					if dup.Name == args[0] {
+						return cli.Errorf(cli.CodeConfig, "cannot show cluster: %w", dup)
+					}
+				}
+
+				var cfgCl *config.Cluster
+				var clusters []config.Cluster
+				if err := eff.Unmarshal("clusters", &clusters); err != nil {
 					return cli.Errorf(cli.CodeConfig, "failed to unmarshal clusters: %w", err)
 				}
 				for cidx, cl := range clusters {
@@ -95,7 +88,7 @@ See ochami-config(5) for details on the configuration options.`,
 				if len(args) == 2 {
 					key = args[1]
 				}
-				val, err = config.GetConfigClusterString(*cfgCl, key)
+				val, err = configfile.GetConfigClusterString(*cfgCl, key)
 				if err != nil {
 					if key == "" {
 						return cli.Errorf(cli.CodeConfig, "failed to get full cluster config: %w", err)

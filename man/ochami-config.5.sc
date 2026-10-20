@@ -26,6 +26,29 @@ These configuration options are global configuration options.
 
 	See *CLUSTER CONFIGURATION* below for details on cluster configuration.
 
+	A cluster name must be unique within a configuration file. (The same name
+	may appear once in each of the system-wide and user-level files, see
+	*ochami*(1) for how they are merged.) If a file defines a cluster more than
+	once, for example after a manual edit, *ochami* will not choose between the
+	definitions:
+
+	- Every command that loads the configuration (any command run without
+	  *--ignore-config*) prints a warning naming the cluster, the file, and
+	  the positions of its entries in *clusters*.
+	- Commands that use the cluster, whether selected with *--cluster* or
+	  through *default-cluster*, fail with exit status 3, even if
+	  *--cluster-uri* or *--uri* is also passed.
+	- *ochami config cluster show* _cluster_name_ fails with exit status 3.
+	  Commands that show every cluster (*ochami config cluster show* and
+	  *ochami config show*) show the definitions merged in order, later ones
+	  taking precedence.
+	- Setting, unsetting, renaming, deleting, or making default that cluster
+	  with *ochami config cluster* fails with exit status 3 and leaves the file
+	  unchanged.
+
+	Commands that don't use the duplicated cluster work as usual. Remove or
+	merge the duplicate entries by editing the file.
+
 	The format is:
 
 	```
@@ -37,8 +60,8 @@ These configuration options are global configuration options.
 
 *default-cluster:* _cluster_name_
 	The name of the default cluster to use when *--cluster* is not specified on
-	the command line. A cluster configuration must exist for _cluster_name_ or
-	further commands will fail.
+	the command line. A cluster configuration must exist for _cluster_name_, and
+	must be defined only once in its file, or further commands will fail.
 
 *log*
 	Logging options.
@@ -102,7 +125,8 @@ the array containing a *cluster* mapping with the below configuration options.
 
 *name:* _cluster_name_
 	The name of the cluster. This is what *--cluster* and the *default-cluster*
-	key use to identify the cluster.
+	key use to identify the cluster. It must be non-empty and must not contain a
+	period (*.*), which delimits keys.
 
 *<service>*
 	The service-specific configuration for *<service>*. Currently recognized

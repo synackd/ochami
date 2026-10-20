@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openchami/ochami/internal/cli"
-	"github.com/openchami/ochami/internal/config"
+	"github.com/openchami/ochami/pkg/config"
 )
 
 func newCmdClusterUnset() *cobra.Command {
@@ -18,7 +18,8 @@ func newCmdClusterUnset() *cobra.Command {
 		Use:   "unset [--user | --system | --config <path>] <cluster_name> <key>",
 		Args:  cobra.ExactArgs(2),
 		Short: "Unset parameter for a cluster",
-		Long: `Unset parameter for a cluster.
+		Long: `Unset parameter for a cluster. Fails without changing the config file
+if the file defines the cluster more than once.
 
 See ochami-config(1) for details on the config commands.
 See ochami-config(5) for details on the configuration options.`,
@@ -40,18 +41,14 @@ See ochami-config(5) for details on the configuration options.`,
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// We must have a config file in order to write cluster info
-			var fileToModify string
-			if cmd.Flags().Changed("config") {
-				fileToModify = cli.ConfigFile
-			} else if cmd.Parent().Parent().Flags().Changed("system") {
-				// Check if --system was passed to 'config' command
-				fileToModify = config.SystemConfigFile
-			} else {
-				fileToModify = config.UserConfigFile
-			}
+			fileToModify := cli.ConfigFileToModify(cmd)
 
 			// Perform modification
-			if err := config.DeleteConfigCluster(fileToModify, args[0], args[1]); err != nil {
+			f, err := config.OpenFile(fileToModify)
+			if err != nil {
+				return cli.Errorf(cli.CodeConfig, "failed to open config file: %w", err)
+			}
+			if err := f.UnsetClusterKey(args[0], args[1]); err != nil {
 				return cli.Errorf(cli.CodeConfig, "failed to modify config file: %w", err)
 			}
 
