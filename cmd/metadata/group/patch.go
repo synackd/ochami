@@ -15,16 +15,9 @@ import (
 	"github.com/openchami/ochami/pkg/client"
 )
 
-var (
-	formatPatch client.PatchMethod = client.PatchMethodRFC7386
-
-	setList    []string
-	unsetList  []string
-	addList    []string
-	removeList []string
-)
-
 func newCmdMetadataGroupPatch() *cobra.Command {
+	formatPatch := client.PatchMethodRFC7386
+	var setList, unsetList, addList, removeList []string
 	// metadataGroupPatchCmd represents the "metadata group patch" command
 	var metadataGroupPatchCmd = &cobra.Command{
 		Use:   "patch <uid>",
@@ -81,16 +74,17 @@ See ochami-metadata(1) for more details.`,
 				return err
 			}
 
-			var patchData map[string]interface{}
+			var patchData interface{}
 			if cmd.Flag("set").Changed || cmd.Flag("unset").Changed || cmd.Flag("add").Changed || cmd.Flag("remove").Changed {
 				if cmd.Flag("patch-method").Changed && formatPatch != client.PatchMethodKeyVal {
 					log.Logger.Warn().Msg("overriding --patch-method since --set/--unset/--add/--remove was passed")
 				}
 
-				pd, err := client.NewKeyValPatch(setList, unsetList, addList, removeList)
+				newPatchMethod, pd, err := client.NewKeyValPatchData(setList, unsetList, addList, removeList)
 				if err != nil {
 					return cli.Errorf(cli.CodeUsage, "error creating key-value patch data: %w", err)
 				}
+				formatPatch = newPatchMethod
 				patchData = pd
 			} else {
 				if cmd.Flag("data").Changed {
@@ -128,7 +122,7 @@ See ochami-metadata(1) for more details.`,
 	metadataGroupPatchCmd.Flags().StringArrayVar(&setList, "set", nil, "set field value using dot notation (field=value)")
 	metadataGroupPatchCmd.Flags().StringArrayVar(&unsetList, "unset", nil, "unset field using dot notation")
 	metadataGroupPatchCmd.Flags().StringArrayVar(&addList, "add", nil, "add value to array field (field=value)")
-	metadataGroupPatchCmd.Flags().StringArrayVar(&removeList, "remove", nil, "remove value from array field (field=value)")
+	metadataGroupPatchCmd.Flags().StringArrayVar(&removeList, "remove", nil, "remove value from array field by index (field=index)")
 	metadataGroupPatchCmd.Flags().StringP("data", "d", "", "payload data or (if starting with @) file containing payload data (can be - to read from stdin)")
 	metadataGroupPatchCmd.Flags().VarP(&cli.FormatInput, "format-input", "f", "format of input payload data for JSON patch formats (json,json-pretty,yaml)")
 	metadataGroupPatchCmd.Flags().VarP(&formatPatch, "patch-method", "p", "type of patch to use (rfc6902,rfc7386,keyval)")
@@ -139,6 +133,7 @@ See ochami-metadata(1) for more details.`,
 	}
 
 	metadataGroupPatchCmd.RegisterFlagCompletionFunc("format-input", cli.CompletionFormatData)
+	metadataGroupPatchCmd.RegisterFlagCompletionFunc("patch-method", cli.CompletionPatchMethod)
 
 	return metadataGroupPatchCmd
 }
