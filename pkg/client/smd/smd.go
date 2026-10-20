@@ -200,9 +200,7 @@ func (sc *SMDClient) GetComponentsXname(xname, token string) (client.HTTPEnvelop
 	finalEP := SMDRelpathComponents + "/" + xname
 	headers := client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentsXname(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
 	if err != nil {
@@ -219,9 +217,7 @@ func (sc *SMDClient) GetComponentsNid(nid int32, token string) (client.HTTPEnvel
 	finalEP := SMDRelpathComponents + "/ByNID/" + fmt.Sprint(nid)
 	headers := client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentsNid(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
 	if err != nil {
@@ -243,9 +239,7 @@ func (sc *SMDClient) GetRedfishEndpoints(query, token string) (client.HTTPEnvelo
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetRedfishEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.GetData(SMDRelpathRedfishEndpoints, query, headers)
 	if err != nil {
@@ -281,9 +275,7 @@ func (sc *SMDClient) GetEthernetInterfaceByID(id, token string, getIPs bool) (cl
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetEthernetInterfaceByID(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	if getIPs {
 		if ep, err = url.JoinPath(SMDRelpathEthernetInterfaces, id); err != nil {
@@ -317,9 +309,7 @@ func (sc *SMDClient) GetComponentEndpoints(token string, xnames ...string) ([]cl
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("GetComponentEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, xname := range xnames {
 		henv, err := sc.GetData(SMDRelpathComponentEndpoints+"/"+xname, "", headers)
@@ -347,9 +337,7 @@ func (sc *SMDClient) GetComponentEndpointsAll(token string) (client.HTTPEnvelope
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetComponentEndpointsAll(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.GetData(SMDRelpathComponentEndpoints, "", headers)
 	if err != nil {
@@ -372,9 +360,7 @@ func (sc *SMDClient) GetGroups(query, token string) (client.HTTPEnvelope, error)
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err = headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("GetGroups(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.GetData(SMDRelpathGroups, query, headers)
 	if err != nil {
@@ -390,7 +376,7 @@ func (sc *SMDClient) GetGroups(query, token string) (client.HTTPEnvelope, error)
 // the authorization bearer.
 func (sc *SMDClient) GetGroupMembers(group, token string) (client.HTTPEnvelope, error) {
 	if group == "" {
-		return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): group label cannot be empty")
+		return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): %w: group label cannot be empty", client.InvalidArgumentError)
 	}
 	finalEP, err := url.JoinPath(SMDRelpathGroups, group, "members")
 	if err != nil {
@@ -398,9 +384,7 @@ func (sc *SMDClient) GetGroupMembers(group, token string) (client.HTTPEnvelope, 
 	}
 	headers := client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembers(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err := sc.GetData(finalEP, "", headers)
 	if err != nil {
@@ -417,9 +401,7 @@ func (sc *SMDClient) GetGroupMembers(group, token string) (client.HTTPEnvelope, 
 func (sc *SMDClient) GetGroupMembership(qstr, token string) (client.HTTPEnvelope, error) {
 	headers := client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return client.HTTPEnvelope{}, fmt.Errorf("GetGroupMembership(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err := sc.GetData(SMDRelpathMemberships, qstr, headers)
 	if err != nil {
@@ -445,9 +427,7 @@ func (sc *SMDClient) PostComponents(compSlice ComponentSlice, token string) (cli
 	}
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PostComponents(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.PostData(SMDRelpathComponents, "", headers, body)
 	if err != nil {
@@ -469,9 +449,7 @@ func (sc *SMDClient) PostRedfishEndpoints(rfes RedfishEndpointSlice, token strin
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PostRedfishEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
 		var body client.HTTPBody
@@ -505,9 +483,7 @@ func (sc *SMDClient) PostRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token s
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PostRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
 		var body client.HTTPBody
@@ -543,9 +519,7 @@ func (sc *SMDClient) PostEthernetInterfaces(eis []EthernetInterface, token strin
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PostEthernetInterfaces(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, ei := range eis {
 		var body client.HTTPBody
@@ -581,9 +555,7 @@ func (sc *SMDClient) PostGroups(groups []Group, token string) ([]client.HTTPEnve
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PostGroups(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, group := range groups {
 		var body client.HTTPBody
@@ -619,16 +591,14 @@ func (sc *SMDClient) PostGroupMembers(token, group string, members ...string) ([
 		errors  []error
 	)
 	if group == "" {
-		return henvs, errors, fmt.Errorf("PostGroupMembers(): no group label specified to add members to")
+		return henvs, errors, fmt.Errorf("PostGroupMembers(): %w: no group label specified to add members to", client.InvalidArgumentError)
 	}
 	if len(members) == 0 {
-		return henvs, errors, fmt.Errorf("PostGroupMembers(): no new members specified to add to group")
+		return henvs, errors, fmt.Errorf("PostGroupMembers(): %w: no new members specified to add to group", client.InvalidArgumentError)
 	}
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PostGroupMembers(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, member := range members {
 		groupPath, err := url.JoinPath(SMDRelpathGroups, group, "members")
@@ -677,13 +647,11 @@ func (sc *SMDClient) PutComponents(compSlice ComponentSlice, token string) ([]cl
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PutComponents(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, comp := range compSlice.Components {
 		if comp.ID == "" {
-			newErr := fmt.Errorf("PutComponents(): unable to update component with blank ID")
+			newErr := fmt.Errorf("PutComponents(): %w: unable to update component with blank ID", client.InvalidArgumentError)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -728,15 +696,13 @@ func (sc *SMDClient) PutRedfishEndpoints(rfes RedfishEndpointSlice, token string
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PutRedfishEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
 		var body client.HTTPBody
 		var err error
 		if rfe.ID == "" {
-			newErr := fmt.Errorf("PutRedfishEndpoints(): unable to update redfish endpoint with blank ID")
+			newErr := fmt.Errorf("PutRedfishEndpoints(): %w: unable to update redfish endpoint with blank ID", client.InvalidArgumentError)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -777,15 +743,13 @@ func (sc *SMDClient) PutRedfishEndpointsV2(rfes RedfishEndpointSliceV2, token st
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PutRedfishEndpointsV2(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, rfe := range rfes.RedfishEndpoints {
 		var body client.HTTPBody
 		var err error
 		if rfe.ID == "" {
-			newErr := fmt.Errorf("PutRedfishEndpointsV2(): unable to update redfish endpoint with blank ID")
+			newErr := fmt.Errorf("PutRedfishEndpointsV2(): %w: unable to update redfish endpoint with blank ID", client.InvalidArgumentError)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -830,18 +794,16 @@ func (sc *SMDClient) PutGroupMembers(token, group string, members ...string) (cl
 
 	// Check that group and member list are non-empty
 	if group == "" {
-		return henv, fmt.Errorf("PutGroupMembers(): no group label specified to set members of")
+		return henv, fmt.Errorf("PutGroupMembers(): %w: no group label specified to set members of", client.InvalidArgumentError)
 	}
 	if len(members) == 0 {
-		return henv, fmt.Errorf("PutGroupMembers(): no members specified")
+		return henv, fmt.Errorf("PutGroupMembers(): %w: no members specified", client.InvalidArgumentError)
 	}
 
 	// Add token to headers
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("PutGroupMembers(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 
 	// Calculate endpoint path for group
@@ -876,9 +838,7 @@ func (sc *SMDClient) PatchComponentsNID(comps ComponentSlice, token string) (cli
 	// Set token in request headers
 	headers := client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return client.HTTPEnvelope{}, fmt.Errorf("PatchComponentsNID(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 
 	// Create base path
@@ -923,9 +883,7 @@ func (sc *SMDClient) PatchEthernetInterfaces(eis []EthernetInterface, token stri
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PatchEthernetInterfaces(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, ei := range eis {
 		var body client.HTTPBody
@@ -939,7 +897,7 @@ func (sc *SMDClient) PatchEthernetInterfaces(eis []EthernetInterface, token stri
 				newID = strings.ReplaceAll(newID, "_", "")
 				ei.ID = newID
 			} else {
-				newErr := fmt.Errorf("PatchEthernetInterfaces(): unable to patch ethernet interface with both blank ID and blank MAC address")
+				newErr := fmt.Errorf("PatchEthernetInterfaces(): %w: unable to patch ethernet interface with both blank ID and blank MAC address", client.InvalidArgumentError)
 				henvs = append(henvs, client.HTTPEnvelope{})
 				errors = append(errors, newErr)
 				continue
@@ -985,13 +943,11 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]client.HTTPEnv
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("PatchGroups(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, group := range groups {
 		if group.Label == "" {
-			newErr := fmt.Errorf("PatchGroups(): no group label specified to update")
+			newErr := fmt.Errorf("PatchGroups(): %w: no group label specified to update", client.InvalidArgumentError)
 			henvs = append(henvs, client.HTTPEnvelope{})
 			errors = append(errors, newErr)
 			continue
@@ -1030,6 +986,10 @@ func (sc *SMDClient) PatchGroups(groups []Group, token string) ([]client.HTTPEnv
 // these should correspond. If an error in the function itself occurred, a
 // separate error is returned. This is to distinguish HTTP request errors from
 // control flow errors.
+//
+// An ID that client.CheckPathSegment rejects (e.g. a blank one, which would
+// otherwise address the whole collection) is reported as that item's error,
+// and no request is sent for it.
 func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
@@ -1038,11 +998,14 @@ func (sc *SMDClient) DeleteComponents(token string, xnames ...string) ([]client.
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteComponents(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, xname := range xnames {
+		if err := client.CheckPathSegment("component ID", xname); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteComponents(): %w", err))
+			continue
+		}
 		xnamePath, err := url.JoinPath(SMDRelpathComponents, xname)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteComponents(): failed join component path (%s) with xname (%s): %w", SMDRelpathComponents, xname, err)
@@ -1076,9 +1039,7 @@ func (sc *SMDClient) DeleteComponentsAll(token string) (client.HTTPEnvelope, err
 
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteComponentsAll(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.DeleteData(SMDRelpathComponents, "", headers, nil)
 	if err != nil {
@@ -1096,6 +1057,10 @@ func (sc *SMDClient) DeleteComponentsAll(token string) (client.HTTPEnvelope, err
 // these should correspond. If an error in the function itself occurred, a
 // separate error is returned. This is to distinguish HTTP request errors from
 // control flow errors.
+//
+// An ID that client.CheckPathSegment rejects (e.g. a blank one, which would
+// otherwise address the whole collection) is reported as that item's error,
+// and no request is sent for it.
 func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
@@ -1104,11 +1069,14 @@ func (sc *SMDClient) DeleteRedfishEndpoints(token string, xnames ...string) ([]c
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteRedfishEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, xname := range xnames {
+		if err := client.CheckPathSegment("redfish endpoint ID", xname); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteRedfishEndpoints(): %w", err))
+			continue
+		}
 		xnamePath, err := url.JoinPath(SMDRelpathRedfishEndpoints, xname)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteRedfishEndpoints(): failed join redfish endpoint path (%s) with xname (%s): %w", SMDRelpathRedfishEndpoints, xname, err)
@@ -1143,9 +1111,7 @@ func (sc *SMDClient) DeleteRedfishEndpointsAll(token string) (client.HTTPEnvelop
 
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteRedfishEndpointsAll(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.DeleteData(SMDRelpathRedfishEndpoints, "", headers, nil)
 	if err != nil {
@@ -1164,6 +1130,10 @@ func (sc *SMDClient) DeleteRedfishEndpointsAll(token string) (client.HTTPEnvelop
 // correspond. If an error in the function itself occurred, a separate error is
 // returned. This is to distinguish HTTP request errors from control flow
 // errors.
+//
+// An ID that client.CheckPathSegment rejects (e.g. a blank one, which would
+// otherwise address the whole collection) is reported as that item's error,
+// and no request is sent for it.
 func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
@@ -1172,11 +1142,14 @@ func (sc *SMDClient) DeleteEthernetInterfaces(token string, eIds ...string) ([]c
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteEthernetInterfaces(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, eId := range eIds {
+		if err := client.CheckPathSegment("ethernet interface ID", eId); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteEthernetInterfaces(): %w", err))
+			continue
+		}
 		eIdPath, err := url.JoinPath(SMDRelpathEthernetInterfaces, eId)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteEthernetInterfaces(): failed join ethernet interface path (%s) with ethernet interface %s: %w", SMDRelpathEthernetInterfaces, eId, err)
@@ -1211,9 +1184,7 @@ func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (client.HTTPEnvel
 
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteEthernetInterfacesAll(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.DeleteData(SMDRelpathEthernetInterfaces, "", headers, nil)
 	if err != nil {
@@ -1231,6 +1202,10 @@ func (sc *SMDClient) DeleteEthernetInterfacesAll(token string) (client.HTTPEnvel
 // deletion. The indexes of these should correspond. If an error in the
 // function itself occurred, a separate error is returned. This is to
 // distinguish HTTP request errors from control flow errors.
+//
+// An ID that client.CheckPathSegment rejects (e.g. a blank one, which would
+// otherwise address the whole collection) is reported as that item's error,
+// and no request is sent for it.
 func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
@@ -1239,11 +1214,14 @@ func (sc *SMDClient) DeleteComponentEndpoints(token string, xnames ...string) ([
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteComponentEndpoints(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, xname := range xnames {
+		if err := client.CheckPathSegment("component endpoint ID", xname); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteComponentEndpoints(): %w", err))
+			continue
+		}
 		finalEP, err := url.JoinPath(SMDRelpathComponentEndpoints, xname)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteComponentEndpoints(): failed join component endpoint path (%s) with xname %s: %w", SMDRelpathComponentEndpoints, xname, err)
@@ -1278,9 +1256,7 @@ func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (client.HTTPEnvel
 
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henv, fmt.Errorf("DeleteComponentEndpointsAll(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	henv, err = sc.DeleteData(SMDRelpathComponentEndpoints, "", headers, nil)
 	if err != nil {
@@ -1298,6 +1274,10 @@ func (sc *SMDClient) DeleteComponentEndpointsAll(token string) (client.HTTPEnvel
 // these should correspond. If an error in the function itself occurred, a
 // separate error is returned. This is to distinguish HTTP request errors from
 // control flow errors.
+//
+// An ID that client.CheckPathSegment rejects (e.g. a blank one, which would
+// otherwise address the whole collection) is reported as that item's error,
+// and no request is sent for it.
 func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
@@ -1306,11 +1286,14 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]client
 	)
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteGroups(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, label := range groupLabels {
+		if err := client.CheckPathSegment("group label", label); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteGroups(): %w", err))
+			continue
+		}
 		labelPath, err := url.JoinPath(SMDRelpathGroups, label)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteGroups(): failed join group path (%s) with group label (%s): %w", SMDRelpathGroups, label, err)
@@ -1339,19 +1322,29 @@ func (sc *SMDClient) DeleteGroups(token string, groupLabels ...string) ([]client
 // each deletion. The indexes of these should correspond. If an error in the
 // function itself occurred, a separate error is returned. This is to
 // distinguish HTTP request errors from control flow errors.
+//
+// A group label that client.CheckPathSegment rejects is a function-level
+// error, and no request is sent. A member ID that it rejects is reported as
+// that item's error, and no request is sent for it.
 func (sc *SMDClient) DeleteGroupMembers(token, group string, members ...string) ([]client.HTTPEnvelope, []error, error) {
 	var (
 		errors  []error
 		henvs   []client.HTTPEnvelope
 		headers *client.HTTPHeaders
 	)
+	if err := client.CheckPathSegment("group label", group); err != nil {
+		return henvs, errors, fmt.Errorf("DeleteGroupMembers(): %w", err)
+	}
 	headers = client.NewHTTPHeaders()
 	if token != "" {
-		if err := headers.SetAuthorization(token); err != nil {
-			return henvs, errors, fmt.Errorf("DeleteGroupMembers(): error setting token in HTTP headers: %w", err)
-		}
+		_ = headers.SetAuthorization(token)
 	}
 	for _, member := range members {
+		if err := client.CheckPathSegment("group member", member); err != nil {
+			henvs = append(henvs, client.HTTPEnvelope{})
+			errors = append(errors, fmt.Errorf("DeleteGroupMembers(): %w", err))
+			continue
+		}
 		memberPath, err := url.JoinPath(SMDRelpathGroups, group, "members", member)
 		if err != nil {
 			newErr := fmt.Errorf("DeleteGroupMembers(): failed join group path (%s) with group %s and member %s: %w", SMDRelpathGroups, group, member, err)

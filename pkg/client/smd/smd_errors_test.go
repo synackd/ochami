@@ -12,6 +12,7 @@ package smd
 import (
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/openchami/schemas/schemas/csm"
@@ -311,5 +312,202 @@ func TestSMDClient_RejectsBlankRequiredFields(t *testing.T) {
 	_, errs, err = c.PatchGroups([]Group{{}}, "")
 	if err != nil || len(errs) != 1 || errs[0] == nil {
 		t.Fatalf("blank group errors = %v, %v", errs, err)
+	}
+}
+
+// TestIterativeDeletes_InvalidID verifies that each iterative delete reports
+// an ID that is blank or is not a single path segment as that item's error,
+// wrapping client.InvalidArgumentError, without sending a request for it,
+// while still deleting the valid IDs.
+func TestIterativeDeletes_InvalidID(t *testing.T) {
+	cases := []struct {
+		name string
+		call func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error)
+	}{
+		{"components", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteComponents("tok", "", "x0c0s0b0n0", "x0/..")
+		}},
+		{"rfe", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteRedfishEndpoints("tok", "", "x0c0s0b0", ".")
+		}},
+		{"iface", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteEthernetInterfaces("tok", "", "decafc0ffee", "..")
+		}},
+		{"compendpoints", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteComponentEndpoints("tok", "", "x0c0s0b0n0", "a/b")
+		}},
+		{"groups", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteGroups("tok", "", "compute", " ")
+		}},
+		{"groupmembers", func(sc *SMDClient) ([]client.HTTPEnvelope, []error, error) {
+			return sc.DeleteGroupMembers("tok", "compute", "", "x0c0s0b0n0", "x0/..")
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var paths []string
+			sc, srv := newTestSMD(t, func(w http.ResponseWriter, r *http.Request) {
+				paths = append(paths, r.URL.Path)
+				w.WriteHeader(http.StatusOK)
+			})
+			defer srv.Close()
+
+			henvs, errs, err := tc.call(sc)
+			if err != nil {
+				t.Fatalf("control-flow error = %v, want nil", err)
+			}
+			if len(errs) != 3 || len(henvs) != 3 {
+				t.Fatalf("got %d errors and %d envelopes, want 3 of each", len(errs), len(henvs))
+			}
+			for _, i := range []int{0, 2} {
+				if !errors.Is(errs[i], client.InvalidArgumentError) {
+					t.Errorf("errs[%d] = %v, want it to wrap client.InvalidArgumentError", i, errs[i])
+				}
+			}
+			if errs[1] != nil {
+				t.Errorf("errs[1] = %v, want nil for the valid ID", errs[1])
+			}
+			if len(paths) != 1 {
+				t.Errorf("requests = %v, want exactly one, for the valid ID", paths)
+			}
+		})
+	}
+}
+
+// TestDeleteGroupMembers_InvalidGroupLabel verifies that DeleteGroupMembers
+// rejects a group label that is blank or is not a single path segment with a
+// control-flow error wrapping client.InvalidArgumentError, without sending a
+// request.
+func TestDeleteGroupMembers_InvalidGroupLabel(t *testing.T) {
+	for _, label := range []string{"", "..", "compute/x"} {
+		requestMade := false
+		sc, srv := newTestSMD(t, func(w http.ResponseWriter, r *http.Request) { requestMade = true })
+
+		_, _, err := sc.DeleteGroupMembers("tok", label, "x0c0s0b0n0")
+		srv.Close()
+		if !errors.Is(err, client.InvalidArgumentError) {
+			t.Errorf("DeleteGroupMembers(%q) error = %v, want it to wrap client.InvalidArgumentError", label, err)
+		}
+		if requestMade {
+			t.Errorf("DeleteGroupMembers(%q) sent a request", label)
+		}
+	}
+}
+
+// newTestClient builds an SMDClient pointed at srv.
+func newTestClient(t *testing.T, srv *httptest.Server) *SMDClient {
+	t.Helper()
+	c, err := NewClient(srv.URL, client.WithInsecure(true))
+	if err != nil {
+		t.Fatalf("failed to create SMD client: %v", err)
+	}
+	return c
+}
+
+// TestGetEthernetInterfaceByID_HTTPError verifies that GetEthernetInterfaceByID
+// returns an error for an unsuccessful response.
+func TestGetEthernetInterfaceByID_HTTPError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "boom", http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	c := newTestClient(t, srv)
+	if _, err := c.GetEthernetInterfaceByID("decafc0ffeee", "tok", false); err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+}
+
+// TestPostGroupMembers_Guards verifies the empty-group and empty-members guard
+// clauses.
+func TestPostGroupMembers_Guards(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+	c := newTestClient(t, srv)
+
+	if _, _, err := c.PostGroupMembers("tok", ""); err == nil {
+		t.Error("PostGroupMembers with empty group = nil, want error")
+	}
+	if _, _, err := c.PostGroupMembers("tok", "compute"); err == nil {
+		t.Error("PostGroupMembers with no members = nil, want error")
+	}
+}
+
+// TestGetStatus_UnknownComponent verifies that GetStatus rejects an unknown
+// component and accepts "" and "all".
+func TestGetStatus_UnknownComponent(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+	c := newTestClient(t, srv)
+
+	if _, err := c.GetStatus("bogus"); err == nil {
+		t.Error("GetStatus(bogus) = nil, want error")
+	}
+	// "" and "all" are valid and route to the ready/values endpoints.
+	if _, err := c.GetStatus(""); err != nil {
+		t.Errorf("GetStatus(\"\") = %v, want nil", err)
+	}
+	if _, err := c.GetStatus("all"); err != nil {
+		t.Errorf("GetStatus(all) = %v, want nil", err)
+	}
+}
+
+// TestGetComponentsXnameNid_HTTPError verifies that GetComponentsXname and
+// GetComponentsNid return an error for an unsuccessful response.
+func TestGetComponentsXnameNid_HTTPError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "boom", http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+	c := newTestClient(t, srv)
+
+	if _, err := c.GetComponentsXname("x0c0s0b0n0", "tok"); err == nil {
+		t.Error("GetComponentsXname error arm = nil, want error")
+	}
+	if _, err := c.GetComponentsNid(1, "tok"); err == nil {
+		t.Error("GetComponentsNid error arm = nil, want error")
+	}
+}
+
+// TestPutGroupMembers_Guards verifies the empty-group and empty-members guards.
+func TestPutGroupMembers_Guards(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+	c := newTestClient(t, srv)
+
+	if _, err := c.PutGroupMembers("tok", ""); err == nil {
+		t.Error("PutGroupMembers with empty group = nil, want error")
+	}
+	if _, err := c.PutGroupMembers("tok", "compute"); err == nil {
+		t.Error("PutGroupMembers with no members = nil, want error")
+	}
+}
+
+// TestDeleteAllHelpers_HTTPError verifies that each delete-all helper returns
+// an error for an unsuccessful response.
+func TestDeleteAllHelpers_HTTPError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "boom", http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+	c := newTestClient(t, srv)
+
+	if _, err := c.DeleteComponentsAll("tok"); err == nil {
+		t.Error("DeleteComponentsAll error arm = nil, want error")
+	}
+	if _, err := c.DeleteRedfishEndpointsAll("tok"); err == nil {
+		t.Error("DeleteRedfishEndpointsAll error arm = nil, want error")
+	}
+	if _, err := c.DeleteEthernetInterfacesAll("tok"); err == nil {
+		t.Error("DeleteEthernetInterfacesAll error arm = nil, want error")
+	}
+	if _, err := c.DeleteComponentEndpointsAll("tok"); err == nil {
+		t.Error("DeleteComponentEndpointsAll error arm = nil, want error")
 	}
 }

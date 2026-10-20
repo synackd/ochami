@@ -135,6 +135,22 @@ func (oc *OchamiClient) GetURI(endpoint, query string) (string, error) {
 	return uri.String(), err
 }
 
+// CheckPathSegment returns an error wrapping InvalidArgumentError if seg
+// cannot name a single resource below an endpoint: if it is blank, is "." or
+// "..", or contains "/". url.JoinPath resolves each of these to the endpoint
+// itself or to a different path, and a DELETE to a collection endpoint can
+// delete every resource in it. what names seg in the error message (e.g.
+// "component ID").
+func CheckPathSegment(what, seg string) error {
+	switch {
+	case strings.TrimSpace(seg) == "":
+		return fmt.Errorf("%w: %s cannot be blank", InvalidArgumentError, what)
+	case seg == "." || seg == ".." || strings.Contains(seg, "/"):
+		return fmt.Errorf("%w: %s %q is not a single path segment", InvalidArgumentError, what, seg)
+	}
+	return nil
+}
+
 // GetData is a wrapper around MakeOchamiRequest that sends a GET request to
 // endpoint, using an optional token and optional headers, and returns an
 // HTTPEnvelope containg the response metadata and the data received in the
@@ -150,14 +166,11 @@ func (oc *OchamiClient) GetData(endpoint, query string, headers *HTTPHeaders) (H
 	if err != nil {
 		return he, fmt.Errorf("error making GET request to %s: %w", oc.ServiceName, err)
 	}
-	if res != nil {
-		he, err := NewHTTPEnvelopeFromResponse(res)
-		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from GET response: %w", err)
-		}
-		return he, he.CheckResponse()
+	he, err = NewHTTPEnvelopeFromResponse(res)
+	if err != nil {
+		return he, fmt.Errorf("could not create HTTP envelope from GET response: %w", err)
 	}
-	return he, fmt.Errorf("%s GET response was empty", oc.ServiceName)
+	return he, he.CheckResponse()
 }
 
 // PostData is a wrapper around MakeOchamiRequest that sends a POST request to
@@ -175,14 +188,11 @@ func (oc *OchamiClient) PostData(endpoint, query string, headers *HTTPHeaders, b
 	if err != nil {
 		return he, fmt.Errorf("error making POST request to %s, %w", oc.ServiceName, err)
 	}
-	if res != nil {
-		he, err := NewHTTPEnvelopeFromResponse(res)
-		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from POST response: %w", err)
-		}
-		return he, he.CheckResponse()
+	he, err = NewHTTPEnvelopeFromResponse(res)
+	if err != nil {
+		return he, fmt.Errorf("could not create HTTP envelope from POST response: %w", err)
 	}
-	return he, fmt.Errorf("%s POST response was empty", oc.ServiceName)
+	return he, he.CheckResponse()
 }
 
 // PutData is a wrapper around MakeOchamiRequest that sends a PUT request to
@@ -200,14 +210,11 @@ func (oc *OchamiClient) PutData(endpoint, query string, headers *HTTPHeaders, bo
 	if err != nil {
 		return he, fmt.Errorf("error making PUT request to %s, %w", oc.ServiceName, err)
 	}
-	if res != nil {
-		he, err := NewHTTPEnvelopeFromResponse(res)
-		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from PUT response: %w", err)
-		}
-		return he, he.CheckResponse()
+	he, err = NewHTTPEnvelopeFromResponse(res)
+	if err != nil {
+		return he, fmt.Errorf("could not create HTTP envelope from PUT response: %w", err)
 	}
-	return he, fmt.Errorf("%s PUT response was empty", oc.ServiceName)
+	return he, he.CheckResponse()
 }
 
 // PatchData is a wrapper around MakeOchamiRequest that sends a PATCH request to
@@ -225,14 +232,11 @@ func (oc *OchamiClient) PatchData(endpoint, query string, headers *HTTPHeaders, 
 	if err != nil {
 		return he, fmt.Errorf("error making PATCH request to %s, %w", oc.ServiceName, err)
 	}
-	if res != nil {
-		he, err := NewHTTPEnvelopeFromResponse(res)
-		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %w", err)
-		}
-		return he, he.CheckResponse()
+	he, err = NewHTTPEnvelopeFromResponse(res)
+	if err != nil {
+		return he, fmt.Errorf("could not create HTTP envelope from PATCH response: %w", err)
 	}
-	return he, fmt.Errorf("%s PATCH response was empty", oc.ServiceName)
+	return he, he.CheckResponse()
 }
 
 // DeleteData is a wrapper around MakeOchamiRequest that sends a DELETE request
@@ -250,14 +254,11 @@ func (oc *OchamiClient) DeleteData(endpoint, query string, headers *HTTPHeaders,
 	if err != nil {
 		return he, fmt.Errorf("error making DELETE request to %s, %w", oc.ServiceName, err)
 	}
-	if res != nil {
-		he, err := NewHTTPEnvelopeFromResponse(res)
-		if err != nil {
-			return he, fmt.Errorf("could not create HTTP envelope from DELETE response: %w", err)
-		}
-		return he, he.CheckResponse()
+	he, err = NewHTTPEnvelopeFromResponse(res)
+	if err != nil {
+		return he, fmt.Errorf("could not create HTTP envelope from DELETE response: %w", err)
 	}
-	return he, fmt.Errorf("%s DELETE response was empty", oc.ServiceName)
+	return he, he.CheckResponse()
 }
 
 // MakeOchamiRequest is a wrapper around MakeRequest that calls GetURI to form

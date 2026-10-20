@@ -6,13 +6,10 @@
 package iface
 
 import (
-	"errors"
-
 	"github.com/spf13/cobra"
 
 	"github.com/openchami/ochami/internal/cli"
 	"github.com/openchami/ochami/internal/log"
-	"github.com/openchami/ochami/pkg/client"
 	"github.com/openchami/ochami/pkg/client/smd"
 
 	smd_lib "github.com/openchami/ochami/internal/cli/smd"
@@ -57,6 +54,9 @@ See ochami-smd(1) for more details.`,
 				if len(args) == 0 {
 					return cli.Errorf(cli.CodeUsage, "expected -d, --all, or >= 1 argument (interface id), got %d", len(args))
 				}
+				if err := smd_lib.CheckIDs("ethernet interface ID", args); err != nil {
+					return err
+				}
 			} else {
 				if len(args) > 0 {
 					log.Logger.Warn().Msgf("raw data or --all passed, ignoring extra arguments: %v", args)
@@ -67,13 +67,11 @@ See ochami-smd(1) for more details.`,
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Ask before attempting deletion unless --no-confirm was passed
-			noConfirm, err := cmd.Flags().GetBool("no-confirm")
-			if err != nil {
-				return cli.Errorf(cli.CodeUsage, "failed to get --no-confirm: %w", err)
-			}
+			noConfirm, _ := cmd.Flags().GetBool("no-confirm")
 			if !noConfirm {
 				log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 				var respDelete bool
+				var err error
 				if cmd.Flag("all").Changed {
 					respDelete, err = cli.Ios.LoopYesNo("Really delete ALL ETHERNET INTERFACES?")
 				} else {
@@ -107,6 +105,22 @@ See ochami-smd(1) for more details.`,
 				if err := cli.HandlePayload(cmd, &eiSlice); err != nil {
 					return err
 				}
+				for _, ei := range eiSlice {
+					eIdSlice = append(eIdSlice, ei.ID)
+				}
+				if len(eIdSlice) == 0 {
+					return cli.Errorf(cli.CodeUsage, "payload contained no ethernet interfaces to delete")
+				}
+				if err := smd_lib.CheckIDs("ethernet interface ID", eIdSlice); err != nil {
+					// Unlike patch, delete does not derive a missing ID from
+					// the MAC address, so say so when the payload has one.
+					for _, ei := range eiSlice {
+						if ei.ID == "" && ei.MACAddress != "" {
+							return cli.Errorf(cli.CodeUsage, "invalid payload: %w; delete does not derive an ID from MACAddress", err)
+						}
+					}
+					return cli.Errorf(cli.CodeUsage, "invalid payload: %w", err)
+				}
 			} else {
 				// ...otherwise, use passed CLI arguments
 				eIdSlice = args
@@ -117,33 +131,20 @@ See ochami-smd(1) for more details.`,
 				// If --all passed, we don't care about any passed arguments
 				_, err := smdClient.DeleteEthernetInterfacesAll(cli.Token)
 				if err != nil {
-					if errors.Is(err, client.UnsuccessfulHTTPError) {
-						return cli.Errorf(cli.CodeHTTP, "SMD ethernet interface deletion yielded unsuccessful HTTP response: %w", err)
-					}
-					return cli.Errorf(cli.CodeNetwork, "failed to delete ethernet interfaces in SMD: %w", err)
+					return cli.ClassifyClientError(err,
+						"SMD ethernet interface deletion yielded unsuccessful HTTP response",
+						"failed to delete ethernet interfaces in SMD")
 				}
 			} else {
 				// If --all not passed, pass argument list to deletion logic
 				_, errs, err := smdClient.DeleteEthernetInterfaces(cli.Token, eIdSlice...)
 				if err != nil {
-					return cli.Errorf(cli.CodeNetwork, "failed to delete ethernet interfaces in SMD: %w", err)
+					return cli.ClassifyClientError(err, "failed to delete ethernet interfaces in SMD", "failed to delete ethernet interfaces in SMD")
 				}
 				// Since smdClient.DeleteEthernetInterfaces does the deletion iteratively, we need to deal
 				// with each error that might have occurred.
-				var errorsOccurred = false
-				for _, e := range errs {
-					if e != nil {
-						if errors.Is(e, client.UnsuccessfulHTTPError) {
-							log.Logger.Error().Err(e).Msg("SMD ethernet interface deletion yielded unsuccessful HTTP response")
-						} else {
-							log.Logger.Error().Err(e).Msg("failed to delete ethernet interfaces")
-						}
-						errorsOccurred = true
-					}
-				}
-				// Warn the user if any errors occurred during deletion iterations
-				if errorsOccurred {
-					return cli.Errorf(cli.CodeHTTP, "SMD ethernet interface deletion completed with errors")
+				if err := cli.AggregateItemErrors(errs, "SMD ethernet interface deletion"); err != nil {
+					return err
 				}
 			}
 

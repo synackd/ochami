@@ -6,13 +6,12 @@
 package member
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/openchami/ochami/internal/cli"
 	"github.com/openchami/ochami/internal/log"
-	"github.com/openchami/ochami/pkg/client"
 
 	smd_lib "github.com/openchami/ochami/internal/cli/smd"
 )
@@ -27,12 +26,15 @@ func newCmdGroupMemberDelete() *cobra.Command {
 
 See ochami-smd(1) for more details.`,
 		Example: `  ochami smd group member delete compute x3000c1s7b56n0`,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := smd_lib.CheckIDs("group label", args[:1]); err != nil {
+				return err
+			}
+			return smd_lib.CheckIDs("group member", args[1:])
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Ask before attempting deletion unless --no-confirm was passed
-			noConfirm, err := cmd.Flags().GetBool("no-confirm")
-			if err != nil {
-				return cli.Errorf(cli.CodeUsage, "failed to get --no-confirm: %w", err)
-			}
+			noConfirm, _ := cmd.Flags().GetBool("no-confirm")
 			if !noConfirm {
 				log.Logger.Debug().Msg("--no-confirm not passed, prompting user to confirm deletion")
 				respDelete, err := cli.Ios.LoopYesNo("Really delete?")
@@ -59,24 +61,10 @@ See ochami-smd(1) for more details.`,
 			// Perform deletion from arguments
 			_, errs, err := smdClient.DeleteGroupMembers(cli.Token, args[0], args[1:]...)
 			if err != nil {
-				return cli.Errorf(cli.CodeNetwork, "failed to delete members from group %s in SMD: %w", args[0], err)
+				return cli.ClassifyClientError(err, fmt.Sprintf("failed to delete members from group %s in SMD", args[0]), fmt.Sprintf("failed to delete members from group %s in SMD", args[0]))
 			}
-			// Since smdClient.DeleteGroupMembers does the deletion iteratively, we need to deal with
-			// each error that might have occurred.
-			var errorsOccurred = false
-			for _, e := range errs {
-				if e != nil {
-					if errors.Is(e, client.UnsuccessfulHTTPError) {
-						log.Logger.Error().Err(e).Msg("SMD group member deletion yielded unsuccessful HTTP response")
-					} else {
-						log.Logger.Error().Err(e).Msg("failed to delete group member(s)")
-					}
-					errorsOccurred = true
-				}
-			}
-			// Warn the user if any errors occurred during deletion iterations
-			if errorsOccurred {
-				return cli.Errorf(cli.CodeHTTP, "SMD group member deletion completed with errors")
+			if err := cli.AggregateItemErrors(errs, "SMD group member deletion"); err != nil {
+				return err
 			}
 
 			return nil
