@@ -123,6 +123,50 @@ func TestSMDIfaceGet_ByIDWithByIP(t *testing.T) {
 	}
 }
 
+// TestSMDIfaceGet_ByIDWithByIPFalse verifies "get --id --by-ip=false" fetches
+// the interface itself, as if --by-ip were omitted, not its IP addresses.
+func TestSMDIfaceGet_ByIDWithByIPFalse(t *testing.T) {
+	t.Parallel()
+
+	var gotPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.Write([]byte(`{}`))
+	}))
+	defer srv.Close()
+
+	res := runOchamiWithRuntime(t, "smd", "--ignore-config", "iface", "get", "--uri", srv.URL,
+		"--token", validToken(t), "--id", "decafc0ffeee", "--by-ip=false")
+	if res.err != nil {
+		t.Fatalf("unexpected error: %v (exit %d)", res.err, res.exitCode)
+	}
+	if want := "/Inventory/EthernetInterfaces/decafc0ffeee"; gotPath != want {
+		t.Errorf("path = %q, want %q", gotPath, want)
+	}
+}
+
+// TestSMDIfaceGet_ByIPFalse verifies "get --by-ip=false" without --id fetches
+// all interfaces instead of rejecting --by-ip as needing --id.
+func TestSMDIfaceGet_ByIPFalse(t *testing.T) {
+	t.Parallel()
+
+	var gotPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.Write([]byte(`[]`))
+	}))
+	defer srv.Close()
+
+	res := runOchamiWithRuntime(t, "smd", "--ignore-config", "iface", "get", "--uri", srv.URL,
+		"--token", validToken(t), "--by-ip=false")
+	if res.err != nil {
+		t.Fatalf("unexpected error: %v (exit %d)", res.err, res.exitCode)
+	}
+	if want := "/Inventory/EthernetInterfaces"; gotPath != want {
+		t.Errorf("path = %q, want %q", gotPath, want)
+	}
+}
+
 // TestSMDIfaceAdd_ByFlags verifies "add <comp> <mac> <net,ip>" issues a POST.
 func TestSMDIfaceAdd_ByFlags(t *testing.T) {
 	t.Parallel()
@@ -236,5 +280,29 @@ func TestSMDIfaceDelete_ByData(t *testing.T) {
 	}
 	if deletes != 1 {
 		t.Errorf("DELETE count = %d, want 1", deletes)
+	}
+}
+
+// TestSMDIfaceDelete_AllFalse verifies "delete --all=false <id>" deletes only the
+// given ethernet interface instead of every ethernet interface.
+func TestSMDIfaceDelete_AllFalse(t *testing.T) {
+	t.Parallel()
+
+	var gotPaths []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			gotPaths = append(gotPaths, r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	res := runOchamiWithRuntime(t, "smd", "--ignore-config", "iface", "delete", "--uri", srv.URL, "--token", "t",
+		"--no-confirm", "--all=false", "decafc0ffee0")
+	if res.err != nil {
+		t.Fatalf("unexpected error: %v (exit %d)", res.err, res.exitCode)
+	}
+	if want := "/Inventory/EthernetInterfaces/decafc0ffee0"; len(gotPaths) != 1 || gotPaths[0] != want {
+		t.Errorf("DELETE paths = %v, want [%s]", gotPaths, want)
 	}
 }
